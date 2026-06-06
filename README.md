@@ -3,6 +3,7 @@
 Gamaxy is an ASP.NET Core gaming platform where users can:
 
 - Browse games
+- Play games
 - Upload games
 - Download launchers
 - Make payments
@@ -14,7 +15,7 @@ Gamaxy is an ASP.NET Core gaming platform where users can:
 - ASP.NET Core MVC
 - Entity Framework Core
 - SQL Server
-- HTML/CSS/JavaScript
+- HTML/CSS/JavaScript/Three.js
 - Bootstrap
 
 ## Author

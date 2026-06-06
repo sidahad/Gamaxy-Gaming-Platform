@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Blackjack Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===== Enhanced Responsive Design System ===== */
+        :root {
+            /* Color System */
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #10b981;
+            --secondary-dark: #0d9f6e;
+            --danger-color: #ef4444;
+            --danger-dark: #dc2626;
+            --background-dark: #1e293b;
+            --background-light: #f8fafc;
+            --text-light: #f8fafc;
+            --text-dark: #1e293b;
+            --card-bg: #ffffff;
+            
+            /* Spacing & Sizing */
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Responsive Units */
+            --base-size: clamp(0.75rem, 1.5vw, 1rem);
+            --card-width: clamp(60px, 12vw, 90px);
+            --card-height: clamp(90px, 18vw, 135px);
+            --button-padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1rem, 2vw, 1.75rem);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: clamp(14px, 2vw, 16px);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--background-dark), #0f172a);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* ===== Layout Components ===== */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            padding: clamp(0.5rem, 2vw, 1rem);
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(0.5rem, 2vw, 1rem) 0;
+            margin-bottom: clamp(0.5rem, 2vw, 1.5rem);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: clamp(1.25rem, 4vw, 1.5rem);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            font-size: clamp(1.5rem, 5vw, 2rem);
+        }
+
+        .game-info {
+            display: flex;
+            gap: clamp(0.5rem, 2vw, 1.5rem);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: clamp(0.25rem, 1vw, 0.5rem) clamp(0.5rem, 2vw, 1rem);
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(10px);
+            font-size: clamp(0.75rem, 2vw, 1rem);
+            white-space: nowrap;
+        }
+
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(1rem, 3vw, 2rem);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            padding: clamp(1rem, 3vw, 2rem);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--box-shadow);
+        }
+
+        /* ===== Game Components ===== */
+        .player-section {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .section-title {
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .score {
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            padding: clamp(0.25rem, 1vw, 0.5rem) clamp(0.5rem, 2vw, 1rem);
+            border-radius: var(--border-radius);
+        }
+
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: clamp(0.5rem, 1.5vw, 0.75rem);
+            min-height: clamp(90px, 18vw, 120px);
+        }
+
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            background: var(--card-bg);
+            color: var(--text-dark);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: clamp(0.5rem, 1vw, 0.75rem);
+            font-weight: 700;
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            animation: dealCard 0.3s ease-out forwards;
+        }
+
+        .card.red {
+            color: #dc2626;
+        }
+
+        .card.black {
+            color: var(--text-dark);
+        }
+
+        .card.hidden-card {
+            background: #1e293b;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(0.75rem, 2vw, 0.875rem);
+            border: 1px dashed rgba(255, 255, 255, 0.3);
+        }
+
+        .card-value {
+            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-weight: 700;
+            align-self: flex-start;
+        }
+
+        .card-suit {
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            align-self: center;
+        }
+
+        .card-value-bottom {
+            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-weight: 700;
+            align-self: flex-end;
+            transform: rotate(180deg);
+        }
+
+        /* ===== Game Messaging ===== */
+        .message-area {
+            text-align: center;
+            padding: clamp(0.75rem, 2vw, 1rem);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: clamp(1rem, 3vw, 1.1rem);
+            margin: clamp(0.5rem, 2vw, 1rem) 0;
+            transition: var(--transition);
+        }
+
+        .message-default {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .message-win {
+            background: rgba(16, 185, 129, 0.2);
+            color: #a7f3d0;
+        }
+
+        .message-lose {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fecaca;
+        }
+
+        .message-tie {
+            background: rgba(253, 230, 138, 0.2);
+            color: #fef08a;
+        }
+
+        /* ===== Game Controls ===== */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: clamp(0.75rem, 2vw, 1rem);
+            flex-wrap: wrap;
+            padding-top: clamp(0.5rem, 2vw, 1rem);
+            margin-top: auto;
+        }
+
+        .btn {
+            padding: var(--button-padding);
+            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-weight: 600;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: clamp(100px, 20vw, 120px);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            flex: 1 1 auto;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ===== Animations ===== */
+        @keyframes dealCard {
+            0% {
+                transform: translateY(-20px) rotate(-5deg);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        /* ===== Responsive Breakpoints ===== */
+        /* Landscape Mobile */
+        @media (orientation: landscape) and (max-height: 600px) {
+            .app-container {
+                padding: 0.5rem;
+            }
+            
+            .game-area {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                padding: 1rem;
+            }
+            
+            .player-section {
+                flex: 1 1 45%;
+                min-width: 200px;
+            }
+            
+            .message-area {
+                order: 1;
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+            
+            .controls {
+                order: 2;
+                width: 100%;
+                padding-top: 0.5rem;
+            }
+            
+            .card {
+                width: clamp(50px, 10vw, 70px);
+                height: clamp(75px, 15vw, 105px);
+            }
+        }
+
+        /* Foldable/Small Phones */
+        @media (max-width: 300px) {
+            .logo {
+                font-size: 1rem;
+            }
+            
+            .card {
+                width: 50px;
+                height: 75px;
+                padding: 0.25rem;
+            }
+            
+            .card-suit {
+                font-size: 1rem;
+            }
+            
+            .btn {
+                min-width: 80px;
+                padding: 0.5rem;
+            }
+        }
+
+        /* Ultra-wide Screens */
+        @media (min-width: 1600px) {
+            .app-container {
+                max-width: 1400px;
+            }
+        }
+
+        /* Tall Mobile Screens */
+        @media (max-width: 600px) and (min-height: 1000px) {
+            .game-area {
+                gap: 2rem;
+                padding: 1.5rem;
+            }
+            
+            .card {
+                width: 80px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="top-bar">
+            <div class="logo">
+                <span class="logo-icon">🃏</span>
+                <span>Blackjack Pro</span>
+            </div>
+            <div class="game-info">
+                <div class="info-item">
+                    <span>💰</span>
+                    <span>$1,250</span>
+                </div>
+                <div class="info-item">
+                    <span>🏆</span>
+                    <span>12 Wins</span>
+                </div>
+                <div class="info-item">
+                    <span>⚙️</span>
+                    <span>Settings</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <!-- Dealer Section -->
+            <div class="player-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>🎩</span>
+                        <span>Dealer</span>
+                    </h2>
+                    <div class="score" id="dealer-score">Score: 0</div>
+                </div>
+                <div class="cards-container" id="dealer-cards"></div>
+            </div>
+
+            <!-- Game Message -->
+            <div class="message-area message-default" id="game-message">
+                Welcome to Blackjack! Click "New Game" to start.
+            </div>
+
+            <!-- Player Section -->
+            <div class="player-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>👤</span>
+                        <span>Player</span>
+                    </h2>
+                    <div class="score" id="player-score">Score: 0</div>
+                </div>
+                <div class="cards-container" id="player-cards"></div>
+            </div>
+
+            <!-- Game Controls -->
+            <div class="controls">
+                <button class="btn btn-primary" id="new-game-btn" onclick="startNewGame()">
+                    <span>🔄</span>
+                    <span>New Game</span>
+                </button>
+                <button class="btn btn-secondary" id="hit-btn" onclick="playerHit()" disabled>
+                    <span>➕</span>
+                    <span>Hit</span>
+                </button>
+                <button class="btn btn-danger" id="stand-btn" onclick="playerStand()" disabled>
+                    <span>✋</span>
+                    <span>Stand</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Original Game Logic (Unchanged) =====
+        let deck = [];
+        let playerHand = [];
+        let dealerHand = [];
+        let gameActive = false;
+        let dealerTurn = false;
+
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+        function createDeck() {
+            const newDeck = [];
+            for (let suit of suits) {
+                for (let value of values) {
+                    newDeck.push({
+                        suit: suit,
+                        value: value,
+                        numericValue: getCardValue(value)
+                    });
+                }
+            }
+            return shuffleDeck(newDeck);
+        }
+
+        function shuffleDeck(deck) {
+            const shuffled = [...deck];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function getCardValue(value) {
+            if (value === 'A') return 11;
+            if (['J', 'Q', 'K'].includes(value)) return 10;
+            return parseInt(value);
+        }
+
+        function calculateHandValue(hand) {
+            let total = 0;
+            let aces = 0;
+
+            for (let card of hand) {
+                if (card.value === 'A') {
+                    aces++;
+                    total += 11;
+                } else {
+                    total += card.numericValue;
+                }
+            }
+
+            while (total > 21 && aces > 0) {
+                total -= 10;
+                aces--;
+            }
+
+            return total;
+        }
+
+        function createCardElement(card, hidden = false) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+
+            if (hidden) {
+                cardDiv.className += ' hidden-card';
+                cardDiv.textContent = 'Hidden';
+                return cardDiv;
+            }
+
+            if (card.suit === '♥' || card.suit === '♦') {
+                cardDiv.className += ' red';
+            } else {
+                cardDiv.className += ' black';
+            }
+
+            cardDiv.innerHTML = `
+                <div class="card-value">${card.value}</div>
+                <div class="card-suit">${card.suit}</div>
+                <div class="card-value-bottom">${card.value}</div>
+            `;
+
+            return cardDiv;
+        }
+
+        function updateDisplay() {
+            const playerCardsDiv = document.getElementById('player-cards');
+            const dealerCardsDiv = document.getElementById('dealer-cards');
+            const playerScoreDiv = document.getElementById('player-score');
+            const dealerScoreDiv = document.getElementById('dealer-score');
+
+            playerCardsDiv.innerHTML = '';
+            dealerCardsDiv.innerHTML = '';
+
+            for (let card of playerHand) {
+                playerCardsDiv.appendChild(createCardElement(card));
+            }
+
+            for (let i = 0; i < dealerHand.length; i++) {
+                const shouldHide = gameActive && !dealerTurn && i === 0;
+                dealerCardsDiv.appendChild(createCardElement(dealerHand[i], shouldHide));
+            }
+
+            const playerScore = calculateHandValue(playerHand);
+            playerScoreDiv.textContent = `Score: ${playerScore}`;
+
+            if (dealerTurn || !gameActive) {
+                const dealerScore = calculateHandValue(dealerHand);
+                dealerScoreDiv.textContent = `Score: ${dealerScore}`;
+            } else {
+                dealerScoreDiv.textContent = 'Score: ?';
+            }
+        }
+
+        function dealCard() {
+            return deck.pop();
+        }
+
+        function startNewGame() {
+            deck = createDeck();
+            playerHand = [];
+            dealerHand = [];
+            gameActive = true;
+            dealerTurn = false;
+
+            playerHand.push(dealCard());
+            dealerHand.push(dealCard());
+            playerHand.push(dealCard());
+            dealerHand.push(dealCard());
+
+            updateDisplay();
+
+            const playerScore = calculateHandValue(playerHand);
+            const dealerScore = calculateHandValue(dealerHand);
+
+            if (playerScore === 21 && dealerScore === 21) {
+                endGame("It's a tie! Both have Blackjack!", 'tie');
+            } else if (playerScore === 21) {
+                endGame("Blackjack! You win!", 'win');
+            } else if (dealerScore === 21) {
+                dealerTurn = true;
+                updateDisplay();
+                endGame("Dealer has Blackjack! You lose!", 'lose');
+            } else {
+                document.getElementById('hit-btn').disabled = false;
+                document.getElementById('stand-btn').disabled = false;
+                updateMessage("Your turn! Hit or Stand?");
+            }
+        }
+
+        function playerHit() {
+            if (!gameActive || dealerTurn) return;
+
+            playerHand.push(dealCard());
+            updateDisplay();
+
+            const playerScore = calculateHandValue(playerHand);
+
+            if (playerScore > 21) {
+                endGame("Bust! You lose!", 'lose');
+            } else if (playerScore === 21) {
+                playerStand();
+            }
+        }
+
+        function playerStand() {
+            if (!gameActive) return;
+
+            dealerTurn = true;
+            document.getElementById('hit-btn').disabled = true;
+            document.getElementById('stand-btn').disabled = true;
+
+            updateDisplay();
+            updateMessage("Dealer's turn...");
+
+            setTimeout(dealerPlay, 1000);
+        }
+
+        function dealerPlay() {
+            const dealerScore = calculateHandValue(dealerHand);
+
+            if (dealerScore < 17) {
+                dealerHand.push(dealCard());
+                updateDisplay();
+                setTimeout(dealerPlay, 1000);
+            } else {
+                const playerScore = calculateHandValue(playerHand);
+                const finalDealerScore = calculateHandValue(dealerHand);
+
+                if (finalDealerScore > 21) {
+                    endGame("Dealer busts! You win!", 'win');
+                } else if (finalDealerScore > playerScore) {
+                    endGame("Dealer wins!", 'lose');
+                } else if (playerScore > finalDealerScore) {
+                    endGame("You win!", 'win');
+                } else {
+                    endGame("It's a tie!", 'tie');
+                }
+            }
+        }
+
+        function endGame(message, result) {
+            gameActive = false;
+            dealerTurn = true;
+            updateDisplay();
+            updateMessage(message, result);
+
+            document.getElementById('hit-btn').disabled = true;
+            document.getElementById('stand-btn').disabled = true;
+        }
+
+        function updateMessage(text, type = '') {
+            const messageDiv = document.getElementById('game-message');
+            messageDiv.textContent = text;
+            messageDiv.className = 'message-area';
+            
+            switch(type) {
+                case 'win':
+                    messageDiv.classList.add('message-win');
+                    break;
+                case 'lose':
+                    messageDiv.classList.add('message-lose');
+                    break;
+                case 'tie':
+                    messageDiv.classList.add('message-tie');
+                    break;
+                default:
+                    messageDiv.classList.add('message-default');
+            }
+        }
+
+        window.onload = function() {
+            updateMessage("Welcome to Blackjack! Click 'New Game' to start.");
+        };
+    </script>
+</body>
+</html>

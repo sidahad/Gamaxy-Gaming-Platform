@@ -1,0 +1,565 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Elite Fruit Ninja - Championship Edition";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Elite Fruit Ninja - Championship Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/FruitNinja.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">ELITE FRUIT NINJA</h1>
+                <div class="game-subtitle">CHAMPIONSHIP EDITION</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container">
+                    <canvas id="gameCanvas" width="1200" height="800"></canvas>
+                    <div class="game-ui">
+                        <div class="score">💎 Score: <span id="score">0</span></div>
+                        <div class="level">⚡ Level: <span id="level">1</span></div>
+                        <div class="lives">❤️ Lives: <span id="lives">3</span></div>
+                        <div class="progress-container">
+                            <div class="progress-label">Level Progress</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="combo-display">
+                        <div id="combo" style="display: none;">COMBO x<span id="comboCount">0</span></div>
+                    </div>
+                    <div class="controls-panel" id="controlsPanel">
+                        <h2>🎮 GAME CONTROLS</h2>
+                        <div class="control-item">
+                            <span>Move & Slice</span>
+                            <span class="key">MOUSE</span>
+                        </div>
+                        <div class="control-item">
+                            <span>Pause/Controls</span>
+                            <span class="key">ESC</span>
+                        </div>
+                        <div class="control-item">
+                            <span>Restart Game</span>
+                            <span class="key">R</span>
+                        </div>
+                        <div style="margin-top: 20px; font-size: clamp(12px, 2.5vw, 14px); color: #AAA;">
+                            <p>🍎 Slice fruits to score points</p>
+                            <p>💣 Avoid bombs at all costs</p>
+                            <p>⚡ Chain combos for bonus points</p>
+                            <p>🏆 Survive to unlock new levels</p>
+                        </div>
+                    </div>
+                    <div class="game-over" id="gameOver">
+                        <h2>🏆 GAME OVER</h2>
+                        <p>Final Score: <span id="finalScore">0</span></p>
+                        <p>Level Reached: <span id="finalLevel">1</span></p>
+                        <button class="btn restart-btn" onclick="restartGame()">🎮 PLAY AGAIN</button>
+                    </div>
+                    <div class="sword-cursor" id="swordCursor">⚔️</div>
+                </div>
+            </div>
+
+            <!-- Mobile controls for touch devices -->
+            <div class="mobile-controls">
+                <div class="mobile-btn" id="mobilePauseBtn">⏸</div>
+                <div class="mobile-btn" id="mobileRestartBtn">🔄</div>
+            </div>
+
+            <!-- Original controls (hidden on touch devices) -->
+            <div class="controls">
+                <p>Move mouse to slice • Press ESC for pause/controls • Press R to restart</p>
+            </div>
+
+            <!-- Rating Section -->
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = {
+            score: 0,
+            level: 1,
+            lives: 3,
+            combo: 0,
+            comboTimer: 0,
+            paused: false,
+            gameOver: false,
+            fruits: [],
+            particles: [],
+            mouseX: 0,
+            mouseY: 0,
+            slashTrail: []
+        };
+
+        // Fruit types with enhanced graphics
+        const fruitTypes = [
+            { emoji: '🍎', color: '#FF6B6B', points: 10, name: 'apple' },
+            { emoji: '🍊', color: '#FF8E53', points: 15, name: 'orange' },
+            { emoji: '🍌', color: '#FFD93D', points: 12, name: 'banana' },
+            { emoji: '🍇', color: '#A8E6CF', points: 20, name: 'grapes' },
+            { emoji: '🍓', color: '#FF6B9D', points: 18, name: 'strawberry' },
+            { emoji: '🥝', color: '#88D8B0', points: 25, name: 'kiwi' },
+            { emoji: '🍑', color: '#FF6B6B', points: 22, name: 'cherry' },
+            { emoji: '🍍', color: '#FFD93D', points: 30, name: 'pineapple' }
+        ];
+
+        const bombType = { emoji: '💣', color: '#333', points: -50, name: 'bomb' };
+
+        class Fruit {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = -Math.random() * 15 - 10;
+                this.gravity = 0.5;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.3;
+                this.size = 40 + Math.random() * 20;
+                this.sliced = false;
+                this.alpha = 1;
+
+                if (Math.random() < 0.15 + (gameState.level * 0.02)) {
+                    this.type = bombType;
+                    this.isBomb = true;
+                } else {
+                    this.type = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+                    this.isBomb = false;
+                }
+            }
+
+            update() {
+                if (!this.sliced) {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vy += this.gravity;
+                    this.rotation += this.rotationSpeed;
+                }
+
+                if (this.sliced) {
+                    this.alpha -= 0.05;
+                    this.size *= 1.02;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+
+                if (!this.isBomb) {
+                    ctx.shadowColor = this.type.color;
+                    ctx.shadowBlur = 15;
+                }
+
+                ctx.font = `${this.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.type.emoji, 0, 0);
+
+                ctx.restore();
+            }
+
+            isClicked(mouseX, mouseY) {
+                const distance = Math.sqrt((mouseX - this.x) ** 2 + (mouseY - this.y) ** 2);
+                return distance < this.size / 2;
+            }
+
+            slice() {
+                if (this.sliced) return;
+
+                this.sliced = true;
+
+                if (this.isBomb) {
+                    gameState.lives--;
+                    createExplosion(this.x, this.y, '#FF4444');
+                    updateUI();
+
+                    if (gameState.lives <= 0) {
+                        endGame();
+                    }
+                } else {
+                    gameState.score += this.type.points * (1 + gameState.combo * 0.1);
+                    gameState.combo++;
+                    gameState.comboTimer = 60;
+                    createExplosion(this.x, this.y, this.type.color);
+                    updateUI();
+                    updateCombo();
+                }
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.life = 30;
+                this.maxLife = 30;
+                this.color = color;
+                this.size = Math.random() * 4 + 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.2;
+                this.life--;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+            }
+
+            draw() {
+                const alpha = this.life / this.maxLife;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                gameState.particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function spawnFruit() {
+            const x = Math.random() * (canvas.width - 100) + 50;
+            const y = canvas.height + 50;
+            gameState.fruits.push(new Fruit(x, y));
+        }
+
+        function updateGame() {
+            if (gameState.paused || gameState.gameOver) return;
+
+            gameState.fruits = gameState.fruits.filter(fruit => {
+                fruit.update();
+                return fruit.y < canvas.height + 100 && fruit.alpha > 0;
+            });
+
+            gameState.particles = gameState.particles.filter(particle => {
+                particle.update();
+                return particle.life > 0;
+            });
+
+            if (gameState.comboTimer > 0) {
+                gameState.comboTimer--;
+                if (gameState.comboTimer === 0) {
+                    gameState.combo = 0;
+                    updateCombo();
+                }
+            }
+
+            if (Math.random() < 0.02 + (gameState.level * 0.005)) {
+                spawnFruit();
+            }
+
+            if (gameState.score > gameState.level * 500) {
+                gameState.level++;
+                updateUI();
+            }
+        }
+
+        function drawGame() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#98FB98');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState.slashTrail.length > 1) {
+                ctx.shadowColor = '#FFD700';
+                ctx.shadowBlur = 20;
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+                ctx.lineWidth = 12;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                ctx.moveTo(gameState.slashTrail[0].x, gameState.slashTrail[0].y);
+                for (let i = 1; i < gameState.slashTrail.length; i++) {
+                    ctx.lineTo(gameState.slashTrail[i].x, gameState.slashTrail[i].y);
+                }
+                ctx.stroke();
+
+                ctx.shadowBlur = 10;
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.9)';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(gameState.slashTrail[0].x, gameState.slashTrail[0].y);
+                for (let i = 1; i < gameState.slashTrail.length; i++) {
+                    ctx.lineTo(gameState.slashTrail[i].x, gameState.slashTrail[i].y);
+                }
+                ctx.stroke();
+
+                ctx.shadowBlur = 5;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(gameState.slashTrail[0].x, gameState.slashTrail[0].y);
+                for (let i = 1; i < gameState.slashTrail.length; i++) {
+                    ctx.lineTo(gameState.slashTrail[i].x, gameState.slashTrail[i].y);
+                }
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+            }
+
+            gameState.fruits.forEach(fruit => fruit.draw());
+            gameState.particles.forEach(particle => particle.draw());
+
+            gameState.slashTrail = gameState.slashTrail.slice(-10);
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = Math.floor(gameState.score);
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('lives').textContent = gameState.lives;
+
+            const currentLevelScore = gameState.score - ((gameState.level - 1) * 500);
+            const progress = Math.min((currentLevelScore / 500) * 100, 100);
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function updateCombo() {
+            const comboElement = document.getElementById('combo');
+            const comboCountElement = document.getElementById('comboCount');
+
+            if (gameState.combo > 1) {
+                comboElement.style.display = 'block';
+                comboCountElement.textContent = gameState.combo;
+            } else {
+                comboElement.style.display = 'none';
+            }
+        }
+
+        function endGame() {
+            gameState.gameOver = true;
+            document.getElementById('finalScore').textContent = Math.floor(gameState.score);
+            document.getElementById('finalLevel').textContent = gameState.level;
+            document.getElementById('gameOver').classList.add('active');
+        }
+
+        function restartGame() {
+            gameState = {
+                score: 0,
+                level: 1,
+                lives: 3,
+                combo: 0,
+                comboTimer: 0,
+                paused: false,
+                gameOver: false,
+                fruits: [],
+                particles: [],
+                mouseX: 0,
+                mouseY: 0,
+                slashTrail: []
+            };
+
+            document.getElementById('gameOver').classList.remove('active');
+            updateUI();
+            updateCombo();
+        }
+
+        let isSlicing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (gameState.paused || gameState.gameOver) return;
+            isSlicing = true;
+            checkSlicing();
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isSlicing = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            gameState.mouseX = e.clientX - rect.left;
+            gameState.mouseY = e.clientY - rect.top;
+
+            const cursor = document.getElementById('swordCursor');
+            cursor.style.left = e.clientX - 20 + 'px';
+            cursor.style.top = e.clientY - 20 + 'px';
+
+            gameState.slashTrail.push({x: gameState.mouseX, y: gameState.mouseY});
+
+            if (isSlicing) {
+                checkSlicing();
+            }
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameState.paused || gameState.gameOver) return;
+            isSlicing = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            gameState.mouseX = touch.clientX - rect.left;
+            gameState.mouseY = touch.clientY - rect.top;
+            gameState.slashTrail.push({x: gameState.mouseX, y: gameState.mouseY});
+            checkSlicing();
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            gameState.mouseX = touch.clientX - rect.left;
+            gameState.mouseY = touch.clientY - rect.top;
+            gameState.slashTrail.push({x: gameState.mouseX, y: gameState.mouseY});
+            const cursor = document.getElementById('swordCursor');
+            cursor.style.left = touch.clientX - 20 + 'px';
+            cursor.style.top = touch.clientY - 20 + 'px';
+            if (isSlicing) {
+                checkSlicing();
+            }
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isSlicing = false;
+        });
+
+        function checkSlicing() {
+            gameState.fruits.forEach(fruit => {
+                if (!fruit.sliced && fruit.isClicked(gameState.mouseX, gameState.mouseY)) {
+                    fruit.slice();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const controlsPanel = document.getElementById('controlsPanel');
+                if (controlsPanel.classList.contains('active')) {
+                    controlsPanel.classList.remove('active');
+                    gameState.paused = false;
+                } else {
+                    controlsPanel.classList.add('active');
+                    gameState.paused = true;
+                }
+            }
+
+            if (e.key.toLowerCase() === 'r' && gameState.gameOver) {
+                restartGame();
+            }
+        });
+
+        document.getElementById('mobilePauseBtn').addEventListener('click', () => {
+            if (gameState.gameOver) return;
+            const controlsPanel = document.getElementById('controlsPanel');
+            if (controlsPanel.classList.contains('active')) {
+                controlsPanel.classList.remove('active');
+                gameState.paused = false;
+            } else {
+                controlsPanel.classList.add('active');
+                gameState.paused = true;
+            }
+        });
+
+        document.getElementById('mobileRestartBtn').addEventListener('click', () => {
+            if (gameState.gameOver) {
+                restartGame();
+            }
+        });
+
+        function handleResize() {
+            const container = document.querySelector('.game-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            gameState.slashTrail = [];
+        }
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(handleResize, 100);
+        });
+        window.addEventListener('orientationchange', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(handleResize, 100);
+        });
+        handleResize();
+
+        function gameLoop() {
+            updateGame();
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        updateUI();
+        gameLoop();
+
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => spawnFruit(), i * 1000);
+        }
+    </script>
+</body>
+</html>

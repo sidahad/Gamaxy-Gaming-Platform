@@ -1,0 +1,1640 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Luckiest+Guy&family=Orbitron:wght@400;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+}
+
+:root {
+    --success: #00ffcc;
+    --warning: #f5c518;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --border-radius: 12px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+body {
+    font-family: 'Orbitron', sans-serif;
+    overflow-x: hidden;
+    background: #0a0a1e;
+    min-height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.game-page {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.header-section {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+    .header-section h1 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: clamp(1.5rem, 5vw, 2rem);
+        color: var(--success);
+        text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+    }
+
+.game-container-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.game-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: calc(100vh - 120px);
+    max-height: 900px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    background: #0a0a1e;
+}
+
+#game-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, #663300 0%, #331800 100%);
+    z-index: 1;
+}
+
+.kitchen-light {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+    z-index: 2;
+}
+
+.kitchen-counter {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(to bottom, #DDDDDD 0%, #AAAAAA 100%);
+    border-top: 2px solid #888888;
+    z-index: 2;
+}
+
+.counter-shine {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    width: 400px;
+    height: 20px;
+    background: rgba(255,255,255,0.5);
+    opacity: 0.7;
+    z-index: 2;
+}
+
+.chef-silhouette {
+    position: absolute;
+    width: 80px;
+    height: 120px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 40px 40px 0 0;
+    z-index: 2;
+}
+
+.utensil {
+    position: absolute;
+    width: 60px;
+    height: 10px;
+    background: rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+#game-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+#plate {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 180px;
+    height: 30px;
+    z-index: 10;
+    transition: left 0.1s ease-out;
+}
+
+.plate-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0px 5px 3px rgba(0,0,0,0.3));
+}
+
+.ingredient {
+    position: absolute;
+    width: 160px;
+    height: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    transition: transform 0.1s ease-out;
+}
+
+    .ingredient img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));
+    }
+
+.falling-ingredient {
+    position: absolute;
+    width: 160px;
+    height: 40px;
+    z-index: 20;
+    transition: transform 0.1s ease-out;
+}
+
+    .falling-ingredient img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));
+    }
+
+.splash {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    z-index: 25;
+    animation: splash 0.5s forwards;
+    pointer-events: none;
+}
+
+@keyframes splash {
+    0% {
+        transform: scale(0.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.floating-text {
+    position: absolute;
+    z-index: 25;
+    pointer-events: none;
+    animation: floatUp 1s forwards;
+    font-family: 'Luckiest Guy', cursive;
+    color: var(--warning);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+}
+
+.wobble {
+    animation: wobble 0.5s ease-in-out;
+}
+
+@keyframes wobble {
+    0% {
+        transform: translateX(-50%) rotate(0deg);
+    }
+
+    25% {
+        transform: translateX(-50%) rotate(-5deg);
+    }
+
+    50% {
+        transform: translateX(-50%) rotate(3deg);
+    }
+
+    75% {
+        transform: translateX(-50%) rotate(-2deg);
+    }
+
+    100% {
+        transform: translateX(-50%) rotate(0deg);
+    }
+}
+
+.fall {
+    animation: fall 1s forwards;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateX(-50%) rotate(0deg);
+    }
+
+    20% {
+        transform: translateX(-60%) rotate(-20deg);
+    }
+
+    40% {
+        transform: translateX(-40%) rotate(15deg);
+    }
+
+    60% {
+        transform: translateX(-65%) rotate(-25deg);
+    }
+
+    80% {
+        transform: translateX(-35%) rotate(10deg);
+    }
+
+    100% {
+        transform: translateX(-50%) rotate(-90deg) translateY(300px);
+        opacity: 0;
+    }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-10px);
+    }
+
+    50% {
+        transform: translateX(10px);
+    }
+
+    75% {
+        transform: translateX(-10px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+#ui-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 30;
+}
+
+#score-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.burger-icon {
+    width: 30px;
+    height: 30px;
+    background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"%3E%3Cpath d="M5,8 Q15,6 25,8 L25,10 Q15,12 5,10 Z" fill="%23F5B041"/%3E%3Cpath d="M5,12 Q15,14 25,12 L25,14 Q15,16 5,14 Z" fill="%2327AE60"/%3E%3Cpath d="M5,16 Q15,18 25,16 L25,18 Q15,20 5,18 Z" fill="%23784212"/%3E%3Cpath d="M5,20 Q15,22 25,20 L25,22 Q15,24 5,22 Z" fill="%23F5B041"/%3E%3C/svg%3E') no-repeat center;
+    background-size: contain;
+    margin-right: 10px;
+}
+
+#score-value {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 24px;
+    color: var(--warning);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#combo-container {
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+}
+
+#combo-meter {
+    width: 100px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#combo-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(to right, #ff6b6b, #ff8e53);
+    transition: width 0.3s ease;
+}
+
+#combo-text {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 18px;
+    color: var(--warning);
+    margin-left: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#lives-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+}
+
+.life-icon {
+    width: 20px;
+    height: 20px;
+    background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"%3E%3Cpath d="M10,3 C8,1 4,1 4,6 C4,10 10,15 10,15 C10,15 16,10 16,6 C16,1 12,1 10,3 Z" fill="%23E74C3C"/%3E%3C/svg%3E') no-repeat center;
+    background-size: contain;
+    margin-left: 5px;
+}
+
+#time-container {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: var(--light);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#order-container {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+}
+
+#order-title {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 18px;
+    color: var(--warning);
+    margin-right: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#order-items {
+    display: flex;
+}
+
+.order-item {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+}
+
+    .order-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.3));
+    }
+
+#perfect-stack {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 36px;
+    color: var(--warning);
+    text-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#level-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: var(--light);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.tilt-indicator {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.tilt-danger-left,
+.tilt-danger-right {
+    position: absolute;
+    width: 30%;
+    height: 100%;
+    background: #FF5722;
+}
+
+.tilt-danger-left {
+    left: 0;
+}
+
+.tilt-danger-right {
+    right: 0;
+}
+
+.tilt-marker {
+    position: absolute;
+    width: 10px;
+    height: 100%;
+    background: var(--success);
+    left: 50%;
+    transition: left 0.1s ease-out;
+}
+
+#powerup-indicator {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.active-powerup {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 10px;
+}
+
+    .active-powerup img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+.powerup-timer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    background: conic-gradient(#00ffcc 0deg, #00ffcc 360deg, transparent 360deg);
+    clip-path: circle(50% at 50% 50%);
+}
+
+    .powerup-timer.active {
+        background: conic-gradient(transparent 0deg, #00ffcc 180deg, transparent 360deg);
+    }
+
+.powerup {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    pointer-events: auto;
+    z-index: 25;
+    animation: pulse 1s infinite;
+}
+
+    .powerup img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+#pause-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 30px;
+    height: 30px;
+    background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"%3E%3Crect x="8" y="5" width="4" height="20" fill="%23FFFFFF"/%3E%3Crect x="18" y="5" width="4" height="20" fill="%23FFFFFF"/%3E%3C/svg%3E') no-repeat center;
+    background-size: contain;
+    cursor: pointer;
+    pointer-events: auto;
+    z-index: 35;
+}
+
+#start-screen,
+#game-over,
+#level-complete,
+#pause-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 40;
+    color: var(--light);
+}
+
+    #start-screen h1,
+    #game-over h2,
+    #level-complete h2,
+    #pause-screen h2 {
+        font-family: 'Luckiest Guy', cursive;
+        font-size: clamp(2rem, 6vw, 3rem);
+        color: var(--warning);
+        text-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        margin-bottom: 20px;
+    }
+
+    #start-screen p,
+    #game-over p,
+    #level-complete p,
+    #pause-screen p {
+        font-family: 'Orbitron', sans-serif;
+        font-size: clamp(1rem, 3vw, 1.2rem);
+        color: var(--light);
+        text-align: center;
+        margin: 10px 20px;
+    }
+
+.btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    padding: 10px 20px;
+    margin: 10px;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+    border: none;
+    border-radius: var(--border-radius);
+    color: var(--light);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    pointer-events: auto;
+}
+
+    .btn:hover {
+        background: linear-gradient(45deg, #ff8e53, #ff6b6b);
+        transform: scale(1.05);
+    }
+
+#level-select {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.level-btn {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    background: linear-gradient(45deg, #4CAF50, #66BB6A);
+    border: none;
+    border-radius: var(--border-radius);
+    color: var(--light);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+    .level-btn:hover {
+        background: linear-gradient(45deg, #66BB6A, #4CAF50);
+        transform: scale(1.05);
+    }
+
+    .level-btn.locked {
+        background: linear-gradient(45deg, #757575, #9E9E9E);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+.achievement {
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 35;
+}
+
+.achievement-icon {
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.achievement-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    color: var(--warning);
+}
+
+#tutorial-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+}
+
+.tutorial-message {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    color: var(--light);
+    text-align: center;
+    margin: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: var(--border-radius);
+}
+
+.tutorial-arrow {
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 20px solid var(--warning);
+}
+
+#fps-counter {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    color: var(--light);
+    opacity: 0.5;
+}
+
+.rating-section {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.rating-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 1.8rem);
+    color: var(--success);
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+}
+
+.rating-average,
+.rating-user,
+.rating-login {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    color: var(--light);
+    margin: 5px 0;
+}
+
+    .rating-login a {
+        color: var(--success);
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+        .rating-login a:hover {
+            color: #00ccaa;
+            text-decoration: underline;
+        }
+
+.star-rating {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+    direction: rtl;
+}
+
+    .star-rating input {
+        display: none;
+    }
+
+    .star-rating label {
+        font-size: 24px;
+        color: #ccc;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: var(--warning);
+            text-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
+        }
+
+.btn-rate {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    padding: 10px 20px;
+    margin-top: 10px;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+    border: none;
+    border-radius: var(--border-radius);
+    color: var(--light);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+    .btn-rate:hover {
+        background: linear-gradient(45deg, #ff8e53, #ff6b6b);
+        transform: scale(1.05);
+    }
+
+@media (max-width: 600px) {
+    .game-container {
+        max-width: 100%;
+        height: calc(100vh - 100px);
+    }
+
+    .header-section h1 {
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
+    }
+
+    .rating-section {
+        padding: 15px;
+        margin: 15px auto;
+    }
+
+    .rating-title {
+        font-size: clamp(1.2rem, 3.5vw, 1.5rem);
+    }
+
+    .btn,
+    .btn-rate {
+        font-size: clamp(0.9rem, 2.5vw, 1rem);
+        padding: 8px 16px;
+    }
+}
+
+/*@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Luckiest+Guy&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+}
+
+body {
+    font-family: 'Fredoka One', cursive;
+    overflow: hidden;
+    background: #000;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 100vh;
+    max-height: 900px;
+    overflow: hidden;
+}
+
+#game-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, #663300 0%, #331800 100%);
+    z-index: 1;
+}
+
+.kitchen-light {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+    z-index: 2;
+}
+
+.kitchen-counter {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(to bottom, #DDDDDD 0%, #AAAAAA 100%);
+    border-top: 2px solid #888888;
+    z-index: 2;
+}
+
+.counter-shine {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    width: 400px;
+    height: 20px;
+    background: rgba(255,255,255,0.5);
+    opacity: 0.7;
+    z-index: 2;
+}
+
+.chef-silhouette {
+    position: absolute;
+    width: 80px;
+    height: 120px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 40px 40px 0 0;
+    z-index: 2;
+}
+
+.utensil {
+    position: absolute;
+    width: 60px;
+    height: 10px;
+    background: rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+#game-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+#plate {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 180px;
+    height: 30px;
+    z-index: 10;
+    transition: left 0.1s ease-out;
+}
+
+.plate-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0px 5px 3px rgba(0,0,0,0.3));
+}
+
+.ingredient {
+    position: absolute;
+    width: 160px;
+    height: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    transition: transform 0.1s ease-out;
+}
+
+    .ingredient img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));
+    }
+
+.falling-ingredient {
+    position: absolute;
+    width: 160px;
+    height: 40px;
+    z-index: 20;
+    transition: transform 0.1s ease-out;
+}
+
+    .falling-ingredient img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));
+    }
+
+.splash {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    z-index: 25;
+    animation: splash 0.5s forwards;
+    pointer-events: none;
+}
+
+@keyframes splash {
+    0% {
+        transform: scale(0.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.floating-text {
+    position: absolute;
+    z-index: 25;
+    pointer-events: none;
+    animation: floatUp 1s forwards;
+    font-family: 'Luckiest Guy', cursive;
+    color: #FFC107;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+}
+
+.wobble {
+    animation: wobble 0.5s ease-in-out;
+}
+
+@keyframes wobble {
+    0% {
+        transform: translateX(-50%) rotate(0deg);
+    }
+
+    25% {
+        transform: translateX(-50%) rotate(-5deg);
+    }
+
+    50% {
+        transform: translateX(-50%) rotate(3deg);
+    }
+
+    75% {
+        transform: translateX(-50%) rotate(-2deg);
+    }
+
+    100% {
+        transform: translateX(-50%) rotate(0deg);
+    }
+}
+
+.fall {
+    animation: fall 1s forwards;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateX(-50%) rotate(0deg);
+    }
+
+    20% {
+        transform: translateX(-60%) rotate(-20deg);
+    }
+
+    40% {
+        transform: translateX(-40%) rotate(15deg);
+    }
+
+    60% {
+        transform: translateX(-65%) rotate(-25deg);
+    }
+
+    80% {
+        transform: translateX(-35%) rotate(10deg);
+    }
+
+    100% {
+        transform: translateX(-50%) rotate(-90deg) translateY(300px);
+        opacity: 0;
+    }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-10px);
+    }
+
+    50% {
+        transform: translateX(10px);
+    }
+
+    75% {
+        transform: translateX(-10px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+#ui-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 30;
+}
+
+#score-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.burger-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath d='M5,10 Q15,5 25,10 L25,15 Q15,20 5,15 Z' fill='%23F5B041'/%3E%3Cpath d='M5,15 Q15,20 25,15 L25,18 Q15,23 5,18 Z' fill='%238D6E63'/%3E%3Cpath d='M5,18 Q15,23 25,18 L25,20 Q15,25 5,20 Z' fill='%23F5B041'/%3E%3Ccircle cx='10' cy='8' r='1' fill='%23FFFFFF'/%3E%3Ccircle cx='15' cy='7' r='1' fill='%23FFFFFF'/%3E%3Ccircle cx='20' cy='8' r='1' fill='%23FFFFFF'/%3E%3C/svg%3E");
+}
+
+#score-value {
+    font-size: 24px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+#combo-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.5);
+    padding: 5px 10px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+}
+
+#combo-meter {
+    width: 100px;
+    height: 10px;
+    background: #333;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-right: 5px;
+}
+
+#combo-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #FF5722, #FFC107);
+    transition: width 0.3s;
+}
+
+#combo-text {
+    font-size: 16px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+#lives-container {
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.life-icon {
+    width: 25px;
+    height: 25px;
+    margin-right: 5px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 25 25'%3E%3Cpath d='M12.5,5 C10,0 0,0 0,8 C0,15 12.5,20 12.5,20 C12.5,20 25,15 25,8 C25,0 15,0 12.5,5 Z' fill='%23E53935'/%3E%3C/svg%3E");
+}
+
+#order-container {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#order-title {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+#order-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.order-item {
+    width: 80px;
+    height: 20px;
+    margin: 2px 0;
+}
+
+    .order-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+#perfect-stack {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 36px;
+    color: #FFC107;
+    text-shadow: 0 0 10px #FF5722, 0 0 20px #FF5722;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-family: 'Luckiest Guy', cursive;
+}
+
+#level-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    font-size: 18px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+#time-container {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    font-size: 18px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+#game-over, #level-complete, #start-screen, #pause-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+}
+
+    #game-over h2, #level-complete h2, #start-screen h1, #pause-screen h2 {
+        font-size: 36px;
+        color: #FFC107;
+        text-shadow: 0 0 10px #FF5722;
+        margin-bottom: 20px;
+        font-family: 'Luckiest Guy', cursive;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+    #game-over p, #level-complete p, #start-screen p, #pause-screen p {
+        font-size: 18px;
+        color: white;
+        margin: 5px 0;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+.btn {
+    padding: 10px 20px;
+    background: #FF5722;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    margin-top: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: transform 0.1s, background 0.3s;
+    pointer-events: auto;
+}
+
+    .btn:hover {
+        background: #FF7043;
+    }
+
+    .btn:active {
+        transform: translateY(2px);
+    }
+
+#level-select {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+    max-width: 300px;
+}
+
+.level-btn {
+    width: 60px;
+    height: 60px;
+    margin: 5px;
+    background: #795548;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: transform 0.1s, background 0.3s;
+    pointer-events: auto;
+}
+
+    .level-btn:hover {
+        background: #8D6E63;
+    }
+
+    .level-btn:active {
+        transform: translateY(2px);
+    }
+
+    .level-btn.locked {
+        background: #555;
+        cursor: not-allowed;
+    }
+
+.tilt-indicator {
+    position: absolute;
+    bottom: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 10px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 5px;
+    overflow: hidden;
+    display: none;
+}
+
+.tilt-marker {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background: #FF5722;
+    border-radius: 50%;
+    transition: left 0.1s;
+}
+
+.tilt-danger-left, .tilt-danger-right {
+    position: absolute;
+    top: 0;
+    width: 40px;
+    height: 10px;
+    background: rgba(255,0,0,0.5);
+}
+
+.tilt-danger-left {
+    left: 0;
+    border-radius: 5px 0 0 5px;
+}
+
+.tilt-danger-right {
+    right: 0;
+    border-radius: 0 5px 5px 0;
+}
+
+#pause-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 40;
+    pointer-events: auto;
+}
+
+    #pause-btn::before, #pause-btn::after {
+        content: '';
+        position: absolute;
+        width: 5px;
+        height: 20px;
+        background: white;
+        border-radius: 2px;
+    }
+
+    #pause-btn::before {
+        transform: translateX(-5px);
+    }
+
+    #pause-btn::after {
+        transform: translateX(5px);
+    }
+
+.powerup {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    z-index: 20;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+.powerup-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#powerup-indicator {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.active-powerup {
+    width: 40px;
+    height: 40px;
+    margin-left: 10px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+    .active-powerup img {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+    }
+
+.powerup-timer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    clip: rect(0px, 40px, 40px, 20px);
+    background: transparent;
+}
+
+    .powerup-timer::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        clip: rect(0px, 20px, 40px, 0px);
+        background: rgba(255,255,255,0.3);
+        transform: rotate(0deg);
+        transition: transform 1s linear;
+    }
+
+    .powerup-timer.active::before {
+        transform: rotate(180deg);
+    }
+
+#tutorial-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 45;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+}
+
+.tutorial-message {
+    background: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 80%;
+    text-align: center;
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.tutorial-arrow {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20,5 L5,20 L15,20 L15,35 L25,35 L25,20 L35,20 Z' fill='%23FFFFFF'/%3E%3C/svg%3E");
+    animation: bounce 1s infinite alternate;
+}
+
+@keyframes bounce {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-10px);
+    }
+}
+
+.achievement {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    border-radius: 10px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    z-index: 45;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.achievement-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    background: #FFC107;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: #333;
+}
+
+.achievement-text {
+    color: white;
+    font-size: 16px;
+}
+
+@media (max-height: 700px) {
+    #order-container {
+        transform: translateX(-50%) scale(0.8);
+        transform-origin: top center;
+    }
+
+    #score-container, #combo-container, #lives-container {
+        transform: scale(0.8);
+        transform-origin: top left;
+    }
+
+    #level-container, #time-container {
+        transform: scale(0.8);
+        transform-origin: bottom left;
+    }
+}
+
+@media (max-width: 400px) {
+    .btn {
+        padding: 8px 16px;
+        font-size: 16px;
+    }
+
+    #game-over h2, #level-complete h2, #start-screen h1, #pause-screen h2 {
+        font-size: 28px;
+    }
+
+    #game-over p, #level-complete p, #start-screen p, #pause-screen p {
+        font-size: 16px;
+    }
+
+    .level-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 16px;
+    }
+}*/
+
+/* FPS counter */
+/*#fps-counter {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    z-index: 100;
+}*/

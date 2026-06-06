@@ -1,0 +1,142 @@
+﻿@model List<GamaxyWebApplication.Models.GameRatingViewModel>
+@{
+    ViewData["Title"] = "My Reviews and Ratings";
+    Layout = "_layout";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reviews and Ratings</title>
+    <style>
+        /* Gamaxy Rating Page */
+        .gamaxy-ratings {
+            /* margin-top: 120px; */
+            font-family: 'Orbitron', sans-serif;
+            color: #eee;
+        }
+
+        .ratings-wrapper {
+            background: #0d0d0f;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 0px 20px rgba(0, 141, 255, 0.2);
+        }
+
+        .ratings-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #008dff, #D400FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Neon Table */
+        .ratings-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(20, 20, 30, 0.95);
+            box-shadow: 0 0 15px rgba(0,141,255,0.25);
+        }
+
+            .ratings-table thead {
+                background: linear-gradient(to right, #008dff, #D400FF);
+                color: white;
+                text-align: center;
+            }
+
+            .ratings-table th,
+            .ratings-table td {
+                padding: 12px 16px;
+                text-align: center;
+                font-size: 15px;
+                color: #ddd;
+            }
+
+            .ratings-table tbody tr {
+                transition: 0.3s;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+
+                .ratings-table tbody tr:hover {
+                    background: rgba(0, 141, 255, 0.1);
+                    transform: scale(1.01);
+                }
+
+        /* Ratings Styling */
+        .user-rating {
+            color: #00d9ff;
+            font-weight: 600;
+        }
+
+        .avg-rating {
+            color: #ff00c8;
+            font-weight: 600;
+        }
+
+        /* Empty state */
+        .no-rating {
+            font-size: 16px;
+            padding: 15px;
+            background: rgba(255,193,7,0.1);
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            color: #ffc107;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container-fluid gamaxy-ratings" style="background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%); min-height:100vh;">
+        <div style="height:100px;"></div>
+        <div class="ratings-wrapper">
+        <h2 class="ratings-title"> My Game Ratings</h2>
+
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table ratings-table">
+                    <thead>
+                        <tr>
+                            <th>Game Name</th>
+                            <th>Your Rating</th>
+                            <th>Average Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rating in Model)
+                        {
+                            <tr>
+                                <td>@rating.GameName</td>
+                                <td>
+                                    <span class="user-rating">
+                                        @rating.ExistingRating / 5
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="avg-rating">
+                                        @rating.AverageRating.ToString("F1") / 5
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="no-rating"> You haven't rated any games yet.</p>
+        }
+    </div>
+</div>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+</body>
+</html>

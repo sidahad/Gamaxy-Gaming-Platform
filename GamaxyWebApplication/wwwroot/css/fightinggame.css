@@ -1,0 +1,661 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:wght@400;700&family=Orbitron:wght@400;700&display=swap');
+
+:root {
+    --success: #00ffcc;
+    --warning: #ffcc00;
+    --light: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Orbitron', sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+body {
+    background: #0a0a1e;
+    color: var(--light);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.game-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.header-section {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    border: 2px solid var(--success);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    max-width: 1000px;
+    width: 100%;
+}
+
+.game-title {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    color: var(--success);
+    text-shadow: 0 0 10px var(--success);
+    margin: 0;
+    font-family: 'Playfair Display', serif;
+}
+
+.game-container-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    width: 100%;
+    padding: 1rem;
+}
+
+.game-container {
+    position: relative;
+    max-width: 1000px;
+    max-height: 600px;
+    width: 100%;
+    aspect-ratio: 5 / 3;
+    background: #0a0a1e;
+    border: 2px solid var(--success);
+    border-radius: 10px;
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+    overflow: hidden;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 8px;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(145deg, rgba(20, 25, 35, 0.98) 0%, rgba(25, 30, 40, 0.95) 100%);
+    backdrop-filter: blur(25px);
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    border-radius: 10px;
+    transition: opacity 0.5s, transform 0.4s;
+    z-index: 10;
+}
+
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px);
+}
+
+h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    color: var(--success);
+    text-shadow: 0 0 10px var(--success), 0 0 20px rgba(0, 255, 255, 0.5);
+    margin-bottom: 2rem;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.btn {
+    background: linear-gradient(145deg, rgba(212, 175, 55, 0.9) 0%, rgba(255, 215, 0, 0.8) 50%, rgba(212, 175, 55, 0.9) 100%);
+    border: 2px solid rgba(212, 175, 55, 0.5);
+    color: #1a1a2e;
+    padding: 12px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 1.1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+        border-color: rgba(255, 215, 0, 0.8);
+    }
+
+    .btn:active {
+        transform: translateY(-1px) scale(1.02);
+    }
+
+.controls {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    max-width: 80%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    padding: 1rem;
+    border-radius: 10px;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    color: var(--light);
+}
+
+    .controls p {
+        margin: 0.5rem 0;
+        font-weight: 600;
+    }
+
+.health-container {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.health-bar {
+    width: 300px;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 3px solid var(--success);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+.health-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.player-health .health-fill {
+    background: linear-gradient(90deg, var(--success), #00b7b7);
+    float: left;
+}
+
+.enemy-health .health-fill {
+    background: linear-gradient(90deg, var(--success), #00b7b7);
+    float: right;
+}
+
+.player-name, .enemy-name {
+    color: var(--success);
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    font-size: 1.2rem;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+}
+
+.special-meter-container {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.special-meter {
+    width: 200px;
+    height: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid var(--warning);
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+}
+
+.special-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--warning), #ffd700);
+    transition: width 0.3s ease;
+}
+
+.special-text {
+    color: var(--warning);
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+    font-size: 0.9rem;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+}
+
+.timer {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    color: var(--success);
+    font-size: 2rem;
+    font-weight: 700;
+    padding: 8px 25px;
+    border-radius: 10px;
+    border: 2px solid var(--success);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+    z-index: 5;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.pause-btn {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(145deg, rgba(212, 175, 55, 0.9) 0%, rgba(255, 215, 0, 0.8) 50%, rgba(212, 175, 55, 0.9) 100%);
+    border: 2px solid rgba(212, 175, 55, 0.5);
+    color: #1a1a2e;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    z-index: 5;
+}
+
+    .pause-btn:hover {
+        transform: translate(-50%, -3px) scale(1.05);
+        box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4);
+        border-color: rgba(255, 215, 0, 0.8);
+    }
+
+    .pause-btn:active {
+        transform: translate(-50%, -1px) scale(1.02);
+    }
+
+.winner-message {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    color: var(--success);
+    text-shadow: 0 0 10px var(--success), 0 0 20px rgba(0, 255, 255, 0.5);
+    margin-bottom: 2rem;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.character-select {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 2rem;
+}
+
+.character {
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    padding: 1rem;
+    border-radius: 10px;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+    .character:hover {
+        transform: scale(1.05);
+        border-color: var(--success);
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+    }
+
+    .character.selected {
+        border-color: var(--success);
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        background: rgba(0, 255, 255, 0.1);
+    }
+
+.character-portrait {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    margin: 0 auto;
+    border: 2px solid var(--success);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.character-name {
+    margin-top: 0.5rem;
+    font-weight: 700;
+    color: var(--success);
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+}
+
+.combo-display {
+    position: absolute;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--warning);
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 5;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.player-combo {
+    left: 100px;
+}
+
+.enemy-combo {
+    right: 100px;
+}
+
+.round-announcement {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 700;
+    color: var(--success);
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 6;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+}
+
+.rating-section {
+    max-width: 500px;
+    width: 100%;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    border: 2px solid var(--success);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.rating-title {
+    font-size: 1.5rem;
+    color: var(--success);
+    text-shadow: 0 0 10px var(--success);
+    margin-bottom: 0.5rem;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+}
+
+.rating-average, .rating-user, .rating-login {
+    font-size: 0.9rem;
+    color: var(--light);
+    margin: 0.3rem 0;
+}
+
+    .rating-login a {
+        color: var(--success);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+        .rating-login a:hover {
+            text-decoration: underline;
+            text-shadow: 0 0 10px var(--success);
+        }
+
+.star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin: 0.5rem 0;
+}
+
+    .star-rating input {
+        display: none;
+    }
+
+    .star-rating label {
+        font-size: 1.5rem;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: var(--warning);
+            text-shadow: 0 0 10px var(--warning);
+        }
+
+.btn-rate {
+    background: linear-gradient(145deg, var(--success), #00b7b7);
+    border: 2px solid var(--success);
+    color: #1a1a2e;
+    padding: 10px 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+    .btn-rate::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-rate:hover::before {
+        left: 100%;
+    }
+
+    .btn-rate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 255, 255, 0.4);
+    }
+
+    .btn-rate:active {
+        transform: translateY(0);
+    }
+
+@media (max-width: 768px) {
+    .game-container {
+        max-height: 500px;
+    }
+
+    .header-section {
+        padding: 0.8rem;
+    }
+
+    .game-title {
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
+    }
+
+    h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+    }
+
+    .btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+
+    .controls {
+        font-size: 0.8rem;
+        padding: 0.8rem;
+    }
+
+    .health-bar {
+        width: 200px;
+        height: 25px;
+    }
+
+    .special-meter {
+        width: 150px;
+        height: 12px;
+    }
+
+    .special-text {
+        font-size: 0.7rem;
+    }
+
+    .timer {
+        font-size: 1.5rem;
+        padding: 6px 20px;
+    }
+
+    .pause-btn {
+        padding: 6px 15px;
+        font-size: 0.8rem;
+    }
+
+    .character-portrait {
+        width: 80px;
+        height: 80px;
+    }
+
+    .character-name {
+        font-size: 0.9rem;
+    }
+
+    .combo-display {
+        font-size: 1.5rem;
+    }
+
+    .round-announcement {
+        font-size: clamp(2rem, 5vw, 3rem);
+    }
+
+    .rating-section {
+        padding: 0.8rem;
+    }
+
+    .rating-title {
+        font-size: 1.2rem;
+    }
+
+    .star-rating label {
+        font-size: 1.2rem;
+    }
+
+    .btn-rate {
+        padding: 8px 15px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-container {
+        max-height: 400px;
+    }
+
+    .health-bar {
+        width: 120px;
+        height: 20px;
+    }
+
+    .special-meter {
+        width: 100px;
+        height: 10px;
+    }
+
+    .special-text {
+        font-size: 0.6rem;
+    }
+
+    .timer {
+        font-size: 1.2rem;
+        padding: 5px 15px;
+    }
+
+    .pause-btn {
+        padding: 5px 12px;
+        font-size: 0.7rem;
+    }
+
+    .character-portrait {
+        width: 60px;
+        height: 60px;
+    }
+
+    .character-name {
+        font-size: 0.8rem;
+    }
+
+    .controls {
+        font-size: 0.7rem;
+        padding: 0.6rem;
+    }
+
+    .rating-section {
+        padding: 0.6rem;
+    }
+
+    .rating-title {
+        font-size: 1rem;
+    }
+
+    .star-rating label {
+        font-size: 1rem;
+    }
+
+    .btn-rate {
+        padding: 6px 12px;
+        font-size: 0.7rem;
+    }
+}

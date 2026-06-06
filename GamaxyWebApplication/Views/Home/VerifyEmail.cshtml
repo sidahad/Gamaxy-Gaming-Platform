@@ -1,0 +1,40 @@
+﻿@{
+    ViewBag.Title = "Verify Email";
+}
+<style>
+    .section1 {
+        position: relative;
+        letter-spacing: 1px;
+        color: #ffffff;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background-image: url('@Url.Content("~/web/assets/images/bg10.jpg")');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+</style>
+<section class="container-fluid section1">
+
+    <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="card p-4 shadow-lg" style="width: 400px;">
+            <h2 class="text-center mb-4">Verify Your Email</h2>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">@ViewBag.Error</div>
+            }
+
+            <form method="post">
+                <input type="hidden" name="email" value="@ViewBag.Email" />
+
+                <div class="mb-3" style="color:black;">
+                    <label>Verification Code</label>
+                    <input type="text" name="code" class="form-control" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Verify</button>
+            </form>
+        </div>
+    </div>
+</section>

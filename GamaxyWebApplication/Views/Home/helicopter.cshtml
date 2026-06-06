@@ -1,0 +1,428 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Helicopter Game";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Helicopter Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/helicopter.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">HELICOPTER GAME</h1>
+                <div class="game-subtitle">FLY & AVOID OBSTACLES</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container" id="game-container">
+                    <div id="helicopter">
+                        <div class="helicopter-body"></div>
+                        <div class="helicopter-tail"></div>
+                        <div class="helicopter-top"></div>
+                        <div class="helicopter-rotor"></div>
+                        <div class="helicopter-tail-rotor"></div>
+                    </div>
+
+                    <div class="ui-container">
+                        <div id="score" class="score-display">Score: 0</div>
+                        <div id="start-screen" class="start-screen">
+                            <h1>Helicopter Game</h1>
+                            <p>Hold mouse or spacebar to fly. Avoid obstacles to score!</p>
+                            <button id="start-btn" class="btn">Start Game</button>
+                        </div>
+                        <div id="game-over" class="game-over">
+                            <h2>Game Over</h2>
+                            <p id="final-score">Score: 0</p>
+                            <button id="restart-btn" class="btn">Play Again</button>
+                        </div>
+                    </div>
+
+                    <div class="mobile-controls">
+                        <div class="mobile-btn" id="mobile-fly-btn">↑</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <p>Hold mouse or spacebar to fly • Avoid obstacles</p>
+            </div>
+
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        // Game elements
+        const gameContainer = document.getElementById('game-container');
+        const helicopter = document.getElementById('helicopter');
+        const scoreElement = document.getElementById('score');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreElement = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
+        const mobileFlyBtn = document.getElementById('mobile-fly-btn');
+
+        // Game variables
+        let gameRunning = false;
+        let score = 0;
+        let helicopterY = 200;
+        let helicopterVelocity = 0;
+        let gravity = 0.5;
+        let lift = -0.8;
+        let isFlying = false;
+        let obstacles = [];
+        let clouds = [];
+        let mountains = [];
+        let gameSpeed = 3;
+        let obstacleFrequency = 1500;
+        let lastObstacleTime = 0;
+        let animationFrameId;
+        let gameTime = 0;
+
+        // Sound effects
+        const helicopterSound = new Audio();
+        helicopterSound.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAAFgAAAzExODk5NF9fMDIwMV8xODEyMjMAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==";
+        helicopterSound.loop = true;
+
+        const crashSound = new Audio();
+        crashSound.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAAFgAAAzExODk5NF9fMDIwMV8xODEyMjMAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAACkgAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==";
+
+        const pointSound = new Audio();
+        pointSound.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAAFgAAAzExODk5NF9fMDIwMV8xODEyMjMAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAACkgAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==";
+
+        // Initialize game
+        function initGame() {
+            score = 0;
+            helicopterY = gameContainer.offsetHeight / 2;
+            helicopterVelocity = 0;
+            obstacles = [];
+            clouds = [];
+            mountains = [];
+            gameSpeed = 3;
+            obstacleFrequency = 1500;
+            lastObstacleTime = 0;
+            gameTime = 0;
+
+            scoreElement.textContent = `Score: ${score}`;
+            helicopter.style.top = helicopterY + 'px';
+            createBackgroundElements();
+            gameOverScreen.style.display = 'none';
+            gameRunning = true;
+            gameLoop();
+        }
+
+        function createBackgroundElements() {
+            for (let i = 0; i < 5; i++) {
+                createCloud();
+            }
+            for (let i = 0; i < 3; i++) {
+                createMountain(i * 300);
+            }
+        }
+
+        function createCloud() {
+            const cloud = document.createElement('div');
+            cloud.className = 'cloud';
+            const size = Math.random() * 50 + 50;
+            const posX = Math.random() * gameContainer.offsetWidth;
+            const posY = Math.random() * 150 + 20;
+            const speed = Math.random() * 0.5 + 0.5;
+            cloud.style.width = size + 'px';
+            cloud.style.height = size / 2 + 'px';
+            cloud.style.left = posX + 'px';
+            cloud.style.top = posY + 'px';
+            clouds.push({ element: cloud, speed: speed });
+            gameContainer.appendChild(cloud);
+        }
+
+        function createMountain(posX) {
+            const mountain = document.createElement('div');
+            mountain.className = 'mountain';
+            const size = Math.random() * 50 + 100;
+            mountain.style.left = posX + 'px';
+            mountain.style.borderBottomWidth = size + 'px';
+            const snow = document.createElement('div');
+            snow.className = 'mountain-snow';
+            snow.style.left = posX + 25 + 'px';
+            snow.style.bottom = size - 15 + 'px';
+            mountains.push({ element: mountain, snow: snow, speed: 0.5 });
+            gameContainer.appendChild(mountain);
+            gameContainer.appendChild(snow);
+        }
+
+        function createObstacle() {
+            const gapHeight = 150 - Math.min(50, Math.floor(score / 10) * 5);
+            const gapPosition = Math.floor(Math.random() * (gameContainer.offsetHeight - gapHeight - 80)) + 40;
+            const topObstacle = document.createElement('div');
+            topObstacle.className = 'obstacle obstacle-top';
+            topObstacle.style.height = gapPosition + 'px';
+            const bottomObstacle = document.createElement('div');
+            bottomObstacle.className = 'obstacle obstacle-bottom';
+            bottomObstacle.style.height = (gameContainer.offsetHeight - gapPosition - gapHeight) + 'px';
+            gameContainer.appendChild(topObstacle);
+            gameContainer.appendChild(bottomObstacle);
+            obstacles.push({ top: topObstacle, bottom: bottomObstacle, passed: false, x: gameContainer.offsetWidth });
+        }
+
+        function updateHelicopter() {
+            if (isFlying) {
+                helicopterVelocity += lift;
+            } else {
+                helicopterVelocity += gravity;
+            }
+            helicopterVelocity = Math.max(-10, Math.min(helicopterVelocity, 10));
+            helicopterY += helicopterVelocity;
+            const rotation = Math.max(-30, Math.min(helicopterVelocity * 3, 30));
+            helicopter.style.transform = `rotate(${rotation}deg)`;
+            helicopter.style.top = helicopterY + 'px';
+            if (helicopterY < 0 || helicopterY > gameContainer.offsetHeight - helicopter.offsetHeight) {
+                gameOver();
+            }
+        }
+
+        function updateObstacles() {
+            const currentTime = gameTime;
+            if (currentTime - lastObstacleTime > obstacleFrequency) {
+                createObstacle();
+                lastObstacleTime = currentTime;
+                obstacleFrequency = Math.max(1000, 1500 - Math.floor(score / 5) * 50);
+            }
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                obstacle.x -= gameSpeed;
+                obstacle.top.style.right = (gameContainer.offsetWidth - obstacle.x) + 'px';
+                obstacle.bottom.style.right = (gameContainer.offsetWidth - obstacle.x) + 'px';
+                if (!obstacle.passed && obstacle.x < 100) {
+                    obstacle.passed = true;
+                    score++;
+                    scoreElement.textContent = `Score: ${score}`;
+                    pointSound.play();
+                    if (score % 5 === 0) {
+                        gameSpeed += 0.5;
+                    }
+                }
+                if (checkCollision(obstacle)) {
+                    gameOver();
+                    return;
+                }
+                if (obstacle.x < -50) {
+                    gameContainer.removeChild(obstacle.top);
+                    gameContainer.removeChild(obstacle.bottom);
+                    obstacles.splice(i, 1);
+                }
+            }
+        }
+
+        function updateBackground() {
+            for (let i = clouds.length - 1; i >= 0; i--) {
+                const cloud = clouds[i];
+                const cloudElement = cloud.element;
+                const currentLeft = parseFloat(cloudElement.style.left);
+                cloudElement.style.left = (currentLeft - cloud.speed) + 'px';
+                if (currentLeft < -parseFloat(cloudElement.style.width)) {
+                    cloudElement.style.left = gameContainer.offsetWidth + 'px';
+                }
+            }
+            for (let i = mountains.length - 1; i >= 0; i--) {
+                const mountain = mountains[i];
+                const mountainElement = mountain.element;
+                const snowElement = mountain.snow;
+                const currentLeft = parseFloat(mountainElement.style.left);
+                mountainElement.style.left = (currentLeft - mountain.speed) + 'px';
+                snowElement.style.left = (parseFloat(snowElement.style.left) - mountain.speed) + 'px';
+                if (currentLeft < -80) {
+                    mountainElement.style.left = gameContainer.offsetWidth + 'px';
+                    snowElement.style.left = (gameContainer.offsetWidth + 25) + 'px';
+                }
+            }
+        }
+
+        function checkCollision(obstacle) {
+            const helicopterRect = helicopter.getBoundingClientRect();
+            const topObstacleRect = obstacle.top.getBoundingClientRect();
+            const bottomObstacleRect = obstacle.bottom.getBoundingClientRect();
+            return (
+                (helicopterRect.right > topObstacleRect.left &&
+                 helicopterRect.left < topObstacleRect.right &&
+                 helicopterRect.top < topObstacleRect.bottom) ||
+                (helicopterRect.right > bottomObstacleRect.left &&
+                 helicopterRect.left < bottomObstacleRect.right &&
+                 helicopterRect.bottom > bottomObstacleRect.top)
+            );
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            helicopterSound.pause();
+            crashSound.play();
+            finalScoreElement.textContent = `Score: ${score}`;
+            gameOverScreen.classList.add('active');
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            gameTime = timestamp || 0;
+            updateHelicopter();
+            updateObstacles();
+            updateBackground();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function handleInput(isPressed) {
+            isFlying = isPressed;
+            if (isPressed) {
+                if (helicopterSound.paused) {
+                    helicopterSound.play();
+                }
+            } else {
+                // Don't pause the sound when releasing
+            }
+        }
+
+        gameContainer.addEventListener('mousedown', () => handleInput(true));
+        gameContainer.addEventListener('mouseup', () => handleInput(false));
+        gameContainer.addEventListener('mouseleave', () => handleInput(false));
+        gameContainer.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleInput(true);
+        });
+        gameContainer.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleInput(false);
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                handleInput(true);
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                handleInput(false);
+            }
+        });
+        mobileFlyBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleInput(true);
+        });
+        mobileFlyBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleInput(false);
+        });
+        startBtn.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            initGame();
+        });
+        restartBtn.addEventListener('click', () => {
+            obstacles.forEach(obstacle => {
+                gameContainer.removeChild(obstacle.top);
+                gameContainer.removeChild(obstacle.bottom);
+            });
+            clouds.forEach(cloud => {
+                gameContainer.removeChild(cloud.element);
+            });
+            mountains.forEach(mountain => {
+                gameContainer.removeChild(mountain.element);
+                gameContainer.removeChild(mountain.snow);
+            });
+            gameOverScreen.classList.remove('active');
+            initGame();
+        });
+
+        function handleResize() {
+            const container = document.querySelector('.game-container');
+            helicopterY = container.offsetHeight / 2;
+            helicopter.style.top = helicopterY + 'px';
+            obstacles.forEach(obstacle => {
+                obstacle.x = Math.min(obstacle.x, container.offsetWidth);
+                obstacle.top.style.right = (container.offsetWidth - obstacle.x) + 'px';
+                obstacle.bottom.style.right = (container.offsetWidth - obstacle.x) + 'px';
+            });
+            clouds.forEach(cloud => {
+                const currentLeft = parseFloat(cloud.element.style.left);
+                if (currentLeft > container.offsetWidth) {
+                    cloud.element.style.left = container.offsetWidth + 'px';
+                }
+            });
+            mountains.forEach(mountain => {
+                const currentLeft = parseFloat(mountain.element.style.left);
+                if (currentLeft > container.offsetWidth) {
+                    mountain.element.style.left = container.offsetWidth + 'px';
+                    mountain.snow.style.left = (container.offsetWidth + 25) + 'px';
+                }
+            });
+        }
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(handleResize, 100);
+        });
+        window.addEventListener('orientationchange', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(handleResize, 100);
+        });
+        handleResize();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,396 @@
+<!-- @{
+    ViewData["Title"] = "Game Page";
+    Layout = "_layout3";
+} -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Racer</title>
+    <link rel="stylesheet" href="~/css/NeonRacer.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+
+body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+    font-family: 'Orbitron', sans-serif;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+#gameContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 800px;
+    max-height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas {
+    display: block;
+    background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+    box-shadow: 0 0 40px #00ffcc;
+    width: 100%;
+    height: 100%;
+    max-width: 800px;
+    max-height: 400px;
+    object-fit: contain;
+}
+
+#score, #highScore, #menuBtn, #instructions {
+    color: #00ffcc;
+    position: absolute;
+    font-size: clamp(14px, 2.5vw, 20px);
+    z-index: 10;
+}
+
+#score {
+    top: clamp(5px, 2vh, 10px);
+    left: clamp(5px, 2vw, 10px);
+}
+
+#highScore {
+    top: clamp(5px, 2vh, 10px);
+    left: clamp(140px, 25vw, 170px);
+}
+
+#menuBtn {
+    top: clamp(5px, 2vh, 10px);
+    right: clamp(80px, 15vw, 120px);
+    background: #111;
+    border: 2px solid #00ffcc;
+    padding: clamp(3px, 1vh, 5px) clamp(8px, 2vw, 15px);
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: clamp(12px, 2vw, 16px);
+}
+
+#instructions {
+    bottom: clamp(5px, 2vh, 10px);
+    left: clamp(5px, 2vw, 10px);
+    font-size: clamp(10px, 1.8vw, 16px);
+    max-width: 90%;
+    line-height: 1.2;
+}
+
+#menuPopup {
+    display: none;
+    position: absolute;
+    top: clamp(50px, 15vh, 100px);
+    right: clamp(20px, 10vw, 100px);
+    background: #111;
+    border: 2px solid #00ffcc;
+    padding: clamp(10px, 3vh, 20px);
+    border-radius: 10px;
+    z-index: 999;
+    min-width: clamp(150px, 25vw, 200px);
+}
+
+#menuPopup button, #difficultySelect {
+    display: block;
+    margin: clamp(5px, 1.5vh, 10px) 0;
+    padding: clamp(5px, 1.5vh, 10px) clamp(10px, 3vw, 20px);
+    background: #111;
+    border: 2px solid #00ffcc;
+    color: #00ffcc;
+    font-family: 'Orbitron', sans-serif;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%;
+    font-size: clamp(12px, 2vw, 16px);
+    box-sizing: border-box;
+}
+
+#gameOverScreen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.9);
+    color: #00ffcc;
+    font-size: clamp(24px, 6vw, 36px);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 999;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#gameOverScreen button {
+    margin-top: clamp(10px, 3vh, 20px);
+    padding: clamp(8px, 2vh, 10px) clamp(15px, 4vw, 20px);
+    background: #111;
+    border: 2px solid #00ffcc;
+    color: #00ffcc;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    border-radius: 5px;
+    font-size: clamp(14px, 3vw, 18px);
+}
+
+/* Mobile portrait adjustments */
+@media (max-aspect-ratio: 1/1) and (max-width: 768px) {
+    #gameContainer {
+        max-width: 100vw;
+        max-height: 50vh;
+    }
+    
+    #instructions {
+        font-size: clamp(8px, 2.5vw, 12px);
+        bottom: clamp(2px, 1vh, 5px);
+    }
+    
+    #menuPopup {
+        right: clamp(10px, 5vw, 20px);
+        left: clamp(10px, 5vw, 20px);
+        min-width: auto;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+    #score, #highScore {
+        font-size: clamp(10px, 3vw, 14px);
+    }
+    
+    #highScore {
+        left: clamp(80px, 20vw, 120px);
+    }
+    
+    #menuBtn {
+        right: clamp(10px, 5vw, 20px);
+        font-size: clamp(10px, 2.5vw, 12px);
+        padding: 2px 6px;
+    }
+    
+    #instructions {
+        font-size: clamp(7px, 2vw, 10px);
+    }
+}
+
+/* Landscape mobile adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+    #gameContainer {
+        max-height: 90vh;
+    }
+    
+    #instructions {
+        font-size: clamp(8px, 1.5vh, 12px);
+    }
+    
+    #menuPopup {
+        top: clamp(20px, 5vh, 40px);
+        padding: clamp(5px, 2vh, 15px);
+    }
+    
+    #menuPopup button, #difficultySelect {
+        margin: clamp(3px, 1vh, 8px) 0;
+        padding: clamp(3px, 1vh, 8px) clamp(8px, 2vw, 15px);
+        font-size: clamp(10px, 1.8vh, 14px);
+    }
+}
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+    #menuBtn, #menuPopup button, #gameOverScreen button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    #menuPopup button, #difficultySelect {
+        padding: 12px 20px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="score">Score: 0</div>
+        <div id="highScore">High Score: 0</div>
+        <div id="menuBtn" onclick="toggleMenuPopup()">Menu</div>
+        <div id="instructions">Use ↑ and ↓ arrows to move. Press ESC for menu. Press ENTER after game over to restart.</div>
+        <div id="menuPopup">
+            <button onclick="togglePause()">Resume</button>
+            <button onclick="restartGame()">Restart</button>
+            <select id="difficultySelect" onchange="setDifficulty()">
+                <option value="1">Easy</option>
+                <option value="1.5">Normal</option>
+                <option value="2">Hard</option>
+                <option value="2.5">Expert</option>
+            </select>
+            <button onclick="exitGame()">Exit</button>
+        </div>
+        <div id="gameOverScreen">
+            <div>Game Over!<br>Score: <span id="finalScore">0</span></div>
+            <button onclick="restartGame()">Start New Game</button>
+        </div>
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+    </div>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        let paused = false;
+        let gameOver = false;
+        let speedMultiplier = 1;
+
+        const car = {
+          x: 100,
+          y: 200,
+          width: 50,
+          height: 30,
+          color: "#00ffcc",
+          speed: 5
+        };
+        const obstacles = [];
+        let score = 0;
+        let highScore = localStorage.getItem('neon_high_score') || 0;
+        document.getElementById("highScore").innerText = `High Score: ${highScore}`;
+
+        function drawCar() {
+          ctx.save();
+          ctx.shadowColor = car.color;
+          ctx.shadowBlur = 20;
+          ctx.fillStyle = car.color;
+          ctx.fillRect(car.x, car.y, car.width, car.height);
+          ctx.restore();
+        }
+
+        function drawObstacle(ob) {
+          ctx.save();
+          ctx.fillStyle = "#ff0033";
+          ctx.shadowColor = "#ff0033";
+          ctx.shadowBlur = 15;
+          ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+          ctx.restore();
+        }
+
+        function updateObstacles() {
+          if (Math.random() < 0.03 * speedMultiplier) {
+            obstacles.push({
+              x: canvas.width,
+              y: Math.random() * (canvas.height - 30),
+              width: 30,
+              height: 30
+            });
+          }
+          for (let i = 0; i < obstacles.length; i++) {
+            obstacles[i].x -= 4 * speedMultiplier;
+            if (obstacles[i].x + obstacles[i].width < 0) {
+              obstacles.splice(i, 1);
+              score += 10;
+              document.getElementById("score").innerText = `Score: ${score}`;
+              if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('neon_high_score', highScore);
+                document.getElementById("highScore").innerText = `High Score: ${highScore}`;
+              }
+            }
+          }
+        }
+
+        function checkCollision() {
+          for (let ob of obstacles) {
+            if (
+              car.x < ob.x + ob.width &&
+              car.x + car.width > ob.x &&
+              car.y < ob.y + ob.height &&
+              car.y + car.height > ob.y
+            ) {
+              endGame();
+            }
+          }
+        }
+
+        function gameLoop() {
+          if (paused || gameOver) return;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          drawCar();
+          updateObstacles();
+          obstacles.forEach(drawObstacle);
+          checkCollision();
+          requestAnimationFrame(gameLoop);
+        }
+
+        function togglePause() {
+          paused = !paused;
+          document.getElementById("menuPopup").style.display = paused ? 'block' : 'none';
+          if (!paused && !gameOver) gameLoop();
+        }
+
+        function toggleMenuPopup() {
+          paused = !paused;
+          document.getElementById("menuPopup").style.display = paused ? 'block' : 'none';
+          if (!paused && !gameOver) gameLoop();
+        }
+
+        function restartGame() {
+          score = 0;
+          car.y = 200;
+          obstacles.length = 0;
+          document.getElementById("score").innerText = `Score: 0`;
+          document.getElementById("gameOverScreen").style.display = "none";
+          document.getElementById("menuPopup").style.display = "none";
+          gameOver = false;
+          paused = false;
+          gameLoop();
+        }
+
+        function setDifficulty() {
+          const value = document.getElementById("difficultySelect").value;
+          speedMultiplier = parseFloat(value);
+        }
+
+        function exitGame() {
+          location.reload();
+        }
+
+        function endGame() {
+          gameOver = true;
+          document.getElementById("finalScore").innerText = score;
+          document.getElementById("gameOverScreen").style.display = "flex";
+          saveScore(score);
+        }
+
+        function saveScore(score) {
+          fetch("save_score.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `score=${score}`
+          });
+        }
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            toggleMenuPopup();
+            return;
+          }
+          if (gameOver && e.key === "Enter") {
+            restartGame();
+            return;
+          }
+          if (paused || gameOver) return;
+          if (e.key === "ArrowUp") car.y -= car.speed * 2;
+          if (e.key === "ArrowDown") car.y += car.speed * 2;
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>

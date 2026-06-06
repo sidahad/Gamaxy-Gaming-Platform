@@ -1,0 +1,67 @@
+﻿@model IEnumerable<LeaderboardPlayer>
+@{
+    ViewData["Title"] = "Gamaxy Leaderboard";
+}
+
+<style>
+    .text-gradient {
+        background: linear-gradient(90deg, #008dff, #D400FF);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+
+<!-- 🏆 Gamaxy Leaderboard Section -->
+<div class="section-full content-inner bg-img-fix overlay-black-dark py-5"
+     style="background-image:url(/web/assets/images/bg6.jpg); background-size:cover;">
+    <div class="container">
+
+        <!-- Section Header -->
+        <div class="section-head style2 text-white text-center mb-4 mt-4">
+            <h2 class="title text-gradient">🏆 Top Gamers on Gamaxy</h2>
+            <div class="dlab-separator bg-primary mx-auto" style="width: 80px; height: 4px;"></div>
+        </div>
+
+        <!-- Leaderboard Table -->
+        <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle text-center"
+                   style="background: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%);
+                          color: white; border-radius: 12px; overflow: hidden;">
+                <thead style="background-color: rgba(255, 255, 255, 0.9); color: #000;">
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Level</th>
+                        <th>XP</th>
+                        <th>Country</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var player in Model)
+                    {
+                        <tr style="background-color: rgba(255, 255, 255, 0.05);">
+                            <td>
+                                <strong>
+                                    @(player.Rank == 1 ? "🥇" : player.Rank == 2 ? "🥈" : player.Rank == 3 ? "🥉" : player.Rank.ToString())
+                                </strong>
+                            </td>
+                            <td>
+                                <i class="fa-solid fa-user me-2" style="color: #ffffff;"></i>@player.Name
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-dark">Level @player.Level</span>
+                            </td>
+                            <td>
+                                @($"{player.XP:N0} XP")
+                            </td>
+                            <td>
+                                <img src="~/web/assets/images/flags/@player.CountryCode.ToLower()).png"
+                                     alt="@player.CountryCode" style="width:24px;" /> @player.CountryCode.ToUpper()
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

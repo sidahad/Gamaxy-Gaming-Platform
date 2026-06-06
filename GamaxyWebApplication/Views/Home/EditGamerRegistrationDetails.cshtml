@@ -1,0 +1,104 @@
+﻿@model GamaxyWebApplication.Models.Registration
+@{
+    ViewData["Title"] = "Edit Gamer Registration Details";
+    Layout = "_layout";
+}
+
+@section Styles {
+    <link href="~/css/EditGamerRegistrationDetails.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+}
+
+<div class="edit-gamer-container">
+    <div class="edit-gamer-floating-particles">
+        <div class="edit-gamer-particle"></div>
+        <div class="edit-gamer-particle"></div>
+        <div class="edit-gamer-particle"></div>
+        <div class="edit-gamer-particle"></div>
+        <div class="edit-gamer-particle"></div>
+    </div>
+
+    <div class="edit-gamer-main-content container mx-auto px-4 py-8 relative z-10">
+        <h2 class="edit-gamer-title">Edit Gamer Registration</h2>
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Message</div>
+        }
+
+        <div class="edit-gamer-form-card">
+            <form asp-action="EditGamerRegistrationDetails" method="post" enctype="multipart/form-data">
+                <div class="edit-gamer-form-group">
+                    <input asp-for="Name" placeholder=" " />
+                    <label>Name</label>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="edit-gamer-form-group">
+                    <input asp-for="Email" type="email" placeholder=" " />
+                    <label>Email</label>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="edit-gamer-form-group">
+                    <input asp-for="Password" type="password" placeholder=" " />
+                    <label>Password</label>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="edit-gamer-form-group">
+                    <input asp-for="Age" placeholder=" " />
+                    <label>Age</label>
+                    <span asp-validation-for="Age" class="text-danger"></span>
+                </div>
+
+                <div class="edit-gamer-form-group">
+                    <input asp-for="Phone" placeholder=" " />
+                    <label>Phone</label>
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="edit-gamer-form-group">
+                    <input asp-for="Address" placeholder=" " />
+                    <label>Address</label>
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="edit-gamer-form-group">
+                    <select asp-for="Gender">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                    <label>Gender</label>
+                    <span asp-validation-for="Gender" class="text-danger"></span>
+                </div>
+
+                <div class="edit-gamer-form-group edit-gamer-gamer-code-field">
+                    <input asp-for="GamerCode" placeholder=" " />
+                    <label>Gamer Code</label>
+                    <span asp-validation-for="GamerCode" class="text-danger"></span>
+                </div>
+
+                <div class="edit-gamer-form-group">
+                    <div class="edit-gamer-file-upload">
+                        <input asp-for="UserImage" type="file" accept="image/*" />
+                        <div class="edit-gamer-file-upload-text">
+                            📸 Click or drag to upload profile image
+                        </div>
+                        <span asp-validation-for="UserImage" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="edit-gamer-submit-btn">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

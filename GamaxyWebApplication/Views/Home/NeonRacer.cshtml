@@ -1,0 +1,256 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Neon Racer";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Racer</title>
+    <link rel="stylesheet" href="~/css/NeonRacer.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="game-page">
+        <!-- Background Animation -->
+        <div class="bg-animation" id="bgAnimation"></div>
+
+        <!-- Header Section -->
+        <header class="header-section">
+            <h1 class="game-title">Neon Racer</h1>
+            <p class="game-subtitle">Race through the neon-lit tracks and dodge obstacles!</p>
+        </header>
+
+        <!-- Game Container Wrapper -->
+        <div class="game-container-wrapper">
+            <div id="gameContainer">
+                <div id="score">Score: 0</div>
+                <div id="highScore">High Score: 0</div>
+                <div id="menuBtn" onclick="toggleMenuPopup()">Menu</div>
+                <div id="instructions">Use ↑ and ↓ arrows to move. Press ESC for menu. Press ENTER after game over to restart.</div>
+                <div id="menuPopup">
+                    <button onclick="togglePause()">Resume</button>
+                    <button onclick="restartGame()">Restart</button>
+                    <select id="difficultySelect" onchange="setDifficulty()">
+                        <option value="1">Easy</option>
+                        <option value="1.5">Normal</option>
+                        <option value="2">Hard</option>
+                        <option value="2.5">Expert</option>
+                    </select>
+                    <button onclick="exitGame()">Exit</button>
+                </div>
+                <div id="gameOverScreen">
+                    <div>Game Over!<br>Score: <span id="finalScore">0</span></div>
+                    <button onclick="restartGame()">Start New Game</button>
+                </div>
+                <canvas id="gameCanvas" width="800" height="400"></canvas>
+            </div>
+        </div>
+
+        <!-- Rating Section -->
+        <div class="rating-section">
+            <h2 class="rating-title">@Model.GameName</h2>
+            <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+            @if (Model.UserId.HasValue)
+            {
+                <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                <form id="ratingForm" method="post" asp-action="RateGame">
+                    <input type="hidden" name="gameName" value="@Model.GameName" />
+                    <div class="star-rating">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <input type="radio" id="star@(i)" name="rating" value="@(i)" @(Model.ExistingRating == i ? "checked" : "") required />
+                            <label for="star@(i)" title="@(i) star@(i == 1 ? "" : "s")">★</label>
+                        }
+                    </div>
+                    <button type="submit" class="btn-rate">Submit Rating</button>
+                </form>
+            }
+            else
+            {
+                <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+            }
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        let paused = false;
+        let gameOver = false;
+        let speedMultiplier = 1;
+
+        const car = {
+            x: 100,
+            y: 200,
+            width: 50,
+            height: 30,
+            color: "#00ffcc",
+            speed: 5
+        };
+        const obstacles = [];
+        let score = 0;
+        let highScore = localStorage.getItem('neon_high_score') || 0;
+        document.getElementById("highScore").innerText = `High Score: ${highScore}`;
+
+        function drawCar() {
+            ctx.save();
+            ctx.shadowColor = car.color;
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = car.color;
+            ctx.fillRect(car.x, car.y, car.width, car.height);
+            ctx.restore();
+        }
+
+        function drawObstacle(ob) {
+            ctx.save();
+            ctx.fillStyle = "#ff0033";
+            ctx.shadowColor = "#ff0033";
+            ctx.shadowBlur = 15;
+            ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+            ctx.restore();
+        }
+
+        function updateObstacles() {
+            if (Math.random() < 0.03 * speedMultiplier) {
+                obstacles.push({
+                    x: canvas.width,
+                    y: Math.random() * (canvas.height - 30),
+                    width: 30,
+                    height: 30
+                });
+            }
+            for (let i = 0; i < obstacles.length; i++) {
+                obstacles[i].x -= 4 * speedMultiplier;
+                if (obstacles[i].x + obstacles[i].width < 0) {
+                    obstacles.splice(i, 1);
+                    score += 10;
+                    document.getElementById("score").innerText = `Score: ${score}`;
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('neon_high_score', highScore);
+                        document.getElementById("highScore").innerText = `High Score: ${highScore}`;
+                    }
+                }
+            }
+        }
+
+        function checkCollision() {
+            for (let ob of obstacles) {
+                if (
+                    car.x < ob.x + ob.width &&
+                    car.x + car.width > ob.x &&
+                    car.y < ob.y + ob.height &&
+                    car.y + car.height > ob.y
+                ) {
+                    endGame();
+                }
+            }
+        }
+
+        function gameLoop() {
+            if (paused || gameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawCar();
+            updateObstacles();
+            obstacles.forEach(drawObstacle);
+            checkCollision();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function togglePause() {
+            paused = !paused;
+            document.getElementById("menuPopup").style.display = paused ? 'block' : 'none';
+            if (!paused && !gameOver) gameLoop();
+        }
+
+        function toggleMenuPopup() {
+            paused = !paused;
+            document.getElementById("menuPopup").style.display = paused ? 'block' : 'none';
+            if (!paused && !gameOver) gameLoop();
+        }
+
+        function restartGame() {
+            score = 0;
+            car.y = 200;
+            obstacles.length = 0;
+            document.getElementById("score").innerText = `Score: 0`;
+            document.getElementById("gameOverScreen").style.display = "none";
+            document.getElementById("menuPopup").style.display = "none";
+            gameOver = false;
+            paused = false;
+            gameLoop();
+        }
+
+        function setDifficulty() {
+            const value = document.getElementById("difficultySelect").value;
+            speedMultiplier = parseFloat(value);
+        }
+
+        function exitGame() {
+            location.reload();
+        }
+
+        function endGame() {
+            gameOver = true;
+            document.getElementById("finalScore").innerText = score;
+            document.getElementById("gameOverScreen").style.display = "flex";
+            saveScore(score);
+        }
+
+        function saveScore(score) {
+            fetch("save_score.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `score=${score}`
+            });
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                toggleMenuPopup();
+                return;
+            }
+            if (gameOver && e.key === "Enter") {
+                restartGame();
+                return;
+            }
+            if (paused || gameOver) return;
+            if (e.key === "ArrowUp") car.y -= car.speed * 2;
+            if (e.key === "ArrowDown") car.y += car.speed * 2;
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>

@@ -1,0 +1,959 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: #333;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        color: white;
+    }
+
+    #game-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background-color: #2a3c28; /* Dark green battlefield */
+        cursor: crosshair;
+    }
+
+    .tank {
+        position: absolute;
+        width: 60px;
+        height: 40px;
+        transition: top 0.1s, left 0.1s;
+    }
+
+    .tank-body {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: #4a5e45;
+        border-radius: 8px;
+        border: 2px solid #333;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .player .tank-body {
+        background-color: #3a7d44;
+    }
+
+    .enemy .tank-body {
+        background-color: #8B4513;
+    }
+
+    .tank-turret {
+        position: absolute;
+        width: 40px;
+        height: 10px;
+        background-color: #333;
+        top: 15px;
+        left: 30px;
+        transform-origin: 0 50%;
+        border-radius: 3px;
+        z-index: 2;
+    }
+
+    .player .tank-turret {
+        background-color: #2a5a32;
+    }
+
+    .enemy .tank-turret {
+        background-color: #6B3E11;
+    }
+
+    .tank-tracks {
+        position: absolute;
+        width: 12px;
+        height: 100%;
+        background-color: #222;
+        border-radius: 4px;
+    }
+
+    .tank-track-left {
+        left: 0;
+    }
+
+    .tank-track-right {
+        right: 0;
+    }
+
+    .bullet {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background-color: #ff9900;
+        border-radius: 50%;
+        box-shadow: 0 0 5px #ffcc00;
+        z-index: 1;
+    }
+
+    .explosion {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        background: radial-gradient(circle, #ff9900, #ff0000);
+        border-radius: 50%;
+        opacity: 0;
+        z-index: 10;
+        animation: explode 0.5s ease-out;
+    }
+
+    @keyframes explode {
+        0%
+
+    {
+        transform: scale(0.1);
+        opacity: 1;
+    }
+
+    70% {
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+
+    }
+
+    .health-bar {
+        position: absolute;
+        width: 50px;
+        height: 5px;
+        background-color: #333;
+        top: -15px;
+        left: 5px;
+        border-radius: 2px;
+    }
+
+    .health-fill {
+        height: 100%;
+        background-color: #2ecc71;
+        border-radius: 2px;
+        transition: width 0.3s;
+    }
+
+    .enemy .health-fill {
+        background-color: #e74c3c;
+    }
+
+    #hud {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        padding: 10px 15px;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 5px;
+        z-index: 100;
+    }
+
+    #score {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    #player-health {
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+
+    #enemies-left {
+        font-size: 18px;
+    }
+
+    #game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 30px 50px;
+        border-radius: 10px;
+        text-align: center;
+        z-index: 200;
+        display: none;
+    }
+
+        #game-over h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #f39c12;
+        }
+
+        #game-over p {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+    #restart-btn {
+        padding: 10px 20px;
+        font-size: 18px;
+        background-color: #2ecc71;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        #restart-btn:hover {
+            background-color: #27ae60;
+        }
+
+    .obstacle {
+        position: absolute;
+        background-color: #555;
+        border-radius: 3px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .bullet-trail {
+        position: absolute;
+        height: 2px;
+        background-color: rgba(255, 153, 0, 0.3);
+        transform-origin: 0 50%;
+        z-index: 0;
+    }
+
+    /* Terrain details */
+    .terrain-detail {
+        position: absolute;
+        background-color: #3a4c38;
+        border-radius: 50%;
+    }
+
+    /* Bullet impact */
+    .impact {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: radial-gradient(circle, #555, #333);
+        border-radius: 50%;
+        z-index: 1;
+        opacity: 0.7;
+    }
+
+</style>
+<body>
+    <div id="game-container">
+        <div id="hud">
+            <div id="score">Score: 0</div>
+            <div id="player-health">Health: 100%</div>
+            <div id="enemies-left">Enemies: 5</div>
+        </div>
+        <div id="game-over">
+            <h2 id="game-result">Game Over</h2>
+            <p id="final-score">Your score: 0</p>
+            <button id="restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const game = {
+            score: 0,
+            isOver: false,
+            enemiesLeft: 5,
+            obstacles: [],
+            bullets: [],
+            explosions: [],
+            impacts: [],
+            terrainDetails: [],
+            bulletTrails: [],
+            keys: {
+                up: false,
+                down: false,
+                left: false,
+                right: false,
+                space: false
+            },
+            mouse: {
+                x: 0,
+                y: 0
+            }
+        };
+
+        // Game container
+        const gameContainer = document.getElementById('game-container');
+        const containerRect = gameContainer.getBoundingClientRect();
+
+        // Create player tank
+        const player = {
+            element: document.createElement('div'),
+            bodyElement: document.createElement('div'),
+            turretElement: document.createElement('div'),
+            trackLeftElement: document.createElement('div'),
+            trackRightElement: document.createElement('div'),
+            healthBarElement: document.createElement('div'),
+            healthFillElement: document.createElement('div'),
+            x: containerRect.width / 2,
+            y: containerRect.height / 2,
+            width: 60,
+            height: 40,
+            speed: 3,
+            rotationSpeed: 3,
+            rotation: 0,
+            turretRotation: 0,
+            health: 100,
+            lastShot: 0,
+            shootCooldown: 500 // milliseconds
+        };
+
+        // Initialize player tank
+        function initPlayer() {
+            player.element.className = 'tank player';
+            player.bodyElement.className = 'tank-body';
+            player.turretElement.className = 'tank-turret';
+            player.trackLeftElement.className = 'tank-tracks tank-track-left';
+            player.trackRightElement.className = 'tank-tracks tank-track-right';
+            player.healthBarElement.className = 'health-bar';
+            player.healthFillElement.className = 'health-fill';
+
+            player.element.appendChild(player.bodyElement);
+            player.element.appendChild(player.turretElement);
+            player.element.appendChild(player.trackLeftElement);
+            player.element.appendChild(player.trackRightElement);
+            player.healthBarElement.appendChild(player.healthFillElement);
+            player.element.appendChild(player.healthBarElement);
+
+            gameContainer.appendChild(player.element);
+
+            updatePlayerPosition();
+        }
+
+        // Update player position and rotation
+        function updatePlayerPosition() {
+            player.element.style.left = player.x - player.width / 2 + 'px';
+            player.element.style.top = player.y - player.height / 2 + 'px';
+            player.element.style.transform = `rotate(${player.rotation}deg)`;
+            player.turretElement.style.transform = `rotate(${player.turretRotation - player.rotation}deg)`;
+            player.healthFillElement.style.width = player.health + '%';
+        }
+
+        // Enemy tank class
+        class Enemy {
+            constructor(x, y) {
+                this.element = document.createElement('div');
+                this.bodyElement = document.createElement('div');
+                this.turretElement = document.createElement('div');
+                this.trackLeftElement = document.createElement('div');
+                this.trackRightElement = document.createElement('div');
+                this.healthBarElement = document.createElement('div');
+                this.healthFillElement = document.createElement('div');
+                this.x = x;
+                this.y = y;
+                this.width = 60;
+                this.height = 40;
+                this.speed = 1 + Math.random() * 0.5;
+                this.rotation = Math.random() * 360;
+                this.turretRotation = 0;
+                this.health = 100;
+                this.lastShot = 0;
+                this.shootCooldown = 2000 + Math.random() * 1000;
+                this.decisionTime = 0;
+                this.decisionInterval = 1000 + Math.random() * 1000;
+                this.moveDirection = { x: 0, y: 0 };
+
+                this.element.className = 'tank enemy';
+                this.bodyElement.className = 'tank-body';
+                this.turretElement.className = 'tank-turret';
+                this.trackLeftElement.className = 'tank-tracks tank-track-left';
+                this.trackRightElement.className = 'tank-tracks tank-track-right';
+                this.healthBarElement.className = 'health-bar';
+                this.healthFillElement.className = 'health-fill';
+
+                this.element.appendChild(this.bodyElement);
+                this.element.appendChild(this.turretElement);
+                this.element.appendChild(this.trackLeftElement);
+                this.element.appendChild(this.trackRightElement);
+                this.healthBarElement.appendChild(this.healthFillElement);
+                this.element.appendChild(this.healthBarElement);
+
+                gameContainer.appendChild(this.element);
+                this.updatePosition();
+            }
+
+            updatePosition() {
+                this.element.style.left = this.x - this.width / 2 + 'px';
+                this.element.style.top = this.y - this.height / 2 + 'px';
+                this.element.style.transform = `rotate(${this.rotation}deg)`;
+                this.turretElement.style.transform = `rotate(${this.turretRotation - this.rotation}deg)`;
+                this.healthFillElement.style.width = this.health + '%';
+            }
+
+            update(timestamp) {
+                // Update turret to face player
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                this.turretRotation = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                // Make movement decisions periodically
+                if (timestamp - this.decisionTime > this.decisionInterval) {
+                    this.decisionTime = timestamp;
+
+                    // 70% chance to move toward player, 30% chance to move randomly
+                    if (Math.random() < 0.7) {
+                        // Move toward player
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        this.moveDirection.x = dx / distance;
+                        this.moveDirection.y = dy / distance;
+
+                        // Set tank body rotation to match movement direction
+                        this.rotation = Math.atan2(this.moveDirection.y, this.moveDirection.x) * 180 / Math.PI;
+                    } else {
+                        // Move randomly
+                        const angle = Math.random() * Math.PI * 2;
+                        this.moveDirection.x = Math.cos(angle);
+                        this.moveDirection.y = Math.sin(angle);
+                        this.rotation = angle * 180 / Math.PI;
+                    }
+                }
+
+                // Move tank
+                const newX = this.x + this.moveDirection.x * this.speed;
+                const newY = this.y + this.moveDirection.y * this.speed;
+
+                // Check boundaries
+                if (newX > 30 && newX < containerRect.width - 30 &&
+                    newY > 30 && newY < containerRect.height - 30) {
+                    this.x = newX;
+                    this.y = newY;
+                } else {
+                    // Reverse direction if hitting boundary
+                    this.moveDirection.x *= -1;
+                    this.moveDirection.y *= -1;
+                    this.rotation = Math.atan2(this.moveDirection.y, this.moveDirection.x) * 180 / Math.PI;
+                }
+
+                // Check if can shoot
+                if (timestamp - this.lastShot > this.shootCooldown) {
+                    // Check if player is in line of sight
+                    const canSeePlayer = this.checkLineOfSight();
+
+                    if (canSeePlayer) {
+                        this.shoot();
+                        this.lastShot = timestamp;
+                    }
+                }
+
+                this.updatePosition();
+            }
+
+            checkLineOfSight() {
+                // Simple line of sight check - no obstacles for now
+                const distance = Math.sqrt(
+                    Math.pow(player.x - this.x, 2) +
+                    Math.pow(player.y - this.y, 2)
+                );
+
+                // Only shoot if within range
+                return distance < 500;
+            }
+
+            shoot() {
+                const angle = this.turretRotation * Math.PI / 180;
+                const bulletSpeed = 7;
+
+                // Calculate bullet starting position at the end of the turret
+                const turretLength = 40;
+                const startX = this.x + Math.cos(angle) * turretLength;
+                const startY = this.y + Math.sin(angle) * turretLength;
+
+                createBullet(startX, startY, angle, bulletSpeed, false);
+
+                // Create bullet trail effect
+                createBulletTrail(startX, startY, angle, 20);
+            }
+
+            takeDamage(amount) {
+                this.health -= amount;
+                if (this.health <= 0) {
+                    this.destroy();
+                    return true;
+                }
+                return false;
+            }
+
+            destroy() {
+                createExplosion(this.x, this.y, 2);
+                this.element.remove();
+                game.enemiesLeft--;
+                document.getElementById('enemies-left').textContent = `Enemies: ${game.enemiesLeft}`;
+
+                if (game.enemiesLeft <= 0) {
+                    endGame(true);
+                }
+            }
+        }
+
+        // Create enemies
+        const enemies = [];
+        function createEnemies() {
+            // Create 5 enemies at random positions
+            for (let i = 0; i < 5; i++) {
+                // Position enemies away from the player
+                let x, y;
+                do {
+                    x = Math.random() * (containerRect.width - 100) + 50;
+                    y = Math.random() * (containerRect.height - 100) + 50;
+                } while (Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)) < 300);
+
+                enemies.push(new Enemy(x, y));
+            }
+        }
+
+        // Create bullet
+        function createBullet(x, y, angle, speed, isPlayerBullet) {
+            const bullet = {
+                element: document.createElement('div'),
+                x: x,
+                y: y,
+                angle: angle,
+                speed: speed,
+                isPlayerBullet: isPlayerBullet,
+                damage: isPlayerBullet ? 25 : 10,
+                lifetime: 0
+            };
+
+            bullet.element.className = 'bullet';
+            bullet.element.style.left = bullet.x + 'px';
+            bullet.element.style.top = bullet.y + 'px';
+
+            gameContainer.appendChild(bullet.element);
+            game.bullets.push(bullet);
+        }
+
+        // Create bullet trail effect
+        function createBulletTrail(x, y, angle, length) {
+            const trail = {
+                element: document.createElement('div'),
+                x: x,
+                y: y,
+                angle: angle,
+                length: length,
+                lifetime: 0,
+                maxLifetime: 10
+            };
+
+            trail.element.className = 'bullet-trail';
+            trail.element.style.left = trail.x + 'px';
+            trail.element.style.top = trail.y + 'px';
+            trail.element.style.width = trail.length + 'px';
+            trail.element.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+
+            gameContainer.appendChild(trail.element);
+            game.bulletTrails.push(trail);
+        }
+
+        // Create explosion
+        function createExplosion(x, y, size = 1) {
+            const explosion = {
+                element: document.createElement('div'),
+                x: x,
+                y: y,
+                size: size
+            };
+
+            explosion.element.className = 'explosion';
+            explosion.element.style.left = (x - 20 * size) + 'px';
+            explosion.element.style.top = (y - 20 * size) + 'px';
+            explosion.element.style.transform = `scale(${size})`;
+
+            gameContainer.appendChild(explosion.element);
+            game.explosions.push(explosion);
+
+            // Remove explosion after animation completes
+            setTimeout(() => {
+                const index = game.explosions.indexOf(explosion);
+                if (index !== -1) {
+                    game.explosions.splice(index, 1);
+                    explosion.element.remove();
+                }
+            }, 500);
+        }
+
+        // Create bullet impact
+        function createImpact(x, y) {
+            const impact = {
+                element: document.createElement('div'),
+                x: x,
+                y: y,
+                lifetime: 0,
+                maxLifetime: 30
+            };
+
+            impact.element.className = 'impact';
+            impact.element.style.left = (x - 5) + 'px';
+            impact.element.style.top = (y - 5) + 'px';
+
+            gameContainer.appendChild(impact.element);
+            game.impacts.push(impact);
+        }
+
+        // Create terrain details
+        function createTerrainDetails() {
+            for (let i = 0; i < 100; i++) {
+                const detail = {
+                    element: document.createElement('div'),
+                    x: Math.random() * containerRect.width,
+                    y: Math.random() * containerRect.height,
+                    size: 3 + Math.random() * 10
+                };
+
+                detail.element.className = 'terrain-detail';
+                detail.element.style.left = detail.x + 'px';
+                detail.element.style.top = detail.y + 'px';
+                detail.element.style.width = detail.size + 'px';
+                detail.element.style.height = detail.size + 'px';
+                detail.element.style.opacity = 0.3 + Math.random() * 0.4;
+
+                gameContainer.appendChild(detail.element);
+                game.terrainDetails.push(detail);
+            }
+        }
+
+        // Update bullets
+        function updateBullets() {
+            for (let i = game.bullets.length - 1; i >= 0; i--) {
+                const bullet = game.bullets[i];
+
+                // Move bullet
+                bullet.x += Math.cos(bullet.angle) * bullet.speed;
+                bullet.y += Math.sin(bullet.angle) * bullet.speed;
+                bullet.element.style.left = bullet.x + 'px';
+                bullet.element.style.top = bullet.y + 'px';
+
+                bullet.lifetime++;
+
+                // Check if bullet is out of bounds
+                if (bullet.x < 0 || bullet.x > containerRect.width ||
+                    bullet.y < 0 || bullet.y > containerRect.height ||
+                    bullet.lifetime > 200) {
+                    bullet.element.remove();
+                    game.bullets.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with tanks
+                if (bullet.isPlayerBullet) {
+                    // Check collision with enemies
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        const enemy = enemies[j];
+                        if (checkCollision(bullet, enemy)) {
+                            // Hit enemy
+                            createImpact(bullet.x, bullet.y);
+                            bullet.element.remove();
+                            game.bullets.splice(i, 1);
+
+                            if (enemy.takeDamage(bullet.damage)) {
+                                // Enemy destroyed
+                                game.score += 100;
+                                document.getElementById('score').textContent = `Score: ${game.score}`;
+                                enemies.splice(j, 1);
+                            }
+                            break;
+                        }
+                    }
+                } else {
+                    // Check collision with player
+                    if (checkCollision(bullet, player)) {
+                        // Hit player
+                        createImpact(bullet.x, bullet.y);
+                        bullet.element.remove();
+                        game.bullets.splice(i, 1);
+
+                        player.health -= bullet.damage;
+                        if (player.health < 0) player.health = 0;
+                        player.healthFillElement.style.width = player.health + '%';
+                        document.getElementById('player-health').textContent = `Health: ${player.health}%`;
+
+                        if (player.health <= 0) {
+                            endGame(false);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Update bullet trails
+        function updateBulletTrails() {
+            for (let i = game.bulletTrails.length - 1; i >= 0; i--) {
+                const trail = game.bulletTrails[i];
+                trail.lifetime++;
+
+                // Fade out trail
+                trail.element.style.opacity = 1 - (trail.lifetime / trail.maxLifetime);
+
+                if (trail.lifetime >= trail.maxLifetime) {
+                    trail.element.remove();
+                    game.bulletTrails.splice(i, 1);
+                }
+            }
+        }
+
+        // Update impacts
+        function updateImpacts() {
+            for (let i = game.impacts.length - 1; i >= 0; i--) {
+                const impact = game.impacts[i];
+                impact.lifetime++;
+
+                // Fade out impact
+                impact.element.style.opacity = 0.7 * (1 - (impact.lifetime / impact.maxLifetime));
+
+                if (impact.lifetime >= impact.maxLifetime) {
+                    impact.element.remove();
+                    game.impacts.splice(i, 1);
+                }
+            }
+        }
+
+        // Check collision between bullet and tank
+        function checkCollision(bullet, tank) {
+            const dx = bullet.x - tank.x;
+            const dy = bullet.y - tank.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < tank.width / 2;
+        }
+
+        // End game
+        function endGame(isWin) {
+            game.isOver = true;
+
+            const gameOverElement = document.getElementById('game-over');
+            const gameResultElement = document.getElementById('game-result');
+            const finalScoreElement = document.getElementById('final-score');
+
+            if (isWin) {
+                gameResultElement.textContent = 'Victory!';
+                gameResultElement.style.color = '#2ecc71';
+                game.score += player.health * 10; // Bonus for remaining health
+            } else {
+                gameResultElement.textContent = 'Game Over';
+                gameResultElement.style.color = '#e74c3c';
+                createExplosion(player.x, player.y, 3);
+            }
+
+            finalScoreElement.textContent = `Your score: ${game.score}`;
+            gameOverElement.style.display = 'block';
+        }
+
+        // Restart game
+        function restartGame() {
+            // Clear game elements
+            gameContainer.innerHTML = '';
+
+            // Reset game state
+            game.score = 0;
+            game.isOver = false;
+            game.enemiesLeft = 5;
+            game.bullets = [];
+            game.explosions = [];
+            game.impacts = [];
+            game.bulletTrails = [];
+
+            // Recreate HUD
+            const hudElement = document.createElement('div');
+            hudElement.id = 'hud';
+            hudElement.innerHTML = `
+                <div id="score">Score: 0</div>
+                <div id="player-health">Health: 100%</div>
+                <div id="enemies-left">Enemies: 5</div>
+            `;
+            gameContainer.appendChild(hudElement);
+
+            // Recreate game over screen
+            const gameOverElement = document.createElement('div');
+            gameOverElement.id = 'game-over';
+            gameOverElement.innerHTML = `
+                <h2 id="game-result">Game Over</h2>
+                <p id="final-score">Your score: 0</p>
+                <button id="restart-btn">Play Again</button>
+            `;
+            gameOverElement.style.display = 'none';
+            gameContainer.appendChild(gameOverElement);
+
+            document.getElementById('restart-btn').addEventListener('click', restartGame);
+
+            // Reset player
+            player.x = containerRect.width / 2;
+            player.y = containerRect.height / 2;
+            player.rotation = 0;
+            player.turretRotation = 0;
+            player.health = 100;
+            player.lastShot = 0;
+
+            // Initialize game
+            initGame();
+        }
+
+        // Game loop
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            if (lastTime === 0) lastTime = timestamp;
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            if (!game.isOver) {
+                // Handle player movement
+                if (game.keys.up) {
+                    const radians = player.rotation * Math.PI / 180;
+                    player.x += Math.cos(radians) * player.speed;
+                    player.y += Math.sin(radians) * player.speed;
+
+                    // Keep player within bounds
+                    player.x = Math.max(30, Math.min(containerRect.width - 30, player.x));
+                    player.y = Math.max(30, Math.min(containerRect.height - 30, player.y));
+                }
+
+                if (game.keys.down) {
+                    const radians = player.rotation * Math.PI / 180;
+                    player.x -= Math.cos(radians) * player.speed * 0.5;
+                    player.y -= Math.sin(radians) * player.speed * 0.5;
+
+                    // Keep player within bounds
+                    player.x = Math.max(30, Math.min(containerRect.width - 30, player.x));
+                    player.y = Math.max(30, Math.min(containerRect.height - 30, player.y));
+                }
+
+                if (game.keys.left) {
+                    player.rotation -= player.rotationSpeed;
+                }
+
+                if (game.keys.right) {
+                    player.rotation += player.rotationSpeed;
+                }
+
+                // Update player turret to face mouse
+                const dx = game.mouse.x - player.x;
+                const dy = game.mouse.y - player.y;
+                player.turretRotation = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                // Handle player shooting
+                if (game.keys.space && timestamp - player.lastShot > player.shootCooldown) {
+                    const angle = player.turretRotation * Math.PI / 180;
+                    const bulletSpeed = 10;
+
+                    // Calculate bullet starting position at the end of the turret
+                    const turretLength = 40;
+                    const startX = player.x + Math.cos(angle) * turretLength;
+                    const startY = player.y + Math.sin(angle) * turretLength;
+
+                    createBullet(startX, startY, angle, bulletSpeed, true);
+                    createBulletTrail(startX, startY, angle, 20);
+                    player.lastShot = timestamp;
+                }
+
+                // Update player position
+                updatePlayerPosition();
+
+                // Update enemies
+                for (const enemy of enemies) {
+                    enemy.update(timestamp);
+                }
+
+                // Update bullets
+                updateBullets();
+
+                // Update visual effects
+                updateBulletTrails();
+                updateImpacts();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize game
+        function initGame() {
+            // Create terrain details
+            createTerrainDetails();
+
+            // Initialize player
+            initPlayer();
+
+            // Create enemies
+            createEnemies();
+
+            // Start game loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (game.isOver) return;
+
+            switch (e.key.toLowerCase()) {
+                case 'w':
+                case 'arrowup':
+                    game.keys.up = true;
+                    break;
+                case 's':
+                case 'arrowdown':
+                    game.keys.down = true;
+                    break;
+                case 'a':
+                case 'arrowleft':
+                    game.keys.left = true;
+                    break;
+                case 'd':
+                case 'arrowright':
+                    game.keys.right = true;
+                    break;
+                case ' ':
+                    game.keys.space = true;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch (e.key.toLowerCase()) {
+                case 'w':
+                case 'arrowup':
+                    game.keys.up = false;
+                    break;
+                case 's':
+                case 'arrowdown':
+                    game.keys.down = false;
+                    break;
+                case 'a':
+                case 'arrowleft':
+                    game.keys.left = false;
+                    break;
+                case 'd':
+                case 'arrowright':
+                    game.keys.right = false;
+                    break;
+                case ' ':
+                    game.keys.space = false;
+                    break;
+            }
+        });
+
+        gameContainer.addEventListener('mousemove', (e) => {
+            if (game.isOver) return;
+
+            const rect = gameContainer.getBoundingClientRect();
+            game.mouse.x = e.clientX - rect.left;
+            game.mouse.y = e.clientY - rect.top;
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', restartGame);
+
+        // Start the game
+        initGame();
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9631e3c517d0d055',t:'MTc1MzE3NjMxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+
+</body>
+</html>

@@ -1,0 +1,171 @@
+
+<!-- @{
+    ViewData["Title"] = "Game Page";
+    Layout = "_layout3";
+} -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,user-scalable=no" />
+    <script src="https://codepen.io/steveg3003/pen/zBVakw"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
+    <title>Tower Blocks</title>
+    <link rel="stylesheet" href="~/css/TowerBlocks.css" />
+    <style>
+
+        @import url("https://fonts.googleapis.com/css?family=Comfortaa");
+
+html,
+body {
+    margin: 0;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    position: relative;
+    font-family: "Comfortaa", cursive;
+}
+
+#container {
+    width: 100%;
+    height: 100%;
+}
+
+    #container #score {
+        position: absolute;
+        top: 20px;
+        width: 100%;
+        text-align: center;
+        font-size: 10vh;
+        transition: transform 0.5s ease;
+        color: #334;
+        transform: translatey(-200px) scale(1);
+    }
+
+    #container #game {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+
+    #container .game-over {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 85%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+        #container .game-over * {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 0;
+            transform: translatey(-50px);
+            color: #334;
+        }
+
+        #container .game-over h2 {
+            margin: 0;
+            padding: 0;
+            font-size: 40px;
+        }
+
+    #container .game-ready {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+    }
+
+        #container .game-ready #start-button {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 0;
+            transform: translatey(-50px);
+            border: 3px solid #334;
+            padding: 10px 20px;
+            background-color: transparent;
+            color: #334;
+            font-size: 30px;
+        }
+
+    #container #instructions {
+        position: absolute;
+        width: 100%;
+        top: 16vh;
+        left: 0;
+        text-align: center;
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        opacity: 0;
+    }
+
+        #container #instructions.hide {
+            opacity: 0 !important;
+        }
+
+    #container.playing #score,
+    #container.resetting #score {
+        transform: translatey(0px) scale(1);
+    }
+
+    #container.playing #instructions {
+        opacity: 1;
+    }
+
+    #container.ready .game-ready #start-button {
+        opacity: 1;
+        transform: translatey(0);
+    }
+
+    #container.ended #score {
+        transform: translatey(6vh) scale(1.5);
+    }
+
+    #container.ended .game-over * {
+        opacity: 1;
+        transform: translatey(0);
+    }
+
+    #container.ended .game-over p {
+        transition-delay: 0.3s;
+    }
+
+    /* ye game nhi chal raha hai ??? */
+    </style>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <script src="script.js" async></script>
+    <div id="container">
+        <div id="game"></div>
+        <div id="score">0</div>
+        <div id="instructions">
+            Click (or press the spacebar) to place the block
+        </div>
+        <div class="game-over">
+            <h2>Game Over</h2>
+            <p>You did great, you're the best.</p>
+            <p>Click or spacebar to start again</p>
+        </div>
+        <div class="game-ready">
+            <div id="start-button">Start</div>
+            <div></div>
+        </div>
+    </div>
+    <footer>Project By -: TANAY PADAR</footer>
+
+    <script src="~/js/TowerBlocks.js"></script>
+
+</body>
+</html>

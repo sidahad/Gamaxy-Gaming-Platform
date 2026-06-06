@@ -1,0 +1,469 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script src="https://kit.fontawesome.com/eaad2fdcac.js" crossorigin="anonymous"></script>
+    <meta property="og:image" content="https://industry.dexignzone.com/xhtml/social-image.png" />
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- FAVICONS ICON -->
+    <link rel="icon" href="~/web/assets/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" type="image/x-icon" href="~/web/assets/favicon.png" />
+
+    <!-- PAGE TITLE HERE -->
+    <title>Gamaxy Web Appliation</title>
+
+    <!-- MOBILE SPECIFIC -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="~/web/assets/css/plugins.css">
+    <link rel="stylesheet" type="text/css" href="~/web/assets/css/style.min.css">
+    <link class="skin" rel="stylesheet" type="text/css" href="~/web/assets/css/skin/skin-2.min.css">
+    <link rel="stylesheet" type="text/css" href="~/web/assets/css/templete.css">
+    <!-- Google Font -->
+
+    <link href="~/web/com.css" rel="stylesheet" />
+    <!-- REVOLUTION SLIDER CSS -->
+    <link rel="stylesheet" type="text/css" href="~/web/assets/plugins/revolution/revolution/css/revolution.min.css">
+    @RenderSection("Styles", required: false)
+
+</head>
+
+<body id="bg">
+
+    <div class="page-wraper">
+
+        <!-- header -->
+        <header class="site-header mo-left header-transparent header navstyle2">
+            <!-- main header -->
+            <div class="sticky-header main-bar-wraper navbar-expand-lg">
+                <div class="main-bar clearfix ">
+                    <div class="container clearfix">
+                        <!-- website logo -->
+                        <div class="logo-header mostion logo-white">
+                            <a asp-controller="Home" asp-action="Index"><img src="~/web/assets/images/l3.png" alt=""></a>
+                        </div>
+                        <!-- nav toggle button -->
+                        <button class="navbar-toggler collapsed navicon justify-content-end" type="button"
+                                data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown"
+                                aria-expanded="false" aria-label="Toggle navigation">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <!-- extra nav -->
+                        <div class="extra-nav">
+                            <div class="extra-cell">
+                                <button type="button" class="site-button-link">
+                                    <a asp-controller="Home" asp-action="Contact">
+                                        <i class="fa-solid fa-circle-question"></i>
+                                    </a>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- main nav -->
+                        <div class="header-nav navbar-collapse collapse justify-content-end" id="navbarNavDropdown" style="margin:0px;">
+                            <div class="logo-header d-md-block d-lg-none">
+                                <a asp-controller="Home" asp-action="Index"><img src="~/web/assets/images/l3.png" alt=""></a>
+                            </div>
+                            <ul class="nav navbar-nav">
+
+                                <li class="active has-mega-menu">
+                                    <a asp-controller="Home" asp-action="Index">Home<i class="fa fa-chevron-down"></i></a>
+                                </li>
+                                <li>
+                                    <a href="javascript:;">Features<i class="fa fa-chevron-down" style="margin:0px;"></i></a>
+                                    <ul class="sub-menu tab-content">
+                                        <li><a asp-controller="Home" asp-action="Favorites">My Favorites</a></li>
+                                        <li><a asp-controller="Home" asp-action="Registration">Launch your Own</a></li>
+                                        <li><a asp-controller="Home" asp-action="Index">Community Games</a></li>
+                                        <li><a asp-controller="Home" asp-action="Index">Top Rated</a></li>
+                                        <li><a asp-controller="Home" asp-action="Team">Team</a></li>
+                                        <li><a asp-controller="Home" asp-action="Ppolicy">Game Categories</a></li>
+                                        <li><a asp-controller="Home" asp-action="Imgallery">Image Gallery</a></li>
+                                        <li><a asp-controller="Home" asp-action="videogallery">Video Gallery</a></li>
+                                        <li><a asp-controller="Home" asp-action="Leaderboard">Leaderboard</a></li>
+
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a asp-controller="Home" asp-action="" style="margin:0px;">Pages<i class="fa fa-chevron-down"></i></a>
+                                    <ul class="sub-menu tab-content">
+                                        <li><a asp-controller="Home" asp-action="Blog">Blog</a></li>
+                                        <li><a asp-controller="Home" asp-action="About">About Us</a></li>
+                                        <li><a asp-controller="Home" asp-action="Feedback">Feedback</a></li>
+                                        <li><a asp-controller="Home" asp-action="Testimonials">Testimonials</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a asp-controller="Launcher" asp-action="Index">Premium Games</a>
+                                </li>
+                                <li class="has-mega-menu">
+                                    <a asp-controller="Home" asp-action="Games">
+                                        Games<i class="fa fa-chevron-down"></i>
+                                    </a>
+                                    <ul class="mega-menu">
+                                        <li>
+                                            <a asp-controller="Home" asp-action="AeroplaneFight">AeroplaneFight</a>
+                                            <ul>
+
+                                                <li><a asp-controller="Home" asp-action="AngryBird">Angry Bird</a></li>
+                                                <li><a asp-controller="Home" asp-action="AlienDefense">AlienDefense</a></li>
+                                                <li><a asp-controller="Home" asp-action="Baloon">Baloon</a></li>
+                                                <li><a asp-controller="Home" asp-action="BubbleShooter">BubbleShooter</a></li>
+                                                <li><a asp-controller="Home" asp-action="burger">Burger</a></li>
+                                                <li><a asp-controller="Home" asp-action="CandyCrushGame">CandyCrushGame</a></li>
+                                                <li><a asp-controller="Home" asp-action="CarEscape">CarEscape</a></li>
+                                                <li><a asp-controller="Home" asp-action="CarParker">CarParker</a></li>
+                                                <li><a asp-controller="Home" asp-action="Chess">Chess</a></li>
+                                                <li><a asp-controller="Home" asp-action="ChronoRunner">ChronoRunner</a></li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="Home" asp-action="CosmicDefender">CosmicDefender</a>
+                                            <ul>
+                                                <li><a asp-controller="Home" asp-action="CrazyCarRun">CrazyCarRun</a></li>
+                                                <li><a asp-controller="Home" asp-action="CrossyRoadGame">CrossyRoadGame</a></li>
+                                                <li><a asp-controller="Home" asp-action="CutTheRope">CutTheRope</a></li>
+                                                <li><a asp-controller="Home" asp-action="delivery">delivery</a></li>
+                                                <li><a asp-controller="Home" asp-action="DropEscape">DropEscape</a></li>
+                                                <li><a asp-controller="Home" asp-action="Drumkit">Drumkit</a></li>
+                                                <li><a asp-controller="Home" asp-action="FightingGame">FightingGame</a></li>
+                                                <li><a asp-controller="Home" asp-action="FireBoyandWaterGirl">FireBoyandWaterGirl</a></li>
+                                                <li><a asp-controller="Home" asp-action="fish">fish</a></li>
+                                                <li><a asp-controller="Home" asp-action="FlappyBird">FlappyBird</a></li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="Home" asp-action="Flipcard">Flipcard</a>
+                                            <ul>
+                                                <li><a asp-controller="Home" asp-action="FruitNinja">FruitNinja</a></li>
+                                                <li><a asp-controller="Home" asp-action="Hangmen">Hangmen</a></li>
+                                                <li><a asp-controller="Home" asp-action="Helicopter">Helicopter</a></li>
+                                                <li><a asp-controller="Home" asp-action="matchthecolumn">matchthecolumn</a></li>
+                                                <li><a asp-controller="Home" asp-action="MemoryGame">MemoryGame</a></li>
+                                                <li><a asp-controller="Home" asp-action="NeonRacer">NeonRacer</a></li>
+                                                <li><a asp-controller="Home" asp-action="Pacman">Pacman</a></li>
+                                                <li><a asp-controller="Home" asp-action="Pongball">Pongball</a></li>
+                                                <li><a asp-controller="Home" asp-action="RockPaperScissor2">RockPaperScissor2</a></li>
+                                                <li><a asp-controller="Home" asp-action="RockPaperScissors">RockPaperScissors</a></li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="Home" asp-action="Runningman">Runningman</a>
+                                            <ul>
+                                                <li><a asp-controller="Home" asp-action="SimonSaysGame">SimonSaysGame</a></li>
+                                                <li><a asp-controller="Home" asp-action="Snake">Snake</a></li>
+                                                <li><a asp-controller="Home" asp-action="TankShooter">TankShooter</a></li>
+                                                <li><a asp-controller="Home" asp-action="Tetris">Tetris</a></li>
+                                                <li><a asp-controller="Home" asp-action="Thinking">Thinking</a></li>
+                                                <li><a asp-controller="Home" asp-action="TicTacToe">TicTacToe</a></li>
+                                                <li><a asp-controller="Home" asp-action="TowerBlocks">TowerBlocks</a></li>
+                                                <li><a asp-controller="Home" asp-action="UltimateBrickBreaker">UltimateBrickBreaker</a></li>
+                                                <li><a asp-controller="Home" asp-action="waterflow">waterflow</a></li>
+                                                <li><a asp-controller="Home" asp-action="WhackAMole">WhackAMole</a></li>
+                                            </ul>
+                                        </li>
+                                     
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a asp-controller="Home" asp-action="Contact" style="margin:0px;">Contact Us</a>
+                                </li>
+                             
+                              
+                            @{
+                                var userId = Context.Session.GetInt32("UserId");
+                                var userRole = Context.Session.GetString("UserRole");
+                                var userName = Context.Session.GetString("UserName");
+                                var userImage = Context.Session.GetString("UserImage");
+                            }
+
+                                @if (userId != null)
+                                {
+                                    <li>
+                                        <a href="javascript:;" class="d-flex align-items-center" style="color:white; margin:0px;">
+                                            @if (!string.IsNullOrEmpty(userImage))
+                                            {
+                                                <img src="~/uploads/@userImage" alt="Profile" class="rounded-circle me-2"
+                                                     style="width:35px; height:35px; object-fit:cover;">
+                                            }
+                                            else
+                                            {
+                                                <i class="fa fa-user-circle me-2" style="font-size:20px;"></i>
+                                            }
+                                            <span>@userName</span>
+                                            <i class="fa fa-chevron-down ms-2"></i>
+                                        </a>
+
+                                        <ul class="sub-menu right">
+                                            @if (userRole == "User")
+                                            {
+                                                <li><a asp-controller="Home" asp-action="UserProfile"> User Profile</a></li>
+                                                <li><a asp-controller="Home" asp-action="PlayingHistory"> My History</a></li>
+                                                <li><a asp-controller="Home" asp-action="Favorites"> Favorites</a></li>
+                                                <li><a asp-controller="Home" asp-action="MyReviewsandRatings"> Reviews & Ratings</a></li>
+                                                <li><a asp-controller="Launcher" asp-action="MyPremiumGameReviewsandRatings"> Premium Reviews</a></li>
+                                                <li><a asp-controller="Home" asp-action="EditUserRegistrationDetails"> Edit Profile</a></li>
+                                            }
+                                            else if (userRole == "Gamer")
+                                            {
+                                                <li><a asp-controller="Home" asp-action="Gamerprofile">Gamer Profile</a></li>
+                                                <li><a asp-controller="Launcher" asp-action="UploadGame">Upload Game</a></li>
+                                                <li><a asp-controller="Launcher" asp-action="Launchinghistory"> Launching History</a></li>
+                                                <li><a asp-controller="Launcher" asp-action="MyGames"> My Games</a></li>
+                                                <li><a asp-controller="Launcher" asp-action="PlayingHistory"> Playing History</a></li>
+                                                <li><a asp-controller="Home" asp-action="MyReviewsandRatings"> My Reviews</a></li>
+                                                <li><a asp-controller="Launcher" asp-action="MyPremiumGameReviewsandRatings"> Premium Reviews</a></li>
+                                                <li><a asp-controller="Home" asp-action="Favorites"> Favorites</a></li>
+                                                <li><a asp-controller="Home" asp-action="EditGamerRegistrationDetails"> Edit Profile</a></li>
+                                            }
+                                            else if (userRole == "Admin")
+                                            {
+                                                <li><a asp-controller="Admin" asp-action="Index"> Admin Dashboard</a></li>
+                                            }
+
+                                            <li><a class="text-danger" asp-controller="Home" asp-action="Logout"> Logout</a></li>
+                                        </ul>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li>
+                                        <a href="javascript:;" style="margin:0px; color:white;">Account <i class="fa fa-chevron-down"></i></a>
+                                        <ul class="sub-menu right">
+                                            <li><a asp-controller="Home" asp-action="Login"> Login</a></li>
+                                            <li><a asp-controller="Home" asp-action="Registration"> Registration</a></li>
+                                            <li><a asp-controller="Home" asp-action="Ppolicy"> Privacy Policy</a></li>
+                                            <li><a asp-controller="Home" asp-action="TermsandConditions"> Terms & Conditions</a></li>
+                                            <li><a asp-controller="Home" asp-action="Faqs"> FAQs</a></li>
+                                        </ul>
+                                    </li>
+                                }
+                                <li>
+                                    <a class="music-toggle" href="javascript:;" style="margin:0px;">
+                                        Music<i class="fa-solid fa-music">
+                                            <audio id="bg-music" loop>
+                                                <source src="~/web/assets/video/game.mp3" type="audio/mp3">
+                                            </audio>
+                                        </i>
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+
+
+                    <style>
+                        .hover-dropdown:hover > .dropdown-menu {
+                            display: block;
+                            margin-top: 0; 
+                        }
+
+                        .hover-dropdown .dropdown-menu {
+                            margin-top: 0;
+                            border-radius: 8px;
+                            min-width: 200px;
+                        }
+
+                        .hover-dropdown .dropdown-item:hover {
+                            background-color: #f2f2f2;
+                        }
+                    </style>
+
+            </div>
+                   
+        </header>
+        <!-- header END -->
+        @RenderBody()
+        <section style="background-color: black;">
+            <footer class="footer-section">
+                <div class="d-flex justify-content-center border-top mb-0"
+                     style="padding: 0px; background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);">
+                    <a class="mt-1 mb-1" style="color: rgb(255, 255, 255); text-decoration: none;" href="#Home">
+                        Back
+                        to
+                        Top
+                    </a>
+                </div>
+                <div class="container">
+                    <div class="footer-cta pt-3">
+                        <div class="row">
+                            <div class="col-xl-4 col-md-4 col-lg-4 pe-3 mb-30 ">
+                                <div class="single-cta ms-4 mx-auto">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <div class="cta-text">
+                                        <h4>Find us</h4>
+                                        <a style="text-decoration: none;" href="https://www.google.com/maps/dir//LA-2%2FB,+Block+21%D8%8C+Main+Rashid+Minhas+Rd%D8%8C+opp.+UBL+Sports+Complex,+Karachi%E2%80%AD/@@24.9323299,67.0048623,12z/data=!4m8!4m7!1m0!1m5!1m1!1s0x3eb33f4eb7183b97:0x35709df45c0003aa!2m2!1d67.0872638!2d24.9323526?entry=ttu">
+                                            <span style="font-size: 14px;">D.H.A. Phase 8 Karachi, Karachi City, Sindh 75500, Pakistan </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-md-4 mb-30">
+                                <div class="single-cta ms-4 mx-auto">
+                                    <i class="fas fa-phone"></i>
+                                    <div class="cta-text">
+                                        <h4>Call us</h4>
+                                        <span style="font-size: 14px;">+91 1234567890 +123-456-789</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-md-4 mb-30">
+                                <div class="single-cta ms-4 mx-auto">
+                                    <i class="far fa-envelope-open"></i>
+                                    <div class="cta-text">
+                                        <h4>Mail us</h4>
+                                        <span style="font-size: 14px;">gamaxy@gmail.com</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer-content pt-4 pb-1 p-2">
+                        <div class="row">
+                            <div class="col-xl-3 col-lg-3 mb-50">
+                                <div class="footer-widget text-center ms-4 mx-auto">
+                                    <div class="footer-logo">
+                                        <a asp-controller="Home" asp-action="Index">
+                                            <img src="~/web/assets/images/footer.png" style="width: 180px; height: 180px;"
+                                                 class="img-fluid" alt="logo">
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-3 col-md-6 mb-30 pe-0">
+                                <div class="footer-widget mx-auto">
+                                    <div class="footer-widget-heading">
+                                        <h3>Useful Links</h3>
+                                    </div>
+                                    <div class="ul" style="display: flex;">
+                                        <ul>
+                                            <li><a asp-controller="Home" asp-action="About">About Us</a></li>
+                                            <li><a asp-controller="Home" asp-action="Team">Our Team</a></li>
+                                            <li><a asp-controller="Home" asp-action="Gallery">Gallery</a></li>
+                                            <li><a asp-controller="Home" asp-action="Community">Community</a></li>
+                                            <li><a asp-controller="Home" asp-action="Leaderboard">Leaderboard</a></li>
+                                        </ul>
+                                        <ul style="padding-left: 0px;">
+                                            <li><a href="games.html">Games</a></li>
+                                            <li><a asp-controller="Home" asp-action="Feedback">Feedback</a></li>
+                                            <li><a asp-controller="Home" asp-action="Contact">Contact us</a></li>
+                                            <li><a asp-controller="Home" asp-action="faq">FAQs</a></li>
+                                            <li><a asp-controller="Home" asp-action="Register">Signup</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2 col-lg-2 p-0 m-0 col-md-6 mb-50 p-0">
+                                <div class="footer-widget">
+                                    <div class="footer-social-icon">
+                                        <div class="footer-widget-heading">
+                                            <h3>Follow Us</h3>
+                                        </div>
+                                        <ul class="social_icon">
+                                            <div class="d-flex social_icon mt-4 pt-3">
+                                            <li><a href="#"><i class="fa-brands fa-facebook-f"></i></a></li>
+                                            <li><a href="#"><i class="fa-brands fa-twitter"></i></a></li>
+                                    </div>
+                                    <div class="d-flex social_iconn">
+                                        <li><a href="#"><i class="fa-brands fa-instagram"></i></a></li>
+                                        <li><a href="#"><i class="fa-brands fa-youtube"></i></a></li>
+                                    </div>
+                                    <div class="d-flex social_iconnn">
+                                        <li><a href="#"><i class="fa-brands fa-whatsapp"></i></a></li>
+                                        <li><a href="#"><i class="fa-brands fa-tiktok"></i></a></li>
+                                    </div>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-4 col-lg-4 col-md-6 mb-50 p-0">
+                            <div class="footer-widget mx-auto">
+                                <div class="footer-widget-heading">
+                                    <h3>Subscribe</h3>
+                                </div>
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3622.257145037095!2d67.07827927357866!3d24.786646848210545!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33d2389dfde81%3A0x3781bc23c5f43eae!2sEvents%20190c!5e0!3m2!1sen!2s!4v1721155283022!5m2!1sen!2s"
+                                        width="100%" height="190" style="border:0;" allowfullscreen="" loading="lazy"
+                                        referrerpolicy="no-referrer-when-downgrade">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </div>
+    <div class="d-flex justify-content-center mb-0"
+         style="padding: 0px; background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);">
+        <small class="mt-1 mb-1" style="color: rgb(255, 255, 255); font-size: 14px;">
+            © 2024 ME.Inc. All
+            rights
+            reserved.
+        </small>
+    </div>
+    </footer>
+    </section>
+        @RenderSection("Scripts", required: false)
+    <script>
+        $(document).ready(function () {
+            $('#candidateProfileDropdown').dropdown();
+        });
+    </script>
+    <script src="~/web/assets/js/jquery.min.js"></script><!-- JQUERY.MIN JS -->
+    <script src="~/web/assets/plugins/wow/wow.js"></script><!-- WOW JS -->
+    <script src="~/web/assets/plugins/bootstrap/js/popper.min.js"></script><!-- BOOTSTRAP.MIN JS -->
+    <script src="~/web/assets/plugins/bootstrap/js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
+    <script src="~/web/assets/plugins/bootstrap-select/bootstrap-select.min.js"></script><!-- FORM JS -->
+    <script src="~/web/assets/plugins/bootstrap-touchspin/jquery.bootstrap-touchspin.js"></script><!-- FORM JS -->
+    <script src="~/web/assets/plugins/magnific-popup/magnific-popup.js"></script><!-- MAGNIFIC POPUP JS -->
+    <script src="~/web/assets/plugins/counter/waypoints-min.js"></script><!-- WAYPOINTS JS -->
+    <script src="~/web/assets/plugins/counter/counterup.min.js"></script><!-- COUNTERUP JS -->
+    <script src="~/web/assets/plugins/imagesloaded/imagesloaded.js"></script><!-- IMAGESLOADED -->
+    <script src="~/web/assets/plugins/masonry/masonry-3.1.4.js"></script><!-- MASONRY -->
+    <script src="~/web/assets/plugins/masonry/masonry.filter.js"></script><!-- MASONRY -->
+    <script src="~/web/assets/plugins/owl-carousel/owl.carousel.js"></script><!-- OWL SLIDER -->
+    <script src="~/web/assets/plugins/lightgallery/js/lightgallery-all.min.js"></script><!-- Lightgallery -->
+    <script src="~/web/assets/js/custom.js"></script><!-- CUSTOM FUCTIONS  -->
+    <script src="~/web/assets/js/dz.carousel.min.js"></script><!-- SORTCODE FUCTIONS  -->
+    <script src="~/web/assets/plugins/countdown/jquery.countdown.js"></script><!-- COUNTDOWN FUCTIONS  -->
+    <script src="~/web/assets/js/dz.ajax.js"></script><!-- CONTACT JS  -->
+    <script src="~/web/assets/plugins/rangeslider/rangeslider.js"></script><!-- Rangeslider -->
+
+    <script src="~/web/assets/js/jquery.lazy.min.js"></script>
+    <!-- REVOLUTION JS FILES -->
+    <script src="~/web/assets/plugins/revolution/revolution/js/jquery.themepunch.tools.min.js"></script>
+    <script src="~/web/assets/plugins/revolution/revolution/js/jquery.themepunch.revolution.min.js"></script>
+    <!-- Slider revolution 5.0 Extensions  (Load Extensions only on Local File Systems !  The following part can be removed on Server for On Demand Loading) -->
+    <script src="~/web/assets/plugins/revolution/revolution/js/extensions/revolution.extension.actions.min.js"></script>
+    <script src="~/web/assets/plugins/revolution/revolution/js/extensions/revolution.extension.carousel.min.js"></script>
+    <script src="~/web/assets/plugins/revolution/revolution/js/extensions/revolution.extension.kenburn.min.js"></script>
+    <script src="~/web/assets/plugins/revolution/revolution/js/extensions/revolution.extension.layeranimation.min.js"></script>
+    <script src="~/web/assets/plugins/revolution/revolution/js/extensions/revolution.extension.navigation.min.js"></script>
+    <script src="~/web/assets/plugins/revolution/revolution/js/extensions/revolution.extension.parallax.min.js"></script>
+    <script src="~/web/assets/plugins/revolution/revolution/js/extensions/revolution.extension.slideanims.min.js"></script>
+    <script src="~/web/assets/plugins/revolution/revolution/js/extensions/revolution.extension.video.min.js"></script>
+    <script src="~/web/assets/js/rev.slider.js"></script>
+    <script>
+        jQuery(document).ready(function () {
+            'use strict';
+            dz_rev_slider_5();
+            $('.lazy').Lazy();
+        });	/*ready*/
+
+
+        // Background Music Toggle
+        const musicBtn = document.querySelector('.music-toggle');
+        const music = document.getElementById('bg-music');
+
+        musicBtn?.addEventListener('click', () => {
+            if (music.paused) {
+                music.play();
+                musicBtn.textContent = "🔊 Music On";
+            } else {
+                music.pause();
+                musicBtn.textContent = "🎵 Music Off";
+            }
+        });
+    </script>
+</body>
+</html>

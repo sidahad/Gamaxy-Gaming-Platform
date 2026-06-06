@@ -1,0 +1,189 @@
+﻿@{
+    ViewData["Title"] = "Game Page";
+    Layout = "_layout2";
+}
+
+    <style>
+        .video-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .controller-card {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            border-radius: 40px;
+        box-shadow: 0 0 10px #008dff;
+            overflow: hidden;
+            background: #1a1a1a;
+        border: 2px solid black;
+        }
+
+        .left-control, .right-control {
+            width: 50px;
+            height: 200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-direction: column;
+            padding: 15px 8px;
+            box-sizing: border-box;
+        }
+
+        .left-control {
+        background: radial-gradient(circle at 30% 30%, #008dff, #D400FF);
+            border-top-left-radius: 40px;
+            border-bottom-left-radius: 40px;
+        }
+
+        .right-control {
+        background: radial-gradient(circle at 70% 30%, #D400FF, #008dff);
+            border-top-right-radius: 40px;
+            border-bottom-right-radius: 40px;
+        }
+
+        .game-screen {
+            width: 300px;
+            height: 200px;
+            border-left: 5px solid #000;
+            border-right: 5px solid #000;
+            /* border-radius: 10px; */
+            position: relative;
+            /* margin: 0 10px; */
+            overflow: hidden;
+        }
+
+            .game-screen video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+            .pagination button {
+                background: white;
+                border: none;
+                padding: 8px 15px;
+                margin: 0 5px;
+                border-radius: 8px;
+                color: black;
+                cursor: pointer;
+            }
+
+                .pagination button.active {
+                background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);
+                }
+
+    .section1 {
+        position: relative;
+        letter-spacing: 1px;
+        color: #ffffff;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background-image: url('@Url.Content("~/web/assets/images/gb4.jpg")');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+        /* Dark overlay */
+        .section1::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5); /* adjust 0.5 → darker or lighter */
+            z-index: 1;
+        }
+
+        /* Make sure content stays above the overlay */
+        .section1 > * {
+            position: relative;
+            z-index: 2;
+        }
+
+    </style>
+<section class="container-fluid section1" >
+    <h1 style="text-align:center; color:white;" class="mt-5"> Video Gallery</h1>
+
+    <div id="videoContainer" class="video-grid"></div>
+
+    <div class="pagination justify-content-center" id="pagination"></div>
+</section>
+    <script>
+          const videos = [
+      { title: "Game 1", src: "@Url.Content("~/web/assets/video/game1.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg3.jpg")" },
+      { title: "Game 3", src: "@Url.Content("~/web/assets/video/game3.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg4.jpg")" },
+      { title: "Game 5", src: "@Url.Content("~/web/assets/video/game5.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg6.jpg")" },
+      { title: "Flappy Bird", src: "@Url.Content("~/web/assets/video/game6.mp4")", thumbnail: "@Url.Content("~/web/assets/images/Flappybird.png")" },
+      { title: "Game 1 (Alt)", src: "@Url.Content("~/web/assets/video/game1.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg1.jpg")" },
+      { title: "Game 2", src: "@Url.Content("~/web/assets/video/game2.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg7.jpg")" },
+      { title: "Game 6", src: "@Url.Content("~/web/assets/video/game1.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg3.jpg")" },
+      { title: "Game 7", src: "@Url.Content("~/web/assets/video/game3.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg4.jpg")" },
+      { title: "Game 8", src: "@Url.Content("~/web/assets/video/game5.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg6.jpg")" },
+      { title: "Game 11", src: "@Url.Content("~/web/assets/video/game6.mp4")", thumbnail: "@Url.Content("~/web/assets/images/Flappybird.png")" },
+      { title: "Game 9", src: "@Url.Content("~/web/assets/video/game1.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg1.jpg")" },
+      { title: "Game 10", src: "@Url.Content("~/web/assets/video/game2.mp4")", thumbnail: "@Url.Content("~/web/assets/images/bg7.jpg")" }
+    ];
+
+
+        const perPage = 9;
+        let currentPage = 1;
+
+        function renderVideos(page) {
+          const container = document.getElementById("videoContainer");
+          container.innerHTML = "";
+
+          const start = (page - 1) * perPage;
+          const end = start + perPage;
+          const items = videos.slice(start, end);
+
+          items.forEach(v => {
+            container.innerHTML += `
+              <div class="controller-card">
+                <div class="left-control">
+                </div>
+                <div class="game-screen">
+                  <video poster="${v.thumbnail}" controls>
+                    <source src="${v.src}" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+                <div class="right-control">
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        function renderPagination() {
+          const pageCount = Math.ceil(videos.length / perPage);
+          const pagination = document.getElementById("pagination");
+          pagination.innerHTML = "";
+
+          for (let i = 1; i <= pageCount; i++) {
+            const btn = document.createElement("button");
+            btn.textContent = i;
+            if (i === currentPage) btn.classList.add("active");
+            btn.onclick = () => {
+              currentPage = i;
+              renderVideos(currentPage);
+              renderPagination();
+            };
+            pagination.appendChild(btn);
+          }
+        }
+
+        // Init
+        renderVideos(currentPage);
+        renderPagination();
+    </script>

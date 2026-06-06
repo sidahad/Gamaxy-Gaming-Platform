@@ -1,0 +1,48 @@
+﻿@model IEnumerable<LeaderboardPlayer>
+@{
+    ViewData["Title"] = "Leaderboard";
+    Layout = "Admin_layout";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4">Leaderboard</h2>
+
+    <a asp-action="LeaderboardForm" class="btn btn-success mb-3">Add Player</a>
+
+    <table class="table table-striped table-dark">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Level</th>
+                <th>XP</th>
+                <th>Country</th>
+                <th>Rank</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var player in Model)
+            {
+                <tr>
+                    <td>@player.Name</td>
+                    <td>@player.Level</td>
+                    <td>@player.XP</td>
+                    <td>@player.CountryCode.ToUpper()</td>
+                    <td>@player.Rank</td>
+                    <td>
+                        <a asp-action="LeaderboardForm" asp-route-id="@player.Id" class="btn btn-primary btn-sm">
+                            Edit
+                        </a>
+                        <form asp-action="Delete" asp-route-id="@player.Id" method="post" style="display:inline">
+                            <button type="submit" class="btn btn-danger btn-sm" 
+                                    onclick="return confirm('Are you sure to delete this?');">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

@@ -1,0 +1,2786 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Burger";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Burger Stack Master</title>
+    <link href="~/css/burger.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="game-page">
+        <div class="header-section">
+            <h1>Burger Stack Master</h1>
+        </div>
+        <div class="game-container-wrapper">
+            <div id="game-container" class="game-container">
+                <div id="game-background"></div>
+
+                <!-- Kitchen background elements -->
+                <div class="kitchen-light" style="top: 100px; left: 100px;"></div>
+                <div class="kitchen-light" style="top: 150px; left: 350px;"></div>
+                <div class="kitchen-light" style="top: 50px; left: 250px;"></div>
+
+                <div class="chef-silhouette" style="top: 200px; left: 100px;"></div>
+                <div class="chef-silhouette" style="top: 250px; left: 400px;"></div>
+                <div class="chef-silhouette" style="top: 150px; left: 250px;"></div>
+
+                <div class="utensil" style="top: 650px; left: 20px;"></div>
+                <div class="utensil" style="top: 630px; left: 420px;"></div>
+
+                <div class="kitchen-counter"></div>
+                <div class="counter-shine"></div>
+
+                <div id="game-area">
+                    <div id="plate">
+                        <svg class="plate-svg" viewBox="0 0 180 30">
+                            <ellipse cx="90" cy="15" rx="90" ry="15" fill="#FFFFFF" />
+                            <ellipse cx="90" cy="15" rx="80" ry="13" fill="#F5F5F5" />
+                            <ellipse cx="90" cy="15" rx="70" ry="11" fill="#EEEEEE" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div id="ui-container">
+                    <div id="score-container">
+                        <div class="burger-icon"></div>
+                        <div id="score-value">0</div>
+                    </div>
+
+                    <div id="combo-container">
+                        <div id="combo-meter">
+                            <div id="combo-fill"></div>
+                        </div>
+                        <div id="combo-text">x1</div>
+                    </div>
+
+                    <div id="lives-container">
+                        <div class="life-icon"></div>
+                        <div class="life-icon"></div>
+                        <div class="life-icon"></div>
+                    </div>
+
+                    <div id="time-container">Time: <span id="time-value">60</span>s</div>
+
+                    <div id="order-container">
+                        <div id="order-title">ORDER:</div>
+                        <div id="order-items"></div>
+                    </div>
+
+                    <div id="perfect-stack">PERFECT STACK!</div>
+
+                    <div id="level-container">Level: 1 - Classic Burger</div>
+
+                    <div class="tilt-indicator">
+                        <div class="tilt-danger-left"></div>
+                        <div class="tilt-danger-right"></div>
+                        <div class="tilt-marker"></div>
+                    </div>
+
+                    <div id="powerup-indicator"></div>
+
+                    <div id="pause-btn"></div>
+
+                    <div class="achievement">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-text">Achievement Unlocked!</div>
+                    </div>
+                </div>
+
+                <div id="start-screen">
+                    <h1>BURGER STACK MASTER</h1>
+                    <p>Stack the perfect burger by catching the right ingredients!</p>
+                    <p>Follow the order shown at the top of the screen</p>
+                    <p>Don't miss ingredients or your burger will fall!</p>
+                    <button class="btn" id="start-btn">START GAME</button>
+                    <div id="level-select">
+                        <button class="level-btn" data-level="1">1</button>
+                        <button class="level-btn locked" data-level="2">2</button>
+                        <button class="level-btn locked" data-level="3">3</button>
+                        <button class="level-btn locked" data-level="4">4</button>
+                        <button class="level-btn locked" data-level="5">5</button>
+                        <button class="level-btn locked" data-level="6">6</button>
+                    </div>
+                </div>
+
+                <div id="game-over" style="display: none;">
+                    <h2>GAME OVER</h2>
+                    <p>Your burger collapsed!</p>
+                    <p>Final Score: <span id="final-score">0</span></p>
+                    <p>Perfect Stacks: <span id="perfect-stacks">0</span></p>
+                    <button class="btn" id="restart-btn">PLAY AGAIN</button>
+                    <button class="btn" id="menu-btn-gameover">MENU</button>
+                </div>
+
+                <div id="level-complete" style="display: none;">
+                    <h2>LEVEL COMPLETE!</h2>
+                    <p>Score: <span id="level-score">0</span></p>
+                    <p>Perfect Stacks: <span id="level-perfect-stacks">0</span></p>
+                    <p>Stars: <span id="level-stars">★★★</span></p>
+                    <button class="btn" id="next-level-btn">NEXT LEVEL</button>
+                    <button class="btn" id="menu-btn">MENU</button>
+                </div>
+
+                <div id="pause-screen" style="display: none;">
+                    <h2>GAME PAUSED</h2>
+                    <p>Take a break, your burger is waiting!</p>
+                    <button class="btn" id="resume-btn">RESUME</button>
+                    <button class="btn" id="restart-btn-pause">RESTART</button>
+                    <button class="btn" id="menu-btn-pause">MENU</button>
+                </div>
+
+                <div id="tutorial-overlay" style="display: none;">
+                    <div class="tutorial-message">
+                        Drag the plate left and right to catch falling ingredients!
+                    </div>
+                    <div class="tutorial-arrow" style="bottom: 150px;"></div>
+                    <button class="btn" id="tutorial-next">GOT IT!</button>
+                </div>
+
+                <!-- FPS counter -->
+                <div id="fps-counter">FPS: 60</div>
+            </div>
+        </div>
+        <div class="rating-section">
+            <h2 class="rating-title">@Model.GameName</h2>
+            <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+            @if (Model.UserId.HasValue)
+            {
+                <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                <form id="ratingForm" method="post" asp-action="RateGame">
+                    <input type="hidden" name="gameName" value="@Model.GameName" />
+                    <div class="star-rating">
+                        @for (int i = 5; i >= 1; i--)
+                        {
+                            <input type="radio" id="star-@i" name="rating" value="@i" @(Model.ExistingRating == i ? "checked" : "") />
+                            <label for="star-@i">★</label>
+                        }
+                    </div>
+                    <button type="submit" class="btn-rate">Submit Rating</button>
+                </form>
+            }
+            else
+            {
+                <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+            }
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        // Existing game JavaScript remains unchanged
+        document.addEventListener('DOMContentLoaded', function() {
+            // [Existing JavaScript code from original abcGame.cshtml]
+            // Game elements
+            const gameContainer = document.getElementById('game-container');
+            const gameArea = document.getElementById('game-area');
+            const plate = document.getElementById('plate');
+            const scoreValue = document.getElementById('score-value');
+            const comboFill = document.getElementById('combo-fill');
+            const comboText = document.getElementById('combo-text');
+            const livesContainer = document.getElementById('lives-container');
+            const orderItems = document.getElementById('order-items');
+            const perfectStack = document.getElementById('perfect-stack');
+            const levelContainer = document.getElementById('level-container');
+            const timeContainer = document.getElementById('time-container');
+            const timeValue = document.getElementById('time-value');
+            const gameOver = document.getElementById('game-over');
+            const finalScore = document.getElementById('final-score');
+            const perfectStacks = document.getElementById('perfect-stacks');
+            const restartBtn = document.getElementById('restart-btn');
+            const restartBtnPause = document.getElementById('restart-btn-pause');
+            const startScreen = document.getElementById('start-screen');
+            const startBtn = document.getElementById('start-btn');
+            const levelComplete = document.getElementById('level-complete');
+            const levelScore = document.getElementById('level-score');
+            const levelPerfectStacks = document.getElementById('level-perfect-stacks');
+            const levelStars = document.getElementById('level-stars');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+            const menuBtn = document.getElementById('menu-btn');
+            const menuBtnGameover = document.getElementById('menu-btn-gameover');
+            const menuBtnPause = document.getElementById('menu-btn-pause');
+            const levelBtns = document.querySelectorAll('.level-btn');
+            const tiltIndicator = document.querySelector('.tilt-indicator');
+            const tiltMarker = document.querySelector('.tilt-marker');
+            const pauseBtn = document.getElementById('pause-btn');
+            const pauseScreen = document.getElementById('pause-screen');
+            const resumeBtn = document.getElementById('resume-btn');
+            const powerupIndicator = document.getElementById('powerup-indicator');
+            const tutorialOverlay = document.getElementById('tutorial-overlay');
+            const tutorialNext = document.getElementById('tutorial-next');
+            const achievement = document.querySelector('.achievement');
+            const fpsCounter = document.getElementById('fps-counter');
+
+            // Game variables
+            let gameActive = false;
+            let gamePaused = false;
+            let score = 0;
+            let combo = 1;
+            let maxCombo = 1;
+            let lives = 3;
+            let perfectStackCount = 0;
+            let currentLevel = 1;
+            let unlockedLevels = 1;
+            let stack = [];
+            let currentOrder = [];
+            let fallingIngredient = null;
+            let fallingInterval;
+            let powerupInterval;
+            let timeInterval;
+            let timeRemaining = 60;
+            let platePosition = { x: 0 };
+            let plateWidth = 180;
+            let ingredientWidth = 160;
+            let tiltMode = false;
+            let tiltValue = 0;
+            let stackTilt = 0;
+            let stackHeight = 0;
+            let gameWidth;
+            let gameHeight;
+            let activePowerups = [];
+            let achievements = {};
+            let showTutorial = true;
+            let tutorialStep = 0;
+            let stackTop = 0;
+            let touchStartX = 0;
+            let lastFrameTime = 0;
+            let fps = 60;
+            let frameCount = 0;
+            let lastFpsUpdate = 0;
+
+            // Ingredient types
+            const ingredientTypes = {
+                bottomBun: {
+                    name: 'Bottom Bun',
+                    height: 20,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M20,30 Q80,40 140,30 L150,20 Q80,5 10,20 Z' fill='%23F5B041'/%3E%3Cpath d='M20,30 Q80,40 140,30 L140,35 Q80,45 20,35 Z' fill='%23E67E22'/%3E%3C/svg%3E"
+                },
+                topBun: {
+                    name: 'Top Bun',
+                    height: 30,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M20,30 Q80,10 140,30 L140,35 Q80,15 20,35 Z' fill='%23F5B041'/%3E%3Cpath d='M20,30 Q80,10 140,30 L130,15 Q80,-5 30,15 Z' fill='%23F8C471'/%3E%3Ccircle cx='50' cy='15' r='2' fill='%23FFFFFF'/%3E%3Ccircle cx='70' cy='10' r='2' fill='%23FFFFFF'/%3E%3Ccircle cx='90' cy='10' r='2' fill='%23FFFFFF'/%3E%3Ccircle cx='110' cy='15' r='2' fill='%23FFFFFF'/%3E%3C/svg%3E"
+                },
+                patty: {
+                    name: 'Beef Patty',
+                    height: 25,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M30,30 Q80,40 130,30 L130,20 Q80,10 30,20 Z' fill='%23784212'/%3E%3Cpath d='M30,30 Q80,40 130,30 L130,25 Q80,35 30,25 Z' fill='%23641E16'/%3E%3Cpath d='M50,22 Q55,18 60,22 M80,20 Q85,16 90,20 M100,22 Q105,18 110,22' stroke='%23A04000' stroke-width='2' fill='none'/%3E%3C/svg%3E"
+                },
+                cheese: {
+                    name: 'Cheese',
+                    height: 10,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M20,30 L140,30 L150,20 L30,20 Z' fill='%23F4D03F'/%3E%3Cpath d='M140,30 L150,20 L150,25 L140,35 Z' fill='%23F1C40F'/%3E%3Cpath d='M20,30 L140,30 L140,35 L20,35 Z' fill='%23F1C40F'/%3E%3Cpath d='M145,22 L143,28 M135,25 L133,31 M125,25 L123,31' stroke='%23D4AC0D' stroke-width='1'/%3E%3C/svg%3E"
+                },
+                lettuce: {
+                    name: 'Lettuce',
+                    height: 15,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M30,30 Q40,25 50,30 Q60,25 70,30 Q80,25 90,30 Q100,25 110,30 Q120,25 130,30 L130,25 Q120,20 110,25 Q100,20 90,25 Q80,20 70,25 Q60,20 50,25 Q40,20 30,25 Z' fill='%2327AE60'/%3E%3Cpath d='M30,30 Q40,25 50,30 Q60,25 70,30 Q80,25 90,30 Q100,25 110,30 Q120,25 130,30 L130,32 Q120,27 110,32 Q100,27 90,32 Q80,27 70,32 Q60,27 50,32 Q40,27 30,32 Z' fill='%232ECC71'/%3E%3C/svg%3E"
+                },
+                tomato: {
+                    name: 'Tomato',
+                    height: 15,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M40,30 Q80,40 120,30 L120,25 Q80,15 40,25 Z' fill='%23E74C3C'/%3E%3Cpath d='M40,30 Q80,40 120,30 L120,32 Q80,42 40,32 Z' fill='%23C0392B'/%3E%3Ccircle cx='60' cy='27' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3Ccircle cx='80' cy='25' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3Ccircle cx='100' cy='27' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3C/svg%3E"
+                },
+                onion: {
+                    name: 'Onion',
+                    height: 10,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M40,30 Q80,40 120,30 L120,28 Q80,38 40,28 Z' fill='%23D7BDE2'/%3E%3Cpath d='M40,28 Q80,38 120,28 L120,25 Q80,35 40,25 Z' fill='%23AF7AC5'/%3E%3Cpath d='M40,25 Q80,35 120,25 L120,23 Q80,33 40,23 Z' fill='%23D7BDE2'/%3E%3C/svg%3E"
+                },
+                pickle: {
+                    name: 'Pickle',
+                    height: 8,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M60,30 Q80,35 100,30 L100,25 Q80,30 60,25 Z' fill='%2327AE60'/%3E%3Cpath d='M60,30 Q80,35 100,30 L100,32 Q80,37 60,32 Z' fill='%23229954'/%3E%3Ccircle cx='70' cy='28' r='1' fill='%23229954'/%3E%3Ccircle cx='80' cy='29' r='1' fill='%23229954'/%3E%3Ccircle cx='90' cy='28' r='1' fill='%23229954'/%3E%3C/svg%3E"
+                },
+                bacon: {
+                    name: 'Bacon',
+                    height: 10,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M40,32 Q50,28 60,32 Q70,28 80,32 Q90,28 100,32 Q110,28 120,32 L120,28 Q110,24 100,28 Q90,24 80,28 Q70,24 60,28 Q50,24 40,28 Z' fill='%23C0392B'/%3E%3Cpath d='M40,28 Q50,24 60,28 Q70,24 80,28 Q90,24 100,28 Q110,24 120,28 L120,26 Q110,22 100,26 Q90,22 80,26 Q70,22 60,26 Q50,22 40,26 Z' fill='%23E74C3C'/%3E%3Cpath d='M40,26 Q50,22 60,26 Q70,22 80,26 Q90,22 100,26 Q110,22 120,26 L120,24 Q110,20 100,24 Q90,20 80,24 Q70,20 60,24 Q50,20 40,24 Z' fill='%23F5B7B1'/%3E%3C/svg%3E"
+                },
+                egg: {
+                    name: 'Fried Egg',
+                    height: 12,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M50,30 Q80,35 110,30 L110,28 Q80,33 50,28 Z' fill='%23FDEBD0'/%3E%3Cpath d='M60,28 Q80,33 100,28 L100,24 Q80,29 60,24 Z' fill='%23F9E79F'/%3E%3Ccircle cx='80' cy='26' r='10' fill='%23F4D03F'/%3E%3C/svg%3E"
+                },
+                sauce: {
+                    name: 'Special Sauce',
+                    height: 5,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M50,30 Q80,35 110,30 L110,28 Q80,33 50,28 Z' fill='%23E67E22' opacity='0.7'/%3E%3Ccircle cx='60' cy='29' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3Ccircle cx='80' cy='30' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3Ccircle cx='100' cy='29' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3C/svg%3E"
+                },
+                goldenPatty: {
+                    name: 'Golden Patty',
+                    height: 25,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M30,30 Q80,40 130,30 L130,20 Q80,10 30,20 Z' fill='%23F39C12'/%3E%3Cpath d='M30,30 Q80,40 130,30 L130,25 Q80,35 30,25 Z' fill='%23D35400'/%3E%3Cpath d='M50,22 Q55,18 60,22 M80,20 Q85,16 90,20 M100,22 Q105,18 110,22' stroke='%23F1C40F' stroke-width='2' fill='none'/%3E%3C/svg%3E",
+                    special: true,
+                    points: 500
+                }
+            };
+
+            // Powerup types
+            const powerupTypes = {
+                magnet: {
+                    name: 'Magnet',
+                    duration: 10,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M10,10 L10,30 L15,30 L15,25 L25,25 L25,30 L30,30 L30,10 L25,10 L25,15 L15,15 L15,10 Z' fill='%23E74C3C'/%3E%3Cpath d='M10,10 L10,20 L15,20 L15,15 L25,15 L25,20 L30,20 L30,10 Z' fill='%23C0392B'/%3E%3C/svg%3E",
+                    effect: function() {
+                        if (fallingIngredient) {
+                            const targetX = platePosition.x - fallingIngredient.width / 2;
+                            const dx = (targetX - fallingIngredient.x) * 0.05;
+                            fallingIngredient.x += dx;
+                            fallingIngredient.element.style.left = `${fallingIngredient.x}px`;
+                        }
+                    }
+                },
+                slowTime: {
+                    name: 'Slow Time',
+                    duration: 8,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='15' fill='%233498DB'/%3E%3Cpath d='M20,10 L20,20 L30,25' stroke='%23FFFFFF' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E",
+                    effect: function() {
+                        if (fallingIngredient) {
+                            fallingIngredient.speed *= 0.5;
+                        }
+                    }
+                },
+                shield: {
+                    name: 'Shield',
+                    duration: 15,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20,5 L5,10 L5,20 C5,30 20,35 20,35 C20,35 35,30 35,20 L35,10 Z' fill='%232ECC71'/%3E%3Cpath d='M20,10 L10,13 L10,20 C10,25 20,30 20,30 C20,30 30,25 30,20 L30,13 Z' fill='%2327AE60'/%3E%3C/svg%3E",
+                    effect: function() {}
+                },
+                doublePoints: {
+                    name: 'Double Points',
+                    duration: 12,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='15' fill='%23F1C40F'/%3E%3Ctext x='20' y='25' font-family='Arial' font-size='15' fill='%23FFFFFF' text-anchor='middle'>2x</text%3E%3C/svg%3E",
+                    effect: function() {}
+                },
+                extraLife: {
+                    name: 'Extra Life',
+                    duration: 0,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20,10 C17,5 10,5 10,12 C10,18 20,25 20,25 C20,25 30,18 30,12 C30,5 23,5 20,10 Z' fill='%23E74C3C'/%3E%3Cpath d='M15,15 L25,15 M20,10 L20,20' stroke='%23FFFFFF' stroke-width='2'/%3E%3C/svg%3E",
+                    effect: function() {
+                        if (lives < 5) {
+                            lives++;
+                            updateLives();
+                            showAchievement('Extra Life!', '❤️');
+                        }
+                    }
+                }
+            };
+
+            // Splash effects
+            const splashEffects = {
+                sauce: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23E67E22' stroke-width='5' stroke-dasharray='10 5'/%3E%3Ccircle cx='50' cy='50' r='20' fill='%23E67E22' opacity='0.5'/%3E%3Cpath d='M30,50 L20,40 M70,50 L80,40 M50,30 L50,20 M50,70 L50,80 M30,30 L20,20 M70,30 L80,20 M30,70 L20,80 M70,70 L80,80' stroke='%23E67E22' stroke-width='3'/%3E%3C/svg%3E",
+                miss: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23E74C3C' stroke-width='5' stroke-dasharray='10 5'/%3E%3Cpath d='M30,30 L70,70 M30,70 L70,30' stroke='%23E74C3C' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E",
+                perfect: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23F1C40F' stroke-width='5' stroke-dasharray='10 5'/%3E%3Cpath d='M25,50 L40,65 L75,30' stroke='%23F1C40F' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E",
+                powerup: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%233498DB' stroke-width='5' stroke-dasharray='10 5'/%3E%3Ccircle cx='50' cy='50' r='20' fill='%233498DB' opacity='0.5'/%3E%3Cpath d='M30,50 L70,50 M50,30 L50,70' stroke='%233498DB' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E"
+            };
+
+            // Level configurations
+            const levels = [
+                {
+                    name: "Classic Burger",
+                    order: ["bottomBun", "lettuce", "tomato", "cheese", "patty", "topBun"],
+                    fallingSpeed: 2,
+                    specialFrequency: 0.05,
+                    obstacleFrequency: 0,
+                    powerupFrequency: 0.02,
+                    timeLimit: 60,
+                    tiltMode: false
+                },
+                {
+                    name: "Breakfast Stack",
+                    order: ["bottomBun", "lettuce", "tomato", "egg", "bacon", "cheese", "topBun"],
+                    fallingSpeed: 2.5,
+                    specialFrequency: 0.1,
+                    obstacleFrequency: 0.05,
+                    powerupFrequency: 0.03,
+                    timeLimit: 75,
+                    tiltMode: false
+                },
+                {
+                    name: "Monster Tower",
+                    order: ["bottomBun", "patty", "cheese", "patty", "lettuce", "tomato", "onion", "pickle", "sauce", "topBun"],
+                    fallingSpeed: 3,
+                    specialFrequency: 0.15,
+                    obstacleFrequency: 0.1,
+                    powerupFrequency: 0.04,
+                    timeLimit: 90,
+                    tiltMode: false
+                },
+                {
+                    name: "Tilt Challenge",
+                    order: ["bottomBun", "patty", "cheese", "lettuce", "tomato", "onion", "topBun"],
+                    fallingSpeed: 2.5,
+                    specialFrequency: 0.1,
+                    obstacleFrequency: 0.1,
+                    powerupFrequency: 0.05,
+                    timeLimit: 75,
+                    tiltMode: true
+                },
+                {
+                    name: "Speed Round",
+                    order: ["bottomBun", "patty", "cheese", "lettuce", "sauce", "topBun"],
+                    fallingSpeed: 4,
+                    specialFrequency: 0.2,
+                    obstacleFrequency: 0.15,
+                    powerupFrequency: 0.06,
+                    timeLimit: 45,
+                    tiltMode: false
+                },
+                {
+                    name: "Ultimate Burger",
+                    order: ["bottomBun", "sauce", "patty", "cheese", "bacon", "egg", "lettuce", "tomato", "onion", "pickle", "sauce", "topBun"],
+                    fallingSpeed: 3.5,
+                    specialFrequency: 0.15,
+                    obstacleFrequency: 0.12,
+                    powerupFrequency: 0.08,
+                    timeLimit: 120,
+                    tiltMode: true
+                }
+            ];
+
+            // Initialize game
+            function init() {
+                gameWidth = gameContainer.clientWidth;
+                gameHeight = gameContainer.clientHeight;
+                platePosition.x = gameWidth / 2;
+                updatePlatePosition();
+                loadGameData();
+                updateLevelButtons();
+                window.addEventListener('resize', handleResize);
+                document.addEventListener('keydown', handleKeyDown);
+                gameContainer.addEventListener('touchstart', handleTouchStart);
+                gameContainer.addEventListener('touchmove', handleTouchMove);
+                restartBtn.addEventListener('click', restartGame);
+                restartBtnPause.addEventListener('click', restartGame);
+                startBtn.addEventListener('click', startGame);
+                nextLevelBtn.addEventListener('click', nextLevel);
+                menuBtn.addEventListener('click', showMenu);
+                menuBtnGameover.addEventListener('click', showMenu);
+                menuBtnPause.addEventListener('click', showMenu);
+                pauseBtn.addEventListener('click', togglePause);
+                resumeBtn.addEventListener('click', resumeGame);
+                tutorialNext.addEventListener('click', nextTutorialStep);
+                levelBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const level = parseInt(this.dataset.level);
+                        if (level <= unlockedLevels) {
+                            currentLevel = level;
+                            startGame();
+                        }
+                    });
+                });
+                requestAnimationFrame(gameLoop);
+            }
+
+            // Game loop
+            function gameLoop(timestamp) {
+                if (!lastFrameTime) {
+                    lastFrameTime = timestamp;
+                    lastFpsUpdate = timestamp;
+                }
+                const deltaTime = timestamp - lastFrameTime;
+                lastFrameTime = timestamp;
+                frameCount++;
+                if (timestamp - lastFpsUpdate > 1000) {
+                    fps = Math.round(frameCount * 1000 / (timestamp - lastFpsUpdate));
+                    fpsCounter.textContent = `FPS: ${fps}`;
+                    frameCount = 0;
+                    lastFpsUpdate = timestamp;
+                }
+                if (gameActive && !gamePaused) {
+                    if (fallingIngredient) {
+                        updateFallingIngredient(deltaTime);
+                    }
+                    activePowerups.forEach(powerup => {
+                        if (powerupTypes[powerup.type].effect) {
+                            powerupTypes[powerup.type].effect();
+                        }
+                    });
+                    if (tiltMode) {
+                        updateTilt(deltaTime);
+                    }
+                }
+                requestAnimationFrame(gameLoop);
+            }
+
+            // Start game
+            function startGame() {
+                startScreen.style.display = 'none';
+                gameOver.style.display = 'none';
+                levelComplete.style.display = 'none';
+                pauseScreen.style.display = 'none';
+                gameActive = true;
+                gamePaused = false;
+                score = 0;
+                lives = 3;
+                combo = 1;
+                maxCombo = 1;
+                perfectStackCount = 0;
+                stack = [];
+                activePowerups = [];
+                const level = levels[currentLevel - 1];
+                levelContainer.textContent = `Level: ${currentLevel} - ${level.name}`;
+                timeRemaining = level.timeLimit;
+                tiltMode = level.tiltMode;
+                tiltValue = 0;
+                stackTilt = 0;
+                tiltIndicator.style.display = tiltMode ? 'block' : 'none';
+                generateOrder(level.order);
+                updateScore();
+                updateCombo();
+                updateLives();
+                updateTimeDisplay();
+                const ingredients = document.querySelectorAll('.ingredient, .falling-ingredient, .powerup, .splash');
+                ingredients.forEach(ingredient => ingredient.remove());
+                powerupIndicator.innerHTML = '';
+                if (timeInterval) clearInterval(timeInterval);
+                timeInterval = setInterval(updateTime, 1000);
+                if (showTutorial && currentLevel === 1) {
+                    tutorialStep = 0;
+                    tutorialOverlay.style.display = 'flex';
+                } else {
+                    dropIngredient();
+                }
+                if (powerupInterval) clearInterval(powerupInterval);
+                powerupInterval = setInterval(() => {
+                    if (gameActive && !gamePaused && Math.random() < level.powerupFrequency) {
+                        spawnPowerup();
+                    }
+                }, 10000);
+            }
+
+            // Generate order
+            function generateOrder(orderItems) {
+                currentOrder = [...orderItems];
+                const orderContainer = document.getElementById('order-items');
+                orderContainer.innerHTML = '';
+                currentOrder.forEach(item => {
+                    const orderItem = document.createElement('div');
+                    orderItem.className = 'order-item';
+                    const img = document.createElement('img');
+                    img.src = ingredientTypes[item].image;
+                    orderItem.appendChild(img);
+                    orderContainer.appendChild(orderItem);
+                });
+            }
+
+            // Restart game
+            function restartGame() {
+                gameOver.style.display = 'none';
+                pauseScreen.style.display = 'none';
+                const ingredients = document.querySelectorAll('.ingredient, .falling-ingredient, .powerup, .splash');
+                ingredients.forEach(ingredient => ingredient.remove());
+                startGame();
+            }
+
+            // Next level
+            function nextLevel() {
+                if (currentLevel < levels.length) {
+                    currentLevel++;
+                    startGame();
+                } else {
+                    showMenu();
+                }
+            }
+
+            // Show menu
+            function showMenu() {
+                gameActive = false;
+                gamePaused = false;
+                if (timeInterval) clearInterval(timeInterval);
+                if (powerupInterval) clearInterval(powerupInterval);
+                gameOver.style.display = 'none';
+                levelComplete.style.display = 'none';
+                pauseScreen.style.display = 'none';
+                startScreen.style.display = 'flex';
+                updateLevelButtons();
+            }
+
+            // Update level buttons
+            function updateLevelButtons() {
+                levelBtns.forEach(btn => {
+                    const level = parseInt(btn.dataset.level);
+                    if (level <= unlockedLevels) {
+                        btn.classList.remove('locked');
+                    } else {
+                        btn.classList.add('locked');
+                    }
+                });
+            }
+
+            // Toggle pause
+            function togglePause() {
+                if (!gameActive) return;
+                if (gamePaused) {
+                    resumeGame();
+                } else {
+                    pauseGame();
+                }
+            }
+
+            // Pause game
+            function pauseGame() {
+                gamePaused = true;
+                pauseScreen.style.display = 'flex';
+            }
+
+            // Resume game
+            function resumeGame() {
+                gamePaused = false;
+                pauseScreen.style.display = 'none';
+            }
+
+            // Handle window resize
+            function handleResize() {
+                gameWidth = gameContainer.clientWidth;
+                gameHeight = gameContainer.clientHeight;
+                if (platePosition.x > gameWidth) {
+                    platePosition.x = gameWidth / 2;
+                }
+                updatePlatePosition();
+            }
+
+            // Handle keyboard input
+            function handleKeyDown(e) {
+                if (!gameActive || gamePaused) return;
+                if (e.key === 'ArrowLeft') {
+                    movePlate(-20);
+                } else if (e.key === 'ArrowRight') {
+                    movePlate(20);
+                } else if (e.key === 'p' || e.key === 'P') {
+                    togglePause();
+                }
+            }
+
+            // Handle touch input
+            function handleTouchStart(e) {
+                if (!gameActive || gamePaused) return;
+                touchStartX = e.touches[0].clientX;
+            }
+
+            function handleTouchMove(e) {
+                if (!gameActive || gamePaused) return;
+                e.preventDefault();
+                const touchX = e.touches[0].clientX;
+                const diff = touchX - touchStartX;
+                if (Math.abs(diff) > 5) {
+                    movePlate(diff);
+                    touchStartX = touchX;
+                }
+            }
+
+            // Move the plate
+            function movePlate(dx) {
+                platePosition.x += dx;
+                const halfPlateWidth = plateWidth / 2;
+                if (platePosition.x < halfPlateWidth) {
+                    platePosition.x = halfPlateWidth;
+                } else if (platePosition.x > gameWidth - halfPlateWidth) {
+                    platePosition.x = gameWidth - halfPlateWidth;
+                }
+                updatePlatePosition();
+            }
+
+            // Update plate position
+            function updatePlatePosition() {
+                plate.style.left = platePosition.x + 'px';
+                stack.forEach((item, index) => {
+                    item.x = platePosition.x;
+                    if (tiltMode && index > 0) {
+                        const tiltOffset = stackTilt * (index + 1) * 2;
+                        item.element.style.left = (item.x + tiltOffset) + 'px';
+                        const rotation = stackTilt * 10;
+                        item.element.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+                    } else {
+                        item.element.style.left = item.x + 'px';
+                        item.element.style.transform = 'translateX(-50%)';
+                    }
+                });
+            }
+
+            // Update tilt
+            function updateTilt(deltaTime) {
+                if (stack.length <= 1) return;
+                const tiltFactor = 0.0001 * deltaTime;
+                const randomTilt = (Math.random() - 0.5) * 0.0002 * deltaTime;
+                stackTilt += randomTilt;
+                const plateMovementCorrection = (0 - stackTilt) * 0.01 * deltaTime;
+                stackTilt += plateMovementCorrection;
+                const maxTilt = 0.5;
+                if (stackTilt > maxTilt) stackTilt = maxTilt;
+                if (stackTilt < -maxTilt) stackTilt = -maxTilt;
+                tiltMarker.style.left = `${(stackTilt + 0.5) * 100}%`;
+                if (Math.abs(stackTilt) > 0.4 && stack.length > 3) {
+                    if (Math.random() < 0.01 * deltaTime * (Math.abs(stackTilt) - 0.4) * 10) {
+                        collapseStack();
+                    }
+                }
+                updatePlatePosition();
+            }
+
+            // Collapse stack
+            function collapseStack() {
+                if (!gameActive) return;
+                stack.forEach(item => {
+                    item.element.classList.add('fall');
+                });
+                createSplashEffect(platePosition.x, gameHeight - 150, 'miss');
+                lives--;
+                updateLives();
+                combo = 1;
+                updateCombo();
+                if (lives <= 0) {
+                    endGame();
+                } else {
+                    setTimeout(() => {
+                        if (!gameActive) return;
+                        stack.forEach(item => item.element.remove());
+                        stack = [];
+                        stackTilt = 0;
+                        setTimeout(() => {
+                            if (gameActive && !fallingIngredient) dropIngredient();
+                        }, 500);
+                    }, 1000);
+                }
+            }
+
+            // Drop a new ingredient
+            function dropIngredient() {
+                if (!gameActive || gamePaused) return;
+                let type;
+                if (stack.length < currentOrder.length) {
+                    const nextOrderItem = currentOrder[stack.length];
+                    if (Math.random() < 0.3 && nextOrderItem !== 'bottomBun') {
+                        const ingredientKeys = Object.keys(ingredientTypes).filter(key =>
+                            !ingredientTypes[key].special &&
+                            !ingredientTypes[key].obstacle &&
+                            key !== 'topBun' &&
+                            key !== 'bottomBun'
+                        );
+                        const randomIndex = Math.floor(Math.random() * ingredientKeys.length);
+                        type = ingredientKeys[randomIndex];
+                    } else {
+                        type = nextOrderItem;
+                    }
+                    const level = levels[currentLevel - 1];
+                    if (Math.random() < level.specialFrequency && type !== 'bottomBun' && type !== 'topBun') {
+                        type = 'goldenPatty';
+                    }
+                } else {
+                    type = 'topBun';
+                }
+                const ingredientType = ingredientTypes[type];
+                const element = document.createElement('div');
+                element.className = 'falling-ingredient';
+                const img = document.createElement('img');
+                img.src = ingredientType.image;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                element.appendChild(img);
+                const x = Math.random() * (gameWidth - ingredientWidth) + ingredientWidth / 2;
+                const y = -50;
+                element.style.left = x + 'px';
+                element.style.top = y + 'px';
+                gameArea.appendChild(element);
+                fallingIngredient = {
+                    type: type,
+                    element: element,
+                    x: x,
+                    y: y,
+                    width: ingredientWidth,
+                    height: 40,
+                    speed: levels[currentLevel - 1].fallingSpeed * (1 + Math.random() * 0.5)
+                };
+            }
+
+            // Update falling ingredient position
+            function updateFallingIngredient(deltaTime) {
+                if (!gameActive || gamePaused || !fallingIngredient) return;
+                const speedFactor = deltaTime / 16.67;
+                fallingIngredient.y += fallingIngredient.speed * speedFactor;
+                fallingIngredient.element.style.top = fallingIngredient.y + 'px';
+                const plateTop = gameHeight - 100;
+                const stackHeight = getStackHeight();
+                const catchY = plateTop - stackHeight;
+                if (fallingIngredient.y >= catchY - 10) {
+                    const plateLeft = platePosition.x - plateWidth / 2;
+                    const plateRight = platePosition.x + plateWidth / 2;
+                    if (fallingIngredient.x >= plateLeft && fallingIngredient.x <= plateRight) {
+                        catchIngredient();
+                    } else if (fallingIngredient.y > gameHeight) {
+                        missIngredient();
+                    }
+                }
+            }
+
+            // Calculate current stack height
+            function getStackHeight() {
+                let height = 0;
+                stack.forEach(item => {
+                    height += ingredientTypes[item.type].height;
+                });
+                return height;
+            }
+
+            // Handle caught ingredient
+            function catchIngredient() {
+                if (!fallingIngredient) return;
+                fallingIngredient.element.remove();
+                const element = document.createElement('div');
+                element.className = 'ingredient';
+                const img = document.createElement('img');
+                img.src = ingredientTypes[fallingIngredient.type].image;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                element.appendChild(img);
+                const stackHeight = getStackHeight();
+                const y = gameHeight - 100 - stackHeight;
+                element.style.left = platePosition.x + 'px';
+                element.style.top = y + 'px';
+                gameArea.appendChild(element);
+                stack.push({
+                    type: fallingIngredient.type,
+                    element: element,
+                    x: platePosition.x,
+                    y: y
+                });
+                element.classList.add('wobble');
+                createSplashEffect(platePosition.x, y + 20, 'sauce');
+                let points = 10;
+                if (ingredientTypes[fallingIngredient.type].special) {
+                    points = ingredientTypes[fallingIngredient.type].points || 100;
+                    showFloatingText(platePosition.x, y, `+${points}!`);
+                }
+                points *= combo;
+                if (hasPowerup('doublePoints')) {
+                    points *= 2;
+                }
+                score += points;
+                updateScore();
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                updateCombo();
+                checkPerfectStack();
+                if (fallingIngredient.type === 'topBun') {
+                    const burgerBonus = stack.length * 20;
+                    score += burgerBonus;
+                    updateScore();
+                    showFloatingText(platePosition.x, y - 30, `Burger Complete! +${burgerBonus}`);
+                    setTimeout(() => {
+                        if (!gameActive) return;
+                        stack.forEach(item => item.element.remove());
+                        stack = [];
+                        stackTilt = 0;
+                    }, 1000);
+                }
+                fallingIngredient = null;
+                setTimeout(() => {
+                    if (gameActive && !gamePaused) dropIngredient();
+                }, 800);
+            }
+
+            // Check for perfect stack
+            function checkPerfectStack() {
+                if (stack.length >= 3) {
+                    const lastThree = stack.slice(-3);
+                    if (
+                        (lastThree[0].type === 'patty' &&
+                         lastThree[1].type === 'cheese' &&
+                         lastThree[2].type === 'topBun') ||
+                        (lastThree[0].type === 'lettuce' &&
+                         lastThree[1].type === 'tomato' &&
+                         lastThree[2].type === 'topBun') ||
+                        (lastThree[0].type === 'bacon' &&
+                         lastThree[1].type === 'egg' &&
+                         lastThree[2].type === 'topBun')
+                    ) {
+                        const perfectBonus = 50 * combo;
+                        score += perfectBonus;
+                        updateScore();
+                        perfectStack.style.opacity = '1';
+                        setTimeout(() => {
+                            perfectStack.style.opacity = '0';
+                        }, 1500);
+                        const lastItem = stack[stack.length - 1];
+                        createSplashEffect(lastItem.x, lastItem.y, 'perfect');
+                        showFloatingText(lastItem.x, lastItem.y - 30, `Perfect Stack! +${perfectBonus}`);
+                        perfectStackCount++;
+                        if (perfectStackCount >= 5 && !achievements.fivePerfectStacks) {
+                            achievements.fivePerfectStacks = true;
+                            showAchievement('Stack Master', '🏆');
+                            saveGameData();
+                        }
+                    }
+                    let followingOrder = true;
+                    for (let i = 0; i < stack.length; i++) {
+                        if (i >= currentOrder.length || stack[i].type !== currentOrder[i]) {
+                            followingOrder = false;
+                            break;
+                        }
+                    }
+                    if (followingOrder && stack.length >= 4) {
+                        const orderBonus = 30 * stack.length;
+                        score += orderBonus;
+                        updateScore();
+                        const lastItem = stack[stack.length - 1];
+                        showFloatingText(lastItem.x, lastItem.y - 50, `Following Order! +${orderBonus}`);
+                    }
+                }
+            }
+
+            // Handle missed ingredient
+            function missIngredient() {
+                if (!fallingIngredient) return;
+                createSplashEffect(fallingIngredient.x, gameHeight - 50, 'miss');
+                fallingIngredient.element.remove();
+                fallingIngredient = null;
+                combo = 1;
+                updateCombo();
+                if (!hasPowerup('shield')) {
+                    lives--;
+                    updateLives();
+                    gameContainer.classList.add('shake');
+                    setTimeout(() => {
+                        gameContainer.classList.remove('shake');
+                    }, 500);
+                    if (lives <= 0) {
+                        endGame();
+                        return;
+                    }
+                } else {
+                    showFloatingText(fallingIngredient.x, gameHeight - 150, "Shield Protected!");
+                }
+                setTimeout(() => {
+                    if (gameActive && !gamePaused) dropIngredient();
+                }, 1000);
+            }
+
+            // Create splash effect
+            function createSplashEffect(x, y, type) {
+                const splash = document.createElement('div');
+                splash.className = 'splash';
+                splash.style.left = (x - 50) + 'px';
+                splash.style.top = (y - 50) + 'px';
+                const img = document.createElement('img');
+                img.src = splashEffects[type];
+                img.style.width = '100%';
+                img.style.height = '100%';
+                splash.appendChild(img);
+                gameArea.appendChild(splash);
+                setTimeout(() => {
+                    splash.remove();
+                }, 500);
+            }
+
+            // Show floating text
+            function showFloatingText(x, y, text) {
+                const floatingText = document.createElement('div');
+                floatingText.className = 'floating-text';
+                floatingText.textContent = text;
+                floatingText.style.left = x + 'px';
+                floatingText.style.top = y + 'px';
+                floatingText.style.fontSize = '24px';
+                gameArea.appendChild(floatingText);
+                setTimeout(() => {
+                    floatingText.remove();
+                }, 1000);
+            }
+
+            // Spawn powerup
+            function spawnPowerup() {
+                if (!gameActive || gamePaused) return;
+                const powerupKeys = Object.keys(powerupTypes);
+                const randomIndex = Math.floor(Math.random() * powerupKeys.length);
+                const type = powerupKeys[randomIndex];
+                const element = document.createElement('div');
+                element.className = 'powerup';
+                const img = document.createElement('img');
+                img.src = powerupTypes[type].image;
+                img.className = 'powerup-icon';
+                element.appendChild(img);
+                const x = Math.random() * (gameWidth - 40) + 20;
+                const y = Math.random() * (gameHeight - 300) + 100;
+                element.style.left = x + 'px';
+                element.style.top = y + 'px';
+                gameArea.appendChild(element);
+                element.addEventListener('click', () => collectPowerup(type, element));
+                element.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    collectPowerup(type, element);
+                });
+                setTimeout(() => {
+                    if (element.parentNode) {
+                        element.remove();
+                    }
+                }, 5000);
+            }
+
+            // Collect powerup
+            function collectPowerup(type, element) {
+                if (!gameActive || gamePaused) return;
+                element.remove();
+                const rect = element.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                createSplashEffect(x, y, 'powerup');
+                showFloatingText(x, y - 30, powerupTypes[type].name + ' Activated!');
+                if (powerupTypes[type].duration === 0) {
+                    if (powerupTypes[type].effect) {
+                        powerupTypes[type].effect();
+                    }
+                    return;
+                }
+                activePowerups.push({
+                    type: type,
+                    timeRemaining: powerupTypes[type].duration
+                });
+                updatePowerupIndicator();
+                const powerupTimer = setInterval(() => {
+                    if (gamePaused) return;
+                    const index = activePowerups.findIndex(p => p.type === type);
+                    if (index === -1) {
+                        clearInterval(powerupTimer);
+                        return;
+                    }
+                    activePowerups[index].timeRemaining--;
+                    updatePowerupIndicator();
+                    if (activePowerups[index].timeRemaining <= 0) {
+                        activePowerups.splice(index, 1);
+                        updatePowerupIndicator();
+                        clearInterval(powerupTimer);
+                    }
+                }, 1000);
+            }
+
+            // Update powerup indicator
+            function updatePowerupIndicator() {
+                powerupIndicator.innerHTML = '';
+                activePowerups.forEach(powerup => {
+                    const container = document.createElement('div');
+                    container.className = 'active-powerup';
+                    const img = document.createElement('img');
+                    img.src = powerupTypes[powerup.type].image;
+                    container.appendChild(img);
+                    const timer = document.createElement('div');
+                    timer.className = 'powerup-timer';
+                    container.appendChild(timer);
+                    powerupIndicator.appendChild(container);
+                    const duration = powerupTypes[powerup.type].duration;
+                    const progress = powerup.timeRemaining / duration;
+                    const degrees = 360 * (1 - progress);
+                    if (degrees <= 180) {
+                        timer.classList.remove('active');
+                        timer.style.transform = `rotate(${degrees}deg)`;
+                    } else {
+                        timer.classList.add('active');
+                        timer.style.transform = `rotate(${degrees - 180}deg)`;
+                    }
+                });
+            }
+
+            // Check if a powerup is active
+            function hasPowerup(type) {
+                return activePowerups.some(p => p.type === type);
+            }
+
+            // Update score display
+            function updateScore() {
+                scoreValue.textContent = score;
+            }
+
+            // Update combo display
+            function updateCombo() {
+                comboText.textContent = `x${combo}`;
+                comboFill.style.width = `${Math.min(100, (combo - 1) * 10)}%`;
+            }
+
+            // Update lives display
+            function updateLives() {
+                livesContainer.innerHTML = '';
+                for (let i = 0; i < lives; i++) {
+                    const lifeIcon = document.createElement('div');
+                    lifeIcon.className = 'life-icon';
+                    livesContainer.appendChild(lifeIcon);
+                }
+            }
+
+            // Update time
+            function updateTime() {
+                if (!gameActive || gamePaused) return;
+                timeRemaining--;
+                updateTimeDisplay();
+                if (timeRemaining <= 0) {
+                    completeLevel();
+                }
+            }
+
+            // Update time display
+            function updateTimeDisplay() {
+                timeValue.textContent = timeRemaining;
+                if (timeRemaining <= 10) {
+                    timeContainer.style.color = '#FF5722';
+                } else {
+                    timeContainer.style.color = 'white';
+                }
+            }
+
+            // Complete level
+            function completeLevel() {
+                gameActive = false;
+                if (timeInterval) clearInterval(timeInterval);
+                if (powerupInterval) clearInterval(powerupInterval);
+                let stars = 1;
+                if (score >= levels[currentLevel - 1].scoreThreshold2) {
+                    stars = 3;
+                } else if (score >= levels[currentLevel - 1].scoreThreshold1) {
+                    stars = 2;
+                }
+                levelScore.textContent = score;
+                levelPerfectStacks.textContent = perfectStackCount;
+                levelStars.textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+                if (currentLevel === unlockedLevels && currentLevel < levels.length) {
+                    unlockedLevels++;
+                    saveGameData();
+                }
+                levelComplete.style.display = 'flex';
+                nextLevelBtn.style.display = currentLevel < levels.length ? 'block' : 'none';
+            }
+
+            // End game
+            function endGame() {
+                gameActive = false;
+                if (timeInterval) clearInterval(timeInterval);
+                if (powerupInterval) clearInterval(powerupInterval);
+                finalScore.textContent = score;
+                perfectStacks.textContent = perfectStackCount;
+                gameOver.style.display = 'flex';
+                if (score > (achievements.highScore || 0)) {
+                    achievements.highScore = score;
+                    saveGameData();
+                }
+            }
+
+            // Show achievement
+            function showAchievement(text, icon) {
+                const achievementIcon = achievement.querySelector('.achievement-icon');
+                const achievementText = achievement.querySelector('.achievement-text');
+                achievementIcon.textContent = icon;
+                achievementText.textContent = text;
+                achievement.style.opacity = '1';
+                setTimeout(() => {
+                    achievement.style.opacity = '0';
+                }, 3000);
+            }
+
+            // Tutorial steps
+            function nextTutorialStep() {
+                tutorialStep++;
+                if (tutorialStep === 1) {
+                    const tutorialMessage = tutorialOverlay.querySelector('.tutorial-message');
+                    tutorialMessage.textContent = 'Follow the order shown at the top to build the perfect burger!';
+                } else {
+                    tutorialOverlay.style.display = 'none';
+                    dropIngredient();
+                }
+            }
+
+            // Save game data
+            function saveGameData() {
+                const gameData = {
+                    unlockedLevels: unlockedLevels,
+                    achievements: achievements,
+                    showTutorial: showTutorial
+                };
+                try {
+                    localStorage.setItem('burgerStackData', JSON.stringify(gameData));
+                } catch (e) {
+                    console.log('Could not save game data');
+                }
+            }
+
+            // Load game data
+            function loadGameData() {
+                try {
+                    const gameData = localStorage.getItem('burgerStackData');
+                    if (gameData) {
+                        const data = JSON.parse(gameData);
+                        unlockedLevels = data.unlockedLevels || 1;
+                        achievements = data.achievements || {};
+                        showTutorial = data.showTutorial !== undefined ? data.showTutorial : true;
+                    }
+                } catch (e) {
+                    console.log('Could not load game data');
+                }
+            }
+
+            // Initialize the game
+            init();
+        });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'968842ffb44a9077',t:'MTc1NDA4MTk5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
+
+@* @model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Burger";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Burger Stack Master</title>
+    <link href="~/css/burger.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+        <div id="game-container">
+            <div id="game-background"></div>
+
+            <!-- Kitchen background elements -->
+            <div class="kitchen-light" style="top: 100px; left: 100px;"></div>
+            <div class="kitchen-light" style="top: 150px; left: 350px;"></div>
+            <div class="kitchen-light" style="top: 50px; left: 250px;"></div>
+
+            <div class="chef-silhouette" style="top: 200px; left: 100px;"></div>
+            <div class="chef-silhouette" style="top: 250px; left: 400px;"></div>
+            <div class="chef-silhouette" style="top: 150px; left: 250px;"></div>
+
+            <div class="utensil" style="top: 650px; left: 20px;"></div>
+            <div class="utensil" style="top: 630px; left: 420px;"></div>
+
+            <div class="kitchen-counter"></div>
+            <div class="counter-shine"></div>
+
+            <div id="game-area">
+                <div id="plate">
+                    <svg class="plate-svg" viewBox="0 0 180 30">
+                        <ellipse cx="90" cy="15" rx="90" ry="15" fill="#FFFFFF" />
+                        <ellipse cx="90" cy="15" rx="80" ry="13" fill="#F5F5F5" />
+                        <ellipse cx="90" cy="15" rx="70" ry="11" fill="#EEEEEE" />
+                    </svg>
+                </div>
+            </div>
+
+            <div id="ui-container">
+                <div id="score-container">
+                    <div class="burger-icon"></div>
+                    <div id="score-value">0</div>
+                </div>
+
+                <div id="combo-container">
+                    <div id="combo-meter">
+                        <div id="combo-fill"></div>
+                    </div>
+                    <div id="combo-text">x1</div>
+                </div>
+
+                <div id="lives-container">
+                    <div class="life-icon"></div>
+                    <div class="life-icon"></div>
+                    <div class="life-icon"></div>
+                </div>
+
+                <div id="time-container">Time: <span id="time-value">60</span>s</div>
+
+                <div id="order-container">
+                    <div id="order-title">ORDER:</div>
+                    <div id="order-items"></div>
+                </div>
+
+                <div id="perfect-stack">PERFECT STACK!</div>
+
+                <div id="level-container">Level: 1 - Classic Burger</div>
+
+                <div class="tilt-indicator">
+                    <div class="tilt-danger-left"></div>
+                    <div class="tilt-danger-right"></div>
+                    <div class="tilt-marker"></div>
+                </div>
+
+                <div id="powerup-indicator"></div>
+
+                <div id="pause-btn"></div>
+
+                <div class="achievement">
+                    <div class="achievement-icon">🏆</div>
+                    <div class="achievement-text">Achievement Unlocked!</div>
+                </div>
+            </div>
+
+            <div id="start-screen">
+                <h1>BURGER STACK MASTER</h1>
+                <p>Stack the perfect burger by catching the right ingredients!</p>
+                <p>Follow the order shown at the top of the screen</p>
+                <p>Don't miss ingredients or your burger will fall!</p>
+                <button class="btn" id="start-btn">START GAME</button>
+                <div id="level-select">
+                    <button class="level-btn" data-level="1">1</button>
+                    <button class="level-btn locked" data-level="2">2</button>
+                    <button class="level-btn locked" data-level="3">3</button>
+                    <button class="level-btn locked" data-level="4">4</button>
+                    <button class="level-btn locked" data-level="5">5</button>
+                    <button class="level-btn locked" data-level="6">6</button>
+                </div>
+            </div>
+
+            <div id="game-over" style="display: none;">
+                <h2>GAME OVER</h2>
+                <p>Your burger collapsed!</p>
+                <p>Final Score: <span id="final-score">0</span></p>
+                <p>Perfect Stacks: <span id="perfect-stacks">0</span></p>
+                <button class="btn" id="restart-btn">PLAY AGAIN</button>
+                <button class="btn" id="menu-btn-gameover">MENU</button>
+            </div>
+
+            <div id="level-complete" style="display: none;">
+                <h2>LEVEL COMPLETE!</h2>
+                <p>Score: <span id="level-score">0</span></p>
+                <p>Perfect Stacks: <span id="level-perfect-stacks">0</span></p>
+                <p>Stars: <span id="level-stars">★★★</span></p>
+                <button class="btn" id="next-level-btn">NEXT LEVEL</button>
+                <button class="btn" id="menu-btn">MENU</button>
+            </div>
+
+            <div id="pause-screen" style="display: none;">
+                <h2>GAME PAUSED</h2>
+                <p>Take a break, your burger is waiting!</p>
+                <button class="btn" id="resume-btn">RESUME</button>
+                <button class="btn" id="restart-btn-pause">RESTART</button>
+                <button class="btn" id="menu-btn-pause">MENU</button>
+            </div>
+
+            <div id="tutorial-overlay" style="display: none;">
+                <div class="tutorial-message">
+                    Drag the plate left and right to catch falling ingredients!
+                </div>
+                <div class="tutorial-arrow" style="bottom: 150px;"></div>
+                <button class="btn" id="tutorial-next">GOT IT!</button>
+            </div>
+
+            <!-- FPS counter -->
+            <div id="fps-counter">FPS: 60</div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+          document.addEventListener('DOMContentLoaded', function() {
+            // Game elements
+            const gameContainer = document.getElementById('game-container');
+            const gameArea = document.getElementById('game-area');
+            const plate = document.getElementById('plate');
+            const scoreValue = document.getElementById('score-value');
+            const comboFill = document.getElementById('combo-fill');
+            const comboText = document.getElementById('combo-text');
+            const livesContainer = document.getElementById('lives-container');
+            const orderItems = document.getElementById('order-items');
+            const perfectStack = document.getElementById('perfect-stack');
+            const levelContainer = document.getElementById('level-container');
+            const timeContainer = document.getElementById('time-container');
+            const timeValue = document.getElementById('time-value');
+            const gameOver = document.getElementById('game-over');
+            const finalScore = document.getElementById('final-score');
+            const perfectStacks = document.getElementById('perfect-stacks');
+            const restartBtn = document.getElementById('restart-btn');
+            const restartBtnPause = document.getElementById('restart-btn-pause');
+            const startScreen = document.getElementById('start-screen');
+            const startBtn = document.getElementById('start-btn');
+            const levelComplete = document.getElementById('level-complete');
+            const levelScore = document.getElementById('level-score');
+            const levelPerfectStacks = document.getElementById('level-perfect-stacks');
+            const levelStars = document.getElementById('level-stars');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+            const menuBtn = document.getElementById('menu-btn');
+            const menuBtnGameover = document.getElementById('menu-btn-gameover');
+            const menuBtnPause = document.getElementById('menu-btn-pause');
+            const levelBtns = document.querySelectorAll('.level-btn');
+            const tiltIndicator = document.querySelector('.tilt-indicator');
+            const tiltMarker = document.querySelector('.tilt-marker');
+            const pauseBtn = document.getElementById('pause-btn');
+            const pauseScreen = document.getElementById('pause-screen');
+            const resumeBtn = document.getElementById('resume-btn');
+            const powerupIndicator = document.getElementById('powerup-indicator');
+            const tutorialOverlay = document.getElementById('tutorial-overlay');
+            const tutorialNext = document.getElementById('tutorial-next');
+            const achievement = document.querySelector('.achievement');
+            const fpsCounter = document.getElementById('fps-counter');
+
+            // Game variables
+            let gameActive = false;
+            let gamePaused = false;
+            let score = 0;
+            let combo = 1;
+            let maxCombo = 1;
+            let lives = 3;
+            let perfectStackCount = 0;
+            let currentLevel = 1;
+            let unlockedLevels = 1;
+            let stack = [];
+            let currentOrder = [];
+            let fallingIngredient = null;
+            let fallingInterval;
+            let powerupInterval;
+            let timeInterval;
+            let timeRemaining = 60;
+            let platePosition = { x: 0 };
+            let plateWidth = 180;
+            let ingredientWidth = 160;
+            let tiltMode = false;
+            let tiltValue = 0;
+            let stackTilt = 0;
+            let stackHeight = 0;
+            let gameWidth;
+            let gameHeight;
+            let activePowerups = [];
+            let achievements = {};
+            let showTutorial = true;
+            let tutorialStep = 0;
+            let stackTop = 0;
+            let touchStartX = 0;
+            let lastFrameTime = 0;
+            let fps = 60;
+            let frameCount = 0;
+            let lastFpsUpdate = 0;
+
+            // Ingredient types
+            const ingredientTypes = {
+                bottomBun: {
+                    name: 'Bottom Bun',
+                    height: 20,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M20,30 Q80,40 140,30 L150,20 Q80,5 10,20 Z' fill='%23F5B041'/%3E%3Cpath d='M20,30 Q80,40 140,30 L140,35 Q80,45 20,35 Z' fill='%23E67E22'/%3E%3C/svg%3E"
+                },
+                topBun: {
+                    name: 'Top Bun',
+                    height: 30,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M20,30 Q80,10 140,30 L140,35 Q80,15 20,35 Z' fill='%23F5B041'/%3E%3Cpath d='M20,30 Q80,10 140,30 L130,15 Q80,-5 30,15 Z' fill='%23F8C471'/%3E%3Ccircle cx='50' cy='15' r='2' fill='%23FFFFFF'/%3E%3Ccircle cx='70' cy='10' r='2' fill='%23FFFFFF'/%3E%3Ccircle cx='90' cy='10' r='2' fill='%23FFFFFF'/%3E%3Ccircle cx='110' cy='15' r='2' fill='%23FFFFFF'/%3E%3C/svg%3E"
+                },
+                patty: {
+                    name: 'Beef Patty',
+                    height: 25,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M30,30 Q80,40 130,30 L130,20 Q80,10 30,20 Z' fill='%23784212'/%3E%3Cpath d='M30,30 Q80,40 130,30 L130,25 Q80,35 30,25 Z' fill='%23641E16'/%3E%3Cpath d='M50,22 Q55,18 60,22 M80,20 Q85,16 90,20 M100,22 Q105,18 110,22' stroke='%23A04000' stroke-width='2' fill='none'/%3E%3C/svg%3E"
+                },
+                cheese: {
+                    name: 'Cheese',
+                    height: 10,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M20,30 L140,30 L150,20 L30,20 Z' fill='%23F4D03F'/%3E%3Cpath d='M140,30 L150,20 L150,25 L140,35 Z' fill='%23F1C40F'/%3E%3Cpath d='M20,30 L140,30 L140,35 L20,35 Z' fill='%23F1C40F'/%3E%3Cpath d='M145,22 L143,28 M135,25 L133,31 M125,25 L123,31' stroke='%23D4AC0D' stroke-width='1'/%3E%3C/svg%3E"
+                },
+                lettuce: {
+                    name: 'Lettuce',
+                    height: 15,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M30,30 Q40,25 50,30 Q60,25 70,30 Q80,25 90,30 Q100,25 110,30 Q120,25 130,30 L130,25 Q120,20 110,25 Q100,20 90,25 Q80,20 70,25 Q60,20 50,25 Q40,20 30,25 Z' fill='%2327AE60'/%3E%3Cpath d='M30,30 Q40,25 50,30 Q60,25 70,30 Q80,25 90,30 Q100,25 110,30 Q120,25 130,30 L130,32 Q120,27 110,32 Q100,27 90,32 Q80,27 70,32 Q60,27 50,32 Q40,27 30,32 Z' fill='%232ECC71'/%3E%3C/svg%3E"
+                },
+                tomato: {
+                    name: 'Tomato',
+                    height: 15,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M40,30 Q80,40 120,30 L120,25 Q80,15 40,25 Z' fill='%23E74C3C'/%3E%3Cpath d='M40,30 Q80,40 120,30 L120,32 Q80,42 40,32 Z' fill='%23C0392B'/%3E%3Ccircle cx='60' cy='27' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3Ccircle cx='80' cy='25' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3Ccircle cx='100' cy='27' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3C/svg%3E"
+                },
+                onion: {
+                    name: 'Onion',
+                    height: 10,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M40,30 Q80,40 120,30 L120,28 Q80,38 40,28 Z' fill='%23D7BDE2'/%3E%3Cpath d='M40,28 Q80,38 120,28 L120,25 Q80,35 40,25 Z' fill='%23AF7AC5'/%3E%3Cpath d='M40,25 Q80,35 120,25 L120,23 Q80,33 40,23 Z' fill='%23D7BDE2'/%3E%3C/svg%3E"
+                },
+                pickle: {
+                    name: 'Pickle',
+                    height: 8,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M60,30 Q80,35 100,30 L100,25 Q80,30 60,25 Z' fill='%2327AE60'/%3E%3Cpath d='M60,30 Q80,35 100,30 L100,32 Q80,37 60,32 Z' fill='%23229954'/%3E%3Ccircle cx='70' cy='28' r='1' fill='%23229954'/%3E%3Ccircle cx='80' cy='29' r='1' fill='%23229954'/%3E%3Ccircle cx='90' cy='28' r='1' fill='%23229954'/%3E%3C/svg%3E"
+                },
+                bacon: {
+                    name: 'Bacon',
+                    height: 10,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M40,32 Q50,28 60,32 Q70,28 80,32 Q90,28 100,32 Q110,28 120,32 L120,28 Q110,24 100,28 Q90,24 80,28 Q70,24 60,28 Q50,24 40,28 Z' fill='%23C0392B'/%3E%3Cpath d='M40,28 Q50,24 60,28 Q70,24 80,28 Q90,24 100,28 Q110,24 120,28 L120,26 Q110,22 100,26 Q90,22 80,26 Q70,22 60,26 Q50,22 40,26 Z' fill='%23E74C3C'/%3E%3Cpath d='M40,26 Q50,22 60,26 Q70,22 80,26 Q90,22 100,26 Q110,22 120,26 L120,24 Q110,20 100,24 Q90,20 80,24 Q70,20 60,24 Q50,20 40,24 Z' fill='%23F5B7B1'/%3E%3C/svg%3E"
+                },
+                egg: {
+                    name: 'Fried Egg',
+                    height: 12,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M50,30 Q80,35 110,30 L110,28 Q80,33 50,28 Z' fill='%23FDEBD0'/%3E%3Cpath d='M60,28 Q80,33 100,28 L100,24 Q80,29 60,24 Z' fill='%23F9E79F'/%3E%3Ccircle cx='80' cy='26' r='10' fill='%23F4D03F'/%3E%3C/svg%3E"
+                },
+                sauce: {
+                    name: 'Special Sauce',
+                    height: 5,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M50,30 Q80,35 110,30 L110,28 Q80,33 50,28 Z' fill='%23E67E22' opacity='0.7'/%3E%3Ccircle cx='60' cy='29' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3Ccircle cx='80' cy='30' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3Ccircle cx='100' cy='29' r='2' fill='%23FFFFFF' opacity='0.3'/%3E%3C/svg%3E"
+                },
+                goldenPatty: {
+                    name: 'Golden Patty',
+                    height: 25,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40'%3E%3Cpath d='M30,30 Q80,40 130,30 L130,20 Q80,10 30,20 Z' fill='%23F39C12'/%3E%3Cpath d='M30,30 Q80,40 130,30 L130,25 Q80,35 30,25 Z' fill='%23D35400'/%3E%3Cpath d='M50,22 Q55,18 60,22 M80,20 Q85,16 90,20 M100,22 Q105,18 110,22' stroke='%23F1C40F' stroke-width='2' fill='none'/%3E%3C/svg%3E",
+                    special: true,
+                    points: 500
+                }
+            };
+
+            // Powerup types
+            const powerupTypes = {
+                magnet: {
+                    name: 'Magnet',
+                    duration: 10,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M10,10 L10,30 L15,30 L15,25 L25,25 L25,30 L30,30 L30,10 L25,10 L25,15 L15,15 L15,10 Z' fill='%23E74C3C'/%3E%3Cpath d='M10,10 L10,20 L15,20 L15,15 L25,15 L25,20 L30,20 L30,10 Z' fill='%23C0392B'/%3E%3C/svg%3E",
+                    effect: function() {
+                        // Magnet effect - ingredients are attracted to the plate
+                        if (fallingIngredient) {
+                            const targetX = platePosition.x - fallingIngredient.width / 2;
+                            const dx = (targetX - fallingIngredient.x) * 0.05;
+                            fallingIngredient.x += dx;
+                            fallingIngredient.element.style.left = `${fallingIngredient.x}px`;
+                        }
+                    }
+                },
+                slowTime: {
+                    name: 'Slow Time',
+                    duration: 8,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='15' fill='%233498DB'/%3E%3Cpath d='M20,10 L20,20 L30,25' stroke='%23FFFFFF' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E",
+                    effect: function() {
+                        // Slow time effect - ingredients fall slower
+                        if (fallingIngredient) {
+                            fallingIngredient.speed *= 0.5;
+                        }
+                    }
+                },
+                shield: {
+                    name: 'Shield',
+                    duration: 15,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20,5 L5,10 L5,20 C5,30 20,35 20,35 C20,35 35,30 35,20 L35,10 Z' fill='%232ECC71'/%3E%3Cpath d='M20,10 L10,13 L10,20 C10,25 20,30 20,30 C20,30 30,25 30,20 L30,13 Z' fill='%2327AE60'/%3E%3C/svg%3E",
+                    effect: function() {
+                        // Shield effect - prevents losing lives
+                    }
+                },
+                doublePoints: {
+                    name: 'Double Points',
+                    duration: 12,
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='15' fill='%23F1C40F'/%3E%3Ctext x='20' y='25' font-family='Arial' font-size='15' fill='%23FFFFFF' text-anchor='middle'>2x</text%3E%3C/svg%3E",
+                    effect: function() {
+                        // Double points effect - applied when adding score
+                    }
+                },
+                extraLife: {
+                    name: 'Extra Life',
+                    duration: 0, // Instant effect
+                    image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20,10 C17,5 10,5 10,12 C10,18 20,25 20,25 C20,25 30,18 30,12 C30,5 23,5 20,10 Z' fill='%23E74C3C'/%3E%3Cpath d='M15,15 L25,15 M20,10 L20,20' stroke='%23FFFFFF' stroke-width='2'/%3E%3C/svg%3E",
+                    effect: function() {
+                        // Extra life effect - adds a life
+                        if (lives < 5) {
+                            lives++;
+                            updateLives();
+                            showAchievement('Extra Life!', '❤️');
+                        }
+                    }
+                }
+            };
+
+            // Level configurations
+            const levels = [
+                {
+                    name: "Classic Burger",
+                    order: ["bottomBun", "lettuce", "tomato", "cheese", "patty", "topBun"],
+                    fallingSpeed: 2,
+                    specialFrequency: 0.05,
+                    obstacleFrequency: 0,
+                    powerupFrequency: 0.02,
+                    timeLimit: 60,
+                    tiltMode: false
+                },
+                {
+                    name: "Breakfast Stack",
+                    order: ["bottomBun", "lettuce", "tomato", "egg", "bacon", "cheese", "topBun"],
+                    fallingSpeed: 2.5,
+                    specialFrequency: 0.1,
+                    obstacleFrequency: 0.05,
+                    powerupFrequency: 0.03,
+                    timeLimit: 75,
+                    tiltMode: false
+                },
+                {
+                    name: "Monster Tower",
+                    order: ["bottomBun", "patty", "cheese", "patty", "lettuce", "tomato", "onion", "pickle", "sauce", "topBun"],
+                    fallingSpeed: 3,
+                    specialFrequency: 0.15,
+                    obstacleFrequency: 0.1,
+                    powerupFrequency: 0.04,
+                    timeLimit: 90,
+                    tiltMode: false
+                },
+                {
+                    name: "Tilt Challenge",
+                    order: ["bottomBun", "patty", "cheese", "lettuce", "tomato", "onion", "topBun"],
+                    fallingSpeed: 2.5,
+                    specialFrequency: 0.1,
+                    obstacleFrequency: 0.1,
+                    powerupFrequency: 0.05,
+                    timeLimit: 75,
+                    tiltMode: true
+                },
+                {
+                    name: "Speed Round",
+                    order: ["bottomBun", "patty", "cheese", "lettuce", "sauce", "topBun"],
+                    fallingSpeed: 4,
+                    specialFrequency: 0.2,
+                    obstacleFrequency: 0.15,
+                    powerupFrequency: 0.06,
+                    timeLimit: 45,
+                    tiltMode: false
+                },
+                {
+                    name: "Ultimate Burger",
+                    order: ["bottomBun", "sauce", "patty", "cheese", "bacon", "egg", "lettuce", "tomato", "onion", "pickle", "sauce", "topBun"],
+                    fallingSpeed: 3.5,
+                    specialFrequency: 0.15,
+                    obstacleFrequency: 0.12,
+                    powerupFrequency: 0.08,
+                    timeLimit: 120,
+                    tiltMode: true
+                }
+            ];
+
+            // Splash effects
+            const splashEffects = {
+                sauce: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23E67E22' stroke-width='5' stroke-dasharray='10 5'/%3E%3Ccircle cx='50' cy='50' r='20' fill='%23E67E22' opacity='0.5'/%3E%3Cpath d='M30,50 L20,40 M70,50 L80,40 M50,30 L50,20 M50,70 L50,80 M30,30 L20,20 M70,30 L80,20 M30,70 L20,80 M70,70 L80,80' stroke='%23E67E22' stroke-width='3'/%3E%3C/svg%3E",
+                miss: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23E74C3C' stroke-width='5' stroke-dasharray='10 5'/%3E%3Cpath d='M30,30 L70,70 M30,70 L70,30' stroke='%23E74C3C' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E",
+                perfect: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23F1C40F' stroke-width='5' stroke-dasharray='10 5'/%3E%3Cpath d='M25,50 L40,65 L75,30' stroke='%23F1C40F' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E",
+                powerup: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%233498DB' stroke-width='5' stroke-dasharray='10 5'/%3E%3Ccircle cx='50' cy='50' r='20' fill='%233498DB' opacity='0.5'/%3E%3Cpath d='M30,50 L70,50 M50,30 L50,70' stroke='%233498DB' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E"
+            };
+
+            // Initialize game
+            function init() {
+                gameWidth = gameContainer.clientWidth;
+                gameHeight = gameContainer.clientHeight;
+
+                // Set initial plate position
+                platePosition.x = gameWidth / 2;
+                updatePlatePosition();
+
+                // Load saved data
+                loadGameData();
+
+                // Update unlocked levels
+                updateLevelButtons();
+
+                // Event listeners
+                window.addEventListener('resize', handleResize);
+                document.addEventListener('keydown', handleKeyDown);
+                gameContainer.addEventListener('touchstart', handleTouchStart);
+                gameContainer.addEventListener('touchmove', handleTouchMove);
+                restartBtn.addEventListener('click', restartGame);
+                restartBtnPause.addEventListener('click', restartGame);
+                startBtn.addEventListener('click', startGame);
+                nextLevelBtn.addEventListener('click', nextLevel);
+                menuBtn.addEventListener('click', showMenu);
+                menuBtnGameover.addEventListener('click', showMenu);
+                menuBtnPause.addEventListener('click', showMenu);
+                pauseBtn.addEventListener('click', togglePause);
+                resumeBtn.addEventListener('click', resumeGame);
+                tutorialNext.addEventListener('click', nextTutorialStep);
+
+                // Level selection
+                levelBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const level = parseInt(this.dataset.level);
+                        if (level <= unlockedLevels) {
+                            currentLevel = level;
+                            startGame();
+                        }
+                    });
+                });
+
+                // Start animation loop
+                requestAnimationFrame(gameLoop);
+            }
+
+            // Game loop
+            function gameLoop(timestamp) {
+                // Calculate FPS
+                if (!lastFrameTime) {
+                    lastFrameTime = timestamp;
+                    lastFpsUpdate = timestamp;
+                }
+
+                const deltaTime = timestamp - lastFrameTime;
+                lastFrameTime = timestamp;
+
+                frameCount++;
+
+                if (timestamp - lastFpsUpdate > 1000) {
+                    fps = Math.round(frameCount * 1000 / (timestamp - lastFpsUpdate));
+                    fpsCounter.textContent = `FPS: ${fps}`;
+                    frameCount = 0;
+                    lastFpsUpdate = timestamp;
+                }
+
+                // Update game state
+                if (gameActive && !gamePaused) {
+                    // Update falling ingredient
+                    if (fallingIngredient) {
+                        updateFallingIngredient(deltaTime);
+                    }
+
+                    // Apply powerup effects
+                    activePowerups.forEach(powerup => {
+                        if (powerupTypes[powerup.type].effect) {
+                            powerupTypes[powerup.type].effect();
+                        }
+                    });
+
+                    // Update tilt if enabled
+                    if (tiltMode) {
+                        updateTilt(deltaTime);
+                    }
+                }
+
+                requestAnimationFrame(gameLoop);
+            }
+
+            // Start game
+            function startGame() {
+                startScreen.style.display = 'none';
+                gameOver.style.display = 'none';
+                levelComplete.style.display = 'none';
+                pauseScreen.style.display = 'none';
+
+                gameActive = true;
+                gamePaused = false;
+                score = 0;
+                lives = 3;
+                combo = 1;
+                maxCombo = 1;
+                perfectStackCount = 0;
+                stack = [];
+                activePowerups = [];
+
+                // Set up level
+                const level = levels[currentLevel - 1];
+                levelContainer.textContent = `Level: ${currentLevel} - ${level.name}`;
+                timeRemaining = level.timeLimit;
+                tiltMode = level.tiltMode;
+                tiltValue = 0;
+                stackTilt = 0;
+
+                // Show/hide tilt indicator
+                tiltIndicator.style.display = tiltMode ? 'block' : 'none';
+
+                // Generate order
+                generateOrder(level.order);
+
+                // Update UI
+                updateScore();
+                updateCombo();
+                updateLives();
+                updateTimeDisplay();
+
+                // Clear any existing ingredients
+                const ingredients = document.querySelectorAll('.ingredient, .falling-ingredient, .powerup, .splash');
+                ingredients.forEach(ingredient => ingredient.remove());
+
+                powerupIndicator.innerHTML = '';
+
+                // Start timer
+                if (timeInterval) clearInterval(timeInterval);
+                timeInterval = setInterval(updateTime, 1000);
+
+                // Show tutorial if first time
+                if (showTutorial && currentLevel === 1) {
+                    tutorialStep = 0;
+                    tutorialOverlay.style.display = 'flex';
+                } else {
+                    // Start dropping ingredients
+                    dropIngredient();
+                }
+
+                // Start powerup spawning
+                if (powerupInterval) clearInterval(powerupInterval);
+                powerupInterval = setInterval(() => {
+                    if (gameActive && !gamePaused && Math.random() < level.powerupFrequency) {
+                        spawnPowerup();
+                    }
+                }, 10000);
+            }
+
+            // Generate order
+            function generateOrder(orderItems) {
+                currentOrder = [...orderItems];
+
+                // Display order
+                const orderContainer = document.getElementById('order-items');
+                orderContainer.innerHTML = '';
+
+                currentOrder.forEach(item => {
+                    const orderItem = document.createElement('div');
+                    orderItem.className = 'order-item';
+
+                    const img = document.createElement('img');
+                    img.src = ingredientTypes[item].image;
+                    orderItem.appendChild(img);
+
+                    orderContainer.appendChild(orderItem);
+                });
+            }
+
+            // Restart game
+            function restartGame() {
+                gameOver.style.display = 'none';
+                pauseScreen.style.display = 'none';
+
+                // Clear any existing ingredients
+                const ingredients = document.querySelectorAll('.ingredient, .falling-ingredient, .powerup, .splash');
+                ingredients.forEach(ingredient => ingredient.remove());
+
+                startGame();
+            }
+
+            // Next level
+            function nextLevel() {
+                if (currentLevel < levels.length) {
+                    currentLevel++;
+                    startGame();
+                } else {
+                    showMenu();
+                }
+            }
+
+            // Show menu
+            function showMenu() {
+                gameActive = false;
+                gamePaused = false;
+
+                if (timeInterval) clearInterval(timeInterval);
+                if (powerupInterval) clearInterval(powerupInterval);
+
+                gameOver.style.display = 'none';
+                levelComplete.style.display = 'none';
+                pauseScreen.style.display = 'none';
+                startScreen.style.display = 'flex';
+
+                // Update unlocked levels
+                updateLevelButtons();
+            }
+
+            // Update level buttons
+            function updateLevelButtons() {
+                levelBtns.forEach(btn => {
+                    const level = parseInt(btn.dataset.level);
+                    if (level <= unlockedLevels) {
+                        btn.classList.remove('locked');
+                    } else {
+                        btn.classList.add('locked');
+                    }
+                });
+            }
+
+            // Toggle pause
+            function togglePause() {
+                if (!gameActive) return;
+
+                if (gamePaused) {
+                    resumeGame();
+                } else {
+                    pauseGame();
+                }
+            }
+
+            // Pause game
+            function pauseGame() {
+                gamePaused = true;
+                pauseScreen.style.display = 'flex';
+            }
+
+            // Resume game
+            function resumeGame() {
+                gamePaused = false;
+                pauseScreen.style.display = 'none';
+            }
+
+            // Handle window resize
+            function handleResize() {
+                gameWidth = gameContainer.clientWidth;
+                gameHeight = gameContainer.clientHeight;
+
+                // Adjust plate position
+                if (platePosition.x > gameWidth) {
+                    platePosition.x = gameWidth / 2;
+                }
+                updatePlatePosition();
+            }
+
+            // Handle keyboard input
+            function handleKeyDown(e) {
+                if (!gameActive || gamePaused) return;
+
+                if (e.key === 'ArrowLeft') {
+                    movePlate(-20);
+                } else if (e.key === 'ArrowRight') {
+                    movePlate(20);
+                } else if (e.key === 'p' || e.key === 'P') {
+                    togglePause();
+                }
+            }
+
+            // Handle touch input
+            function handleTouchStart(e) {
+                if (!gameActive || gamePaused) return;
+                touchStartX = e.touches[0].clientX;
+            }
+
+            function handleTouchMove(e) {
+                if (!gameActive || gamePaused) return;
+                e.preventDefault();
+
+                const touchX = e.touches[0].clientX;
+                const diff = touchX - touchStartX;
+
+                if (Math.abs(diff) > 5) {
+                    movePlate(diff);
+                    touchStartX = touchX;
+                }
+            }
+
+            // Move the plate
+            function movePlate(dx) {
+                platePosition.x += dx;
+
+                // Keep plate within game bounds
+                const halfPlateWidth = plateWidth / 2;
+
+                if (platePosition.x < halfPlateWidth) {
+                    platePosition.x = halfPlateWidth;
+                } else if (platePosition.x > gameWidth - halfPlateWidth) {
+                    platePosition.x = gameWidth - halfPlateWidth;
+                }
+
+                updatePlatePosition();
+            }
+
+            // Update plate position
+            function updatePlatePosition() {
+                plate.style.left = platePosition.x + 'px';
+
+                // Update stack position
+                stack.forEach((item, index) => {
+                    item.x = platePosition.x;
+
+                    // Apply tilt offset if tilt mode is enabled
+                    if (tiltMode && index > 0) {
+                        const tiltOffset = stackTilt * (index + 1) * 2;
+                        item.element.style.left = (item.x + tiltOffset) + 'px';
+
+                        // Apply rotation based on tilt
+                        const rotation = stackTilt * 10;
+                        item.element.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+                    } else {
+                        item.element.style.left = item.x + 'px';
+                        item.element.style.transform = 'translateX(-50%)';
+                    }
+                });
+            }
+
+            // Update tilt
+            function updateTilt(deltaTime) {
+                if (stack.length <= 1) return;
+
+                // Calculate tilt based on stack height and movement
+                const tiltFactor = 0.0001 * deltaTime;
+                const randomTilt = (Math.random() - 0.5) * 0.0002 * deltaTime;
+
+                // Apply tilt
+                stackTilt += randomTilt;
+
+                // Apply correction if plate is moving
+                const plateMovementCorrection = (0 - stackTilt) * 0.01 * deltaTime;
+                stackTilt += plateMovementCorrection;
+
+                // Limit tilt
+                const maxTilt = 0.5;
+                if (stackTilt > maxTilt) stackTilt = maxTilt;
+                if (stackTilt < -maxTilt) stackTilt = -maxTilt;
+
+                // Update tilt indicator
+                tiltMarker.style.left = `${(stackTilt + 0.5) * 100}%`;
+
+                // Check for collapse
+                if (Math.abs(stackTilt) > 0.4 && stack.length > 3) {
+                    // Danger zone - stack might collapse
+                    if (Math.random() < 0.01 * deltaTime * (Math.abs(stackTilt) - 0.4) * 10) {
+                        collapseStack();
+                    }
+                }
+
+                updatePlatePosition();
+            }
+
+            // Collapse stack
+            function collapseStack() {
+                if (!gameActive) return;
+
+                // Add fall animation to all ingredients
+                stack.forEach(item => {
+                    item.element.classList.add('fall');
+                });
+
+                // Show splash effect
+                createSplashEffect(platePosition.x, gameHeight - 150, 'miss');
+
+                // Lose a life
+                lives--;
+                updateLives();
+
+                // Reset combo
+                combo = 1;
+                updateCombo();
+
+                // Check game over
+                if (lives <= 0) {
+                    endGame();
+                } else {
+                    // Clear stack after animation
+                    setTimeout(() => {
+                        if (!gameActive) return;
+
+                        // Remove all ingredients
+                        stack.forEach(item => item.element.remove());
+                        stack = [];
+                        stackTilt = 0;
+
+                        // Drop next ingredient after a delay
+                        setTimeout(() => {
+                            if (gameActive && !fallingIngredient) dropIngredient();
+                        }, 500);
+                    }, 1000);
+                }
+            }
+
+            // Drop a new ingredient
+            function dropIngredient() {
+                if (!gameActive || gamePaused) return;
+
+                // Choose ingredient type based on order
+                let type;
+
+                if (stack.length < currentOrder.length) {
+                    // Follow order
+                    const nextOrderItem = currentOrder[stack.length];
+
+                    // Random chance to drop a different ingredient
+                    if (Math.random() < 0.3 && nextOrderItem !== 'bottomBun') {
+                        // Drop a random ingredient
+                        const ingredientKeys = Object.keys(ingredientTypes).filter(key =>
+                            !ingredientTypes[key].special &&
+                            !ingredientTypes[key].obstacle &&
+                            key !== 'topBun' &&
+                            key !== 'bottomBun'
+                        );
+                        const randomIndex = Math.floor(Math.random() * ingredientKeys.length);
+                        type = ingredientKeys[randomIndex];
+                    } else {
+                        type = nextOrderItem;
+                    }
+
+                    // Special ingredient chance
+                    const level = levels[currentLevel - 1];
+                    if (Math.random() < level.specialFrequency && type !== 'bottomBun' && type !== 'topBun') {
+                        type = 'goldenPatty';
+                    }
+                } else {
+                    // Order complete, drop top bun
+                    type = 'topBun';
+                }
+
+                const ingredientType = ingredientTypes[type];
+
+                // Create falling ingredient element
+                const element = document.createElement('div');
+                element.className = 'falling-ingredient';
+
+                const img = document.createElement('img');
+                img.src = ingredientType.image;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                element.appendChild(img);
+
+                // Random starting position
+                const x = Math.random() * (gameWidth - ingredientWidth) + ingredientWidth / 2;
+                const y = -50;
+
+                element.style.left = x + 'px';
+                element.style.top = y + 'px';
+
+                gameArea.appendChild(element);
+
+                // Create falling ingredient object
+                fallingIngredient = {
+                    type: type,
+                    element: element,
+                    x: x,
+                    y: y,
+                    width: ingredientWidth,
+                    height: 40,
+                    speed: levels[currentLevel - 1].fallingSpeed * (1 + Math.random() * 0.5)
+                };
+            }
+
+            // Update falling ingredient position
+            function updateFallingIngredient(deltaTime) {
+                if (!gameActive || gamePaused || !fallingIngredient) return;
+
+                // Move ingredient down
+                const speedFactor = deltaTime / 16.67; // Normalize for 60fps
+                fallingIngredient.y += fallingIngredient.speed * speedFactor;
+                fallingIngredient.element.style.top = fallingIngredient.y + 'px';
+
+                // Check if ingredient has reached the plate or stack
+                const plateTop = gameHeight - 100;
+                const stackHeight = getStackHeight();
+                const catchY = plateTop - stackHeight;
+
+                if (fallingIngredient.y >= catchY - 10) {
+                    // Check if ingredient is above the plate
+                    const plateLeft = platePosition.x - plateWidth / 2;
+                    const plateRight = platePosition.x + plateWidth / 2;
+
+                    if (fallingIngredient.x >= plateLeft && fallingIngredient.x <= plateRight) {
+                        // Caught the ingredient
+                        catchIngredient();
+                    } else if (fallingIngredient.y > gameHeight) {
+                        // Missed the ingredient
+                        missIngredient();
+                    }
+                }
+            }
+
+            // Calculate current stack height
+            function getStackHeight() {
+                let height = 0;
+                stack.forEach(item => {
+                    height += ingredientTypes[item.type].height;
+                });
+                return height;
+            }
+
+            // Handle caught ingredient
+            function catchIngredient() {
+                if (!fallingIngredient) return;
+
+                // Remove falling element
+                fallingIngredient.element.remove();
+
+                // Create stacked ingredient
+                const element = document.createElement('div');
+                element.className = 'ingredient';
+
+                const img = document.createElement('img');
+                img.src = ingredientTypes[fallingIngredient.type].image;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                element.appendChild(img);
+
+                // Position at top of stack
+                const stackHeight = getStackHeight();
+                const y = gameHeight - 100 - stackHeight;
+
+                element.style.left = platePosition.x + 'px';
+                element.style.top = y + 'px';
+
+                gameArea.appendChild(element);
+
+                // Add to stack
+                stack.push({
+                    type: fallingIngredient.type,
+                    element: element,
+                    x: platePosition.x,
+                    y: y
+                });
+
+                // Apply wobble animation
+                element.classList.add('wobble');
+
+                // Create splash effect
+                createSplashEffect(platePosition.x, y + 20, 'sauce');
+
+                // Update score
+                let points = 10;
+
+                // Check if ingredient is special
+                if (ingredientTypes[fallingIngredient.type].special) {
+                    points = ingredientTypes[fallingIngredient.type].points || 100;
+                    showFloatingText(platePosition.x, y, `+${points}!`);
+                }
+
+                // Apply combo
+                points *= combo;
+
+                // Apply double points powerup if active
+                if (hasPowerup('doublePoints')) {
+                    points *= 2;
+                }
+
+                score += points;
+                updateScore();
+
+                // Increase combo
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                updateCombo();
+
+                // Check for perfect stack
+                checkPerfectStack();
+
+                // Check if burger is complete (has top bun)
+                if (fallingIngredient.type === 'topBun') {
+                    // Complete burger bonus
+                    const burgerBonus = stack.length * 20;
+                    score += burgerBonus;
+                    updateScore();
+
+                    showFloatingText(platePosition.x, y - 30, `Burger Complete! +${burgerBonus}`);
+
+                    // Clear stack after a delay
+                    setTimeout(() => {
+                        if (!gameActive) return;
+
+                        // Remove all ingredients
+                        stack.forEach(item => item.element.remove());
+                        stack = [];
+                        stackTilt = 0;
+                    }, 1000);
+                }
+
+                // Reset falling ingredient
+                fallingIngredient = null;
+
+                // Drop next ingredient after a delay
+                setTimeout(() => {
+                    if (gameActive && !gamePaused) dropIngredient();
+                }, 800);
+            }
+
+            // Check for perfect stack
+            function checkPerfectStack() {
+                if (stack.length >= 3) {
+                    const lastThree = stack.slice(-3);
+
+                    // Check for classic perfect stack
+                    if (
+                        (lastThree[0].type === 'patty' &&
+                         lastThree[1].type === 'cheese' &&
+                         lastThree[2].type === 'topBun') ||
+                        (lastThree[0].type === 'lettuce' &&
+                         lastThree[1].type === 'tomato' &&
+                         lastThree[2].type === 'topBun') ||
+                        (lastThree[0].type === 'bacon' &&
+                         lastThree[1].type === 'egg' &&
+                         lastThree[2].type === 'topBun')
+                    ) {
+                        // Perfect stack bonus
+                        const perfectBonus = 50 * combo;
+                        score += perfectBonus;
+                        updateScore();
+
+                        // Show perfect stack message
+                        perfectStack.style.opacity = '1';
+                        setTimeout(() => {
+                            perfectStack.style.opacity = '0';
+                        }, 1500);
+
+                        // Create perfect splash effect
+                        const lastItem = stack[stack.length - 1];
+                        createSplashEffect(lastItem.x, lastItem.y, 'perfect');
+
+                        // Show floating text
+                        showFloatingText(lastItem.x, lastItem.y - 30, `Perfect Stack! +${perfectBonus}`);
+
+                        // Increment perfect stack counter
+                        perfectStackCount++;
+
+                        // Achievement
+                        if (perfectStackCount >= 5 && !achievements.fivePerfectStacks) {
+                            achievements.fivePerfectStacks = true;
+                            showAchievement('Stack Master', '🏆');
+                            saveGameData();
+                        }
+                    }
+
+                    // Check if following the order exactly
+                    let followingOrder = true;
+                    for (let i = 0; i < stack.length; i++) {
+                        if (i >= currentOrder.length || stack[i].type !== currentOrder[i]) {
+                            followingOrder = false;
+                            break;
+                        }
+                    }
+
+                    if (followingOrder && stack.length >= 4) {
+                        // Order bonus
+                        const orderBonus = 30 * stack.length;
+                        score += orderBonus;
+                        updateScore();
+
+                        // Show floating text
+                        const lastItem = stack[stack.length - 1];
+                        showFloatingText(lastItem.x, lastItem.y - 50, `Following Order! +${orderBonus}`);
+                    }
+                }
+            }
+
+            // Handle missed ingredient
+            function missIngredient() {
+                if (!fallingIngredient) return;
+
+                // Create miss splash effect
+                createSplashEffect(fallingIngredient.x, gameHeight - 50, 'miss');
+
+                // Remove falling element
+                fallingIngredient.element.remove();
+                fallingIngredient = null;
+
+                // Reset combo
+                combo = 1;
+                updateCombo();
+
+                // Lose a life if not protected by shield
+                if (!hasPowerup('shield')) {
+                    lives--;
+                    updateLives();
+
+                    // Shake the game container
+                    gameContainer.classList.add('shake');
+                    setTimeout(() => {
+                        gameContainer.classList.remove('shake');
+                    }, 500);
+
+                    // Check game over
+                    if (lives <= 0) {
+                        endGame();
+                        return;
+                    }
+                } else {
+                    // Show shield effect
+                    showFloatingText(fallingIngredient.x, gameHeight - 150, "Shield Protected!");
+                }
+
+                // Drop next ingredient after a delay
+                setTimeout(() => {
+                    if (gameActive && !gamePaused) dropIngredient();
+                }, 1000);
+            }
+
+            // Create splash effect
+            function createSplashEffect(x, y, type) {
+                const splash = document.createElement('div');
+                splash.className = 'splash';
+                splash.style.left = (x - 50) + 'px';
+                splash.style.top = (y - 50) + 'px';
+
+                const img = document.createElement('img');
+                img.src = splashEffects[type];
+                img.style.width = '100%';
+                img.style.height = '100%';
+                splash.appendChild(img);
+
+                gameArea.appendChild(splash);
+
+                // Remove after animation
+                setTimeout(() => {
+                    splash.remove();
+                }, 500);
+            }
+
+            // Show floating text
+            function showFloatingText(x, y, text) {
+                const floatingText = document.createElement('div');
+                floatingText.className = 'floating-text';
+                floatingText.textContent = text;
+                floatingText.style.left = x + 'px';
+                floatingText.style.top = y + 'px';
+                floatingText.style.fontSize = '24px';
+
+                gameArea.appendChild(floatingText);
+
+                // Remove after animation
+                setTimeout(() => {
+                    floatingText.remove();
+                }, 1000);
+            }
+
+            // Spawn powerup
+            function spawnPowerup() {
+                if (!gameActive || gamePaused) return;
+
+                // Choose random powerup type
+                const powerupKeys = Object.keys(powerupTypes);
+                const randomIndex = Math.floor(Math.random() * powerupKeys.length);
+                const type = powerupKeys[randomIndex];
+
+                // Create powerup element
+                const element = document.createElement('div');
+                element.className = 'powerup';
+
+                const img = document.createElement('img');
+                img.src = powerupTypes[type].image;
+                img.className = 'powerup-icon';
+                element.appendChild(img);
+
+                // Random position
+                const x = Math.random() * (gameWidth - 40) + 20;
+                const y = Math.random() * (gameHeight - 300) + 100;
+
+                element.style.left = x + 'px';
+                element.style.top = y + 'px';
+
+                gameArea.appendChild(element);
+
+                // Add click/touch event
+                element.addEventListener('click', () => collectPowerup(type, element));
+                element.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    collectPowerup(type, element);
+                });
+
+                // Remove after a delay
+                setTimeout(() => {
+                    if (element.parentNode) {
+                        element.remove();
+                    }
+                }, 5000);
+            }
+
+            // Collect powerup
+            function collectPowerup(type, element) {
+                if (!gameActive || gamePaused) return;
+
+                // Remove element
+                element.remove();
+
+                // Create splash effect
+                const rect = element.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                createSplashEffect(x, y, 'powerup');
+
+                // Apply powerup
+                const powerup = powerupTypes[type];
+
+                // Show floating text
+                showFloatingText(x, y - 30, powerup.name + ' Activated!');
+
+                // If it's an instant powerup
+                if (powerup.duration === 0) {
+                    if (powerup.effect) {
+                        powerup.effect();
+                    }
+                    return;
+                }
+
+                // Add to active powerups
+                activePowerups.push({
+                    type: type,
+                    timeRemaining: powerup.duration
+                });
+
+                // Update powerup indicator
+                updatePowerupIndicator();
+
+                // Start countdown
+                const powerupTimer = setInterval(() => {
+                    if (gamePaused) return;
+
+                    // Find this powerup
+                    const index = activePowerups.findIndex(p => p.type === type);
+                    if (index === -1) {
+                        clearInterval(powerupTimer);
+                        return;
+                    }
+
+                    // Decrease time
+                    activePowerups[index].timeRemaining--;
+
+                    // Update indicator
+                    updatePowerupIndicator();
+
+                    // Remove if expired
+                    if (activePowerups[index].timeRemaining <= 0) {
+                        activePowerups.splice(index, 1);
+                        updatePowerupIndicator();
+                        clearInterval(powerupTimer);
+                    }
+                }, 1000);
+            }
+
+            // Update powerup indicator
+            function updatePowerupIndicator() {
+                powerupIndicator.innerHTML = '';
+
+                activePowerups.forEach(powerup => {
+                    const container = document.createElement('div');
+                    container.className = 'active-powerup';
+
+                    const img = document.createElement('img');
+                    img.src = powerupTypes[powerup.type].image;
+                    container.appendChild(img);
+
+                    const timer = document.createElement('div');
+                    timer.className = 'powerup-timer';
+                    container.appendChild(timer);
+
+                    powerupIndicator.appendChild(container);
+
+                    // Update timer visual
+                    const duration = powerupTypes[powerup.type].duration;
+                    const progress = powerup.timeRemaining / duration;
+                    const degrees = 360 * (1 - progress);
+
+                    if (degrees <= 180) {
+                        timer.classList.remove('active');
+                        timer.style.transform = `rotate(${degrees}deg)`;
+                    } else {
+                        timer.classList.add('active');
+                        timer.style.transform = `rotate(${degrees - 180}deg)`;
+                    }
+                });
+            }
+
+            // Check if a powerup is active
+            function hasPowerup(type) {
+                return activePowerups.some(p => p.type === type);
+            }
+
+            // Update score display
+            function updateScore() {
+                scoreValue.textContent = score;
+            }
+
+            // Update combo display
+            function updateCombo() {
+                comboText.textContent = `x${combo}`;
+                comboFill.style.width = `${Math.min(100, (combo - 1) * 10)}%`;
+            }
+
+            // Update lives display
+            function updateLives() {
+                livesContainer.innerHTML = '';
+
+                for (let i = 0; i < lives; i++) {
+                    const lifeIcon = document.createElement('div');
+                    lifeIcon.className = 'life-icon';
+                    livesContainer.appendChild(lifeIcon);
+                }
+            }
+
+            // Update time
+            function updateTime() {
+                if (!gameActive || gamePaused) return;
+
+                timeRemaining--;
+                updateTimeDisplay();
+
+                if (timeRemaining <= 0) {
+                    // Time's up - level complete
+                    completeLevel();
+                }
+            }
+
+            // Update time display
+            function updateTimeDisplay() {
+                timeValue.textContent = timeRemaining;
+
+                // Warning color when time is low
+                if (timeRemaining <= 10) {
+                    timeContainer.style.color = '#FF5722';
+                } else {
+                    timeContainer.style.color = 'white';
+                }
+            }
+
+            // Complete level
+            function completeLevel() {
+                gameActive = false;
+
+                if (timeInterval) clearInterval(timeInterval);
+                if (powerupInterval) clearInterval(powerupInterval);
+
+                // Calculate stars
+                let stars = 1;
+                if (score >= levels[currentLevel - 1].scoreThreshold2) {
+                    stars = 3;
+                } else if (score >= levels[currentLevel - 1].scoreThreshold1) {
+                    stars = 2;
+                }
+
+                // Update level complete screen
+                levelScore.textContent = score;
+                levelPerfectStacks.textContent = perfectStackCount;
+                levelStars.textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+
+                // Unlock next level
+                if (currentLevel === unlockedLevels && currentLevel < levels.length) {
+                    unlockedLevels++;
+                    saveGameData();
+                }
+
+                // Show level complete screen
+                levelComplete.style.display = 'flex';
+
+                // Hide next level button if this is the last level
+                nextLevelBtn.style.display = currentLevel < levels.length ? 'block' : 'none';
+            }
+
+            // End game
+            function endGame() {
+                gameActive = false;
+
+                if (timeInterval) clearInterval(timeInterval);
+                if (powerupInterval) clearInterval(powerupInterval);
+
+                // Update game over screen
+                finalScore.textContent = score;
+                perfectStacks.textContent = perfectStackCount;
+
+                // Show game over screen
+                gameOver.style.display = 'flex';
+
+                // Save high score
+                if (score > (achievements.highScore || 0)) {
+                    achievements.highScore = score;
+                    saveGameData();
+                }
+            }
+
+            // Show achievement
+            function showAchievement(text, icon) {
+                const achievementIcon = achievement.querySelector('.achievement-icon');
+                const achievementText = achievement.querySelector('.achievement-text');
+
+                achievementIcon.textContent = icon;
+                achievementText.textContent = text;
+
+                achievement.style.opacity = '1';
+
+                setTimeout(() => {
+                    achievement.style.opacity = '0';
+                }, 3000);
+            }
+
+            // Tutorial steps
+            function nextTutorialStep() {
+                tutorialStep++;
+
+                if (tutorialStep === 1) {
+                    const tutorialMessage = tutorialOverlay.querySelector('.tutorial-message');
+                    tutorialMessage.textContent = 'Follow the order shown at the top to build the perfect burger!';
+                } else {
+                    tutorialOverlay.style.display = 'none';
+                    dropIngredient();
+                }
+            }
+
+            // Save game data
+            function saveGameData() {
+                const gameData = {
+                    unlockedLevels: unlockedLevels,
+                    achievements: achievements,
+                    showTutorial: showTutorial
+                };
+
+                try {
+                    localStorage.setItem('burgerStackData', JSON.stringify(gameData));
+                } catch (e) {
+                    console.log('Could not save game data');
+                }
+            }
+
+            // Load game data
+            function loadGameData() {
+                try {
+                    const gameData = localStorage.getItem('burgerStackData');
+                    if (gameData) {
+                        const data = JSON.parse(gameData);
+                        unlockedLevels = data.unlockedLevels || 1;
+                        achievements = data.achievements || {};
+                        showTutorial = data.showTutorial !== undefined ? data.showTutorial : true;
+                    }
+                } catch (e) {
+                    console.log('Could not load game data');
+                }
+            }
+
+            // Initialize the game
+            init();
+        });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'968842ffb44a9077',t:'MTc1NDA4MTk5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html> *@

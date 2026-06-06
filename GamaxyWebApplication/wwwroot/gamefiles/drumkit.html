@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Drummer Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Responsive drum pads */
+        .drum {
+            position: relative;
+            width: calc(25% - 10px);
+            height: 0;
+            padding-bottom: calc(25% - 10px);
+            border-radius: 10px;
+            margin: 5px;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        @media (min-width: 400px) {
+            .drum {
+                width: calc(20% - 10px);
+                padding-bottom: calc(20% - 10px);
+            }
+        }
+
+        @media (min-width: 640px) {
+            .drum {
+                width: calc(16.666% - 10px);
+                padding-bottom: calc(16.666% - 10px);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .drum {
+                width: 80px;
+                height: 80px;
+                padding-bottom: 0;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .drum {
+                width: 90px;
+                height: 90px;
+            }
+        }
+
+        /* Mobile controls */
+        #mobileControls {
+            display: flex;
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            justify-content: space-around;
+            padding: 0 10px;
+            z-index: 100;
+        }
+
+        .mobile-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid #0ff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #0ff;
+            font-size: 1.2rem;
+            user-select: none;
+        }
+
+        /* Drum kit layout adjustments */
+        .drum-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding-bottom: 70px;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+
+        @media (min-width: 768px) {
+            .drum-container {
+                padding-bottom: 20px;
+            }
+            #mobileControls {
+                display: none;
+            }
+        }
+
+        /* Modal responsiveness */
+        .modal-content {
+            width: 95%;
+            max-width: 95%;
+            margin: 10px auto;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 640px) {
+            .modal-content {
+                max-width: 600px;
+                margin: 20px auto;
+                max-height: 90vh;
+            }
+        }
+
+        /* Beat visualizer responsiveness */
+        .beat-visualizer {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            height: 40px;
+        }
+
+        .beat-bar {
+            width: 8px;
+            height: 3px;
+        }
+
+        /* Header adjustments */
+        header {
+            padding: 10px 0;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Main content adjustments */
+        main {
+            flex: 1;
+            padding: 10px 0;
+        }
+
+        /* Control buttons */
+        .control-btn {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+
+        @media (min-width: 640px) {
+            .control-btn {
+                padding: 10px 16px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Volume control */
+        .volume-container {
+            padding: 6px 12px;
+        }
+
+        /* Keep all your existing styles below this line */
+        .drum::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+            z-index: 1;
+        }
+
+        .drum:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .drum span {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 18px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        .drum-name {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        .pressed {
+            transform: scale(0.95) translateY(5px) rotateX(10deg);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .pressed::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+            opacity: 0;
+            z-index: 2;
+            animation: ripple 0.6s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                opacity: 1;
+                transform: scale(0.3);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(2);
+            }
+        }
+
+        .kick {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='90' fill='%23D64545' stroke='%23FFA07A' stroke-width='5'/%3E%3Ccircle cx='100' cy='100' r='70' fill='%23B83232' stroke='%23CD5C5C' stroke-width='3'/%3E%3Ccircle cx='100' cy='100' r='20' fill='%23922B2B' stroke='%23A52A2A' stroke-width='2'/%3E%3C/svg%3E");
+        }
+
+        .snare {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect x='20' y='60' width='160' height='80' rx='5' fill='%23F0E68C' stroke='%23DAA520' stroke-width='5'/%3E%3Cline x1='20' y1='100' x2='180' y2='100' stroke='%23B8860B' stroke-width='2' stroke-dasharray='5,5'/%3E%3Cline x1='20' y1='80' x2='180' y2='80' stroke='%23B8860B' stroke-width='1'/%3E%3Cline x1='20' y1='120' x2='180' y2='120' stroke='%23B8860B' stroke-width='1'/%3E%3C/svg%3E");
+        }
+
+        .hihat {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cellipse cx='100' cy='90' rx='80' ry='20' fill='%23C0C0C0' stroke='%23A9A9A9' stroke-width='3'/%3E%3Cellipse cx='100' cy='85' rx='70' ry='15' fill='%23D3D3D3' stroke='%23A9A9A9' stroke-width='2'/%3E%3Crect x='97' y='90' width='6' height='70' fill='%23696969'/%3E%3Cellipse cx='100' cy='160' rx='15' ry='5' fill='%23808080'/%3E%3C/svg%3E");
+        }
+
+        .tom {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cellipse cx='100' cy='70' rx='70' ry='30' fill='%234682B4' stroke='%23191970' stroke-width='3'/%3E%3Crect x='30' y='70' width='140' height='60' fill='%234169E1'/%3E%3Cellipse cx='100' cy='130' rx='70' ry='30' fill='%234682B4' stroke='%23191970' stroke-width='3'/%3E%3Cellipse cx='100' cy='70' rx='60' ry='20' fill='%236495ED' stroke='%234169E1' stroke-width='2'/%3E%3C/svg%3E");
+        }
+
+        .crash {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cellipse cx='100' cy='80' rx='80' ry='15' fill='%23FFD700' stroke='%23DAA520' stroke-width='3' transform='rotate(-10, 100, 80)'/%3E%3Crect x='97' y='80' width='6' height='80' fill='%23696969'/%3E%3Cellipse cx='100' cy='160' rx='15' ry='5' fill='%23808080'/%3E%3Ccircle cx='100' cy='80' r='10' fill='%23B8860B'/%3E%3C/svg%3E");
+        }
+
+        .ride {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cellipse cx='100' cy='80' rx='80' ry='12' fill='%23B8860B' stroke='%23DAA520' stroke-width='3'/%3E%3Crect x='97' y='80' width='6' height='80' fill='%23696969'/%3E%3Cellipse cx='100' cy='160' rx='15' ry='5' fill='%23808080'/%3E%3Ccircle cx='100' cy='80' r='15' fill='%23DAA520'/%3E%3C/svg%3E");
+        }
+
+        .floor-tom {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cellipse cx='100' cy='60' rx='75' ry='30' fill='%23800080' stroke='%234B0082' stroke-width='3'/%3E%3Crect x='25' y='60' width='150' height='80' fill='%239370DB'/%3E%3Cellipse cx='100' cy='140' rx='75' ry='30' fill='%23800080' stroke='%234B0082' stroke-width='3'/%3E%3Cellipse cx='100' cy='60' rx='65' ry='20' fill='%23BA55D3' stroke='%239370DB' stroke-width='2'/%3E%3C/svg%3E");
+        }
+
+        .splash {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cellipse cx='100' cy='80' rx='60' ry='10' fill='%23E6E6FA' stroke='%23C0C0C0' stroke-width='3' transform='rotate(5, 100, 80)'/%3E%3Crect x='97' y='80' width='6' height='80' fill='%23696969'/%3E%3Cellipse cx='100' cy='160' rx='15' ry='5' fill='%23808080'/%3E%3Ccircle cx='100' cy='80' r='8' fill='%23C0C0C0'/%3E%3C/svg%3E");
+        }
+
+        .glow {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2a2a4a 0%, #16213e 100%);
+            padding: 15px;
+            border-radius: 10px;
+            transform: translateY(50px);
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (min-width: 640px) {
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .tab {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+
+        @media (min-width: 640px) {
+            .tab {
+                font-size: 14px;
+                padding: 10px 16px;
+            }
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .beat-pattern {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 3px;
+            margin-top: 8px;
+        }
+
+        @media (min-width: 640px) {
+            .beat-pattern {
+                gap: 6px;
+                margin-top: 12px;
+            }
+        }
+
+        .beat-cell {
+            width: 100%;
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .beat-cell.active {
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        .beat-row-label {
+            display: flex;
+            align-items: center;
+            font-size: 10px;
+            font-weight: 600;
+            width: 50px;
+        }
+
+        @media (min-width: 640px) {
+            .beat-row-label {
+                font-size: 12px;
+                width: 60px;
+            }
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .record-btn {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #ff3b30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(255, 59, 48, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .record-btn.recording {
+            animation: pulse 1.5s infinite;
+        }
+
+        .record-btn.recording::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #fff;
+            border-radius: 2px;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 59, 48, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 59, 48, 0);
+            }
+        }
+
+        .recording-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 640px) {
+            .recording-list {
+                max-height: 200px;
+            }
+        }
+
+        .recording-item {
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            font-size: 12px;
+        }
+
+        @media (min-width: 640px) {
+            .recording-item {
+                font-size: 14px;
+                padding: 10px;
+            }
+        }
+
+        .recording-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .key-hint {
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 8px;
+            z-index: 2;
+        }
+
+        .drum-set-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .drum-set-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400' viewBox='0 0 800 400'%3E%3Cellipse cx='400' cy='350' rx='350' ry='40' fill='%23333' opacity='0.3'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        footer {
+            padding: 10px 0;
+            font-size: 10px;
+        }
+
+        @media (min-width: 640px) {
+            footer {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body class="relative">
+    <!-- Background particles -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div id="particles" class="absolute top-0 left-0 w-full h-full"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="relative z-10 pt-2 pb-1 md:pt-4 md:pb-2">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col items-center justify-center">
+                <h1 class="text-xl md:text-2xl lg:text-3xl font-bold mb-1 text-center relative">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Pro Drummer Studio</span>
+                    <span class="ml-1 text-2xl md:text-3xl animate-bounce inline-block">🥁</span>
+                </h1>
+                <p class="text-gray-300 text-xs md:text-sm text-center max-w-md mb-1 md:mb-2">Virtual drumming platform</p>
+
+                <!-- Beat visualizer -->
+                <div class="beat-visualizer w-full max-w-xs mb-1 md:mb-2">
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                    <div class="beat-bar"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="relative z-10 py-1 md:py-2">
+        <div class="container mx-auto px-4">
+            <!-- Controls -->
+            <div class="flex flex-wrap justify-center gap-1 md:gap-2 mb-2 md:mb-4">
+                <button id="beatMakerBtn" class="control-btn bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-4 md:w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                    </svg>
+                    Beat Maker
+                </button>
+
+                <button id="recordBtn" class="control-btn bg-gradient-to-r from-red-600 to-pink-600 rounded-full text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-4 md:w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                    Record
+                </button>
+
+                <button id="tutorialBtn" class="control-btn bg-gradient-to-r from-green-600 to-teal-600 rounded-full text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-4 md:w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                    </svg>
+                    Tutorial
+                </button>
+            </div>
+
+            <!-- Drum set container -->
+            <div class="drum-set-container mb-2 md:mb-4">
+                <div class="drum-set-bg"></div>
+
+                <!-- Drum kit -->
+                <div class="drum-container">
+                    <div class="drum crash" data-key="q">
+                        <div class="drum-name">Crash</div>
+                        <span>Q</span>
+                        <div class="key-hint">Q</div>
+                    </div>
+                    <div class="drum ride" data-key="w">
+                        <div class="drum-name">Ride</div>
+                        <span>W</span>
+                        <div class="key-hint">W</div>
+                    </div>
+                    <div class="drum hihat" data-key="e">
+                        <div class="drum-name">Hi-Hat</div>
+                        <span>E</span>
+                        <div class="key-hint">E</div>
+                    </div>
+                    <div class="drum splash" data-key="r">
+                        <div class="drum-name">Splash</div>
+                        <span>R</span>
+                        <div class="key-hint">R</div>
+                    </div>
+                    <div class="drum tom" data-key="a">
+                        <div class="drum-name">Beat</div>
+                        <span>A</span>
+                        <div class="key-hint">A</div>
+                    </div>
+                    <div class="drum tom" data-key="s">
+                        <div class="drum-name">Drum</div>
+                        <span>S</span>
+                        <div class="key-hint">S</div>
+                    </div>
+                    <div class="drum floor-tom" data-key="d">
+                        <div class="drum-name">Floor Tom</div>
+                        <span>D</span>
+                        <div class="key-hint">D</div>
+                    </div>
+                    <div class="drum snare" data-key="f">
+                        <div class="drum-name">Snare</div>
+                        <span>F</span>
+                        <div class="key-hint">F</div>
+                    </div>
+                    <div class="drum kick" data-key="space">
+                        <div class="drum-name">Kick</div>
+                        <span>Space</span>
+                        <div class="key-hint">Space</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Volume control -->
+            <div class="flex justify-center mb-2 md:mb-4">
+                <div class="volume-container bg-gray-800 bg-opacity-50 rounded-full flex items-center gap-1 md:gap-2 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
+                    <input type="range" id="volumeControl" class="volume-slider" min="0" max="1" step="0.01" value="0.7">
+                    <span id="volumeValue" class="text-xs text-gray-300">70%</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile controls -->
+    <div id="mobileControls">
+        <div class="mobile-btn" id="mobileCrash">Q</div>
+        <div class="mobile-btn" id="mobileHihat">E</div>
+        <div class="mobile-btn" id="mobileSnare">F</div>
+        <div class="mobile-btn" id="mobileKick">Kick</div>
+    </div>
+
+    <!-- Beat Maker Modal -->
+    <div id="beatMakerModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-3 md:mb-4">
+                <h2 class="text-lg md:text-xl font-bold text-white">Beat Maker Studio</h2>
+                <button class="close-modal text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex gap-1 md:gap-2 mb-3 md:mb-4 overflow-x-auto pb-1">
+                <button class="tab active" data-tab="pattern1">Pattern 1</button>
+                <button class="tab" data-tab="pattern2">Pattern 2</button>
+                <button class="tab" data-tab="pattern3">Pattern 3</button>
+                <button class="tab" data-tab="pattern4">Custom</button>
+            </div>
+
+            <div class="tab-content active" id="pattern1">
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Kick</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell active" data-instrument="kick" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="1"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="3"></div>
+                        <div class="beat-cell active" data-instrument="kick" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="5"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="7"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Snare</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell" data-instrument="snare" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="1"></div>
+                        <div class="beat-cell active" data-instrument="snare" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="5"></div>
+                        <div class="beat-cell active" data-instrument="snare" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="7"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Hi-Hat</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell active" data-instrument="hihat" data-step="0"></div>
+                        <div class="beat-cell active" data-instrument="hihat" data-step="1"></div>
+                        <div class="beat-cell active" data-instrument="hihat" data-step="2"></div>
+                        <div class="beat-cell active" data-instrument="hihat" data-step="3"></div>
+                        <div class="beat-cell active" data-instrument="hihat" data-step="4"></div>
+                        <div class="beat-cell active" data-instrument="hihat" data-step="5"></div>
+                        <div class="beat-cell active" data-instrument="hihat" data-step="6"></div>
+                        <div class="beat-cell active" data-instrument="hihat" data-step="7"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="pattern2">
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Kick</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell active" data-instrument="kick" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="1"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="2"></div>
+                        <div class="beat-cell active" data-instrument="kick" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="5"></div>
+                        <div class="beat-cell active" data-instrument="kick" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="7"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Snare</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell" data-instrument="snare" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="1"></div>
+                        <div class="beat-cell active" data-instrument="snare" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="5"></div>
+                        <div class="beat-cell active" data-instrument="snare" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="7"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Crash</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell active" data-instrument="crash" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="1"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="5"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="7"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="pattern3">
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Kick</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell active" data-instrument="kick" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="1"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="3"></div>
+                        <div class="beat-cell active" data-instrument="kick" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="5"></div>
+                        <div class="beat-cell active" data-instrument="kick" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="7"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Snare</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell" data-instrument="snare" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="1"></div>
+                        <div class="beat-cell active" data-instrument="snare" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="5"></div>
+                        <div class="beat-cell active" data-instrument="snare" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="7"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Tom</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell" data-instrument="tom" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="tom" data-step="1"></div>
+                        <div class="beat-cell" data-instrument="tom" data-step="2"></div>
+                        <div class="beat-cell active" data-instrument="tom" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="tom" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="tom" data-step="5"></div>
+                        <div class="beat-cell" data-instrument="tom" data-step="6"></div>
+                        <div class="beat-cell active" data-instrument="tom" data-step="7"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="pattern4">
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Kick</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell" data-instrument="kick" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="1"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="5"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="kick" data-step="7"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Snare</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell" data-instrument="snare" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="1"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="5"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="snare" data-step="7"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Hi-Hat</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell" data-instrument="hihat" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="hihat" data-step="1"></div>
+                        <div class="beat-cell" data-instrument="hihat" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="hihat" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="hihat" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="hihat" data-step="5"></div>
+                        <div class="beat-cell" data-instrument="hihat" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="hihat" data-step="7"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mb-1 md:mb-2">
+                    <div class="beat-row-label">Crash</div>
+                    <div class="beat-pattern flex-1">
+                        <div class="beat-cell" data-instrument="crash" data-step="0"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="1"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="2"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="3"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="4"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="5"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="6"></div>
+                        <div class="beat-cell" data-instrument="crash" data-step="7"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 md:mt-4 flex flex-wrap gap-1 md:gap-2">
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-300 text-xs md:text-sm">BPM:</span>
+                    <input type="number" id="bpmControl" class="bg-gray-800 text-white border border-gray-700 rounded px-2 py-1 w-14 text-xs md:text-sm" min="60" max="200" value="120">
+                </div>
+
+                <div class="flex-1"></div>
+
+                <button id="playBeatBtn" class="px-2 py-1 md:px-3 md:py-1 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium transition-colors flex items-center gap-1 text-xs md:text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-4 md:w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                    Play
+                </button>
+
+                <button id="stopBeatBtn" class="px-2 py-1 md:px-3 md:py-1 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium transition-colors flex items-center gap-1 text-xs md:text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-4 md:w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
+                    </svg>
+                    Stop
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Modal -->
+    <div id="recordModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-3 md:mb-4">
+                <h2 class="text-lg md:text-xl font-bold text-white">Recording Studio</h2>
+                <button class="close-modal text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-3 md:gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center justify-center mb-3 md:mb-4">
+                        <div id="recordBtnContainer" class="record-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <circle cx="10" cy="10" r="8" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div id="recordingStatus" class="text-center mb-1 md:mb-2 text-gray-300 text-xs md:text-sm">Press to start recording</div>
+
+                    <div id="recordingProgress" class="progress-bar hidden">
+                        <div class="progress"></div>
+                    </div>
+                </div>
+
+                <div class="flex-1">
+                    <h3 class="text-md font-semibold mb-1 md:mb-2 text-gray-200">Your Recordings</h3>
+                    <div id="recordingsList" class="recording-list">
+                        <div class="text-gray-400 text-center py-3 text-xs md:text-sm">No recordings yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div id="tutorialModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-3 md:mb-4">
+                <h2 class="text-lg md:text-xl font-bold text-white">How to Play</h2>
+                <button class="close-modal text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-3 md:space-y-4">
+                <div>
+                    <h3 class="text-md md:text-lg font-semibold mb-1 md:mb-2 text-gray-200">Keyboard Controls</h3>
+                    <div class="grid grid-cols-2 gap-2 md:gap-3">
+                        <div class="bg-gray-800 bg-opacity-50 p-2 md:p-3 rounded-lg">
+                            <div class="flex items-center gap-1 md:gap-2 mb-1">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-gray-700 rounded flex items-center justify-center font-bold text-xs md:text-sm">Q</div>
+                                <span class="text-xs md:text-sm">Crash Cymbal</span>
+                            </div>
+                            <div class="flex items-center gap-1 md:gap-2 mb-1">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-gray-700 rounded flex items-center justify-center font-bold text-xs md:text-sm">W</div>
+                                <span class="text-xs md:text-sm">Ride Cymbal</span>
+                            </div>
+                            <div class="flex items-center gap-1 md:gap-2 mb-1">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-gray-700 rounded flex items-center justify-center font-bold text-xs md:text-sm">E</div>
+                                <span class="text-xs md:text-sm">Hi-Hat</span>
+                            </div>
+                            <div class="flex items-center gap-1 md:gap-2">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-gray-700 rounded flex items-center justify-center font-bold text-xs md:text-sm">R</div>
+                                <span class="text-xs md:text-sm">Splash Cymbal</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 bg-opacity-50 p-2 md:p-3 rounded-lg">
+                            <div class="flex items-center gap-1 md:gap-2 mb-1">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-gray-700 rounded flex items-center justify-center font-bold text-xs md:text-sm">A</div>
+                                <span class="text-xs md:text-sm">Tom 1</span>
+                            </div>
+                            <div class="flex items-center gap-1 md:gap-2 mb-1">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-gray-700 rounded flex items-center justify-center font-bold text-xs md:text-sm">S</div>
+                                <span class="text-xs md:text-sm">Tom 2</span>
+                            </div>
+                            <div class="flex items-center gap-1 md:gap-2 mb-1">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-gray-700 rounded flex items-center justify-center font-bold text-xs md:text-sm">D</div>
+                                <span class="text-xs md:text-sm">Floor Tom</span>
+                            </div>
+                            <div class="flex items-center gap-1 md:gap-2">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-gray-700 rounded flex items-center justify-center font-bold text-xs md:text-sm">F</div>
+                                <span class="text-xs md:text-sm">Snare Drum</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-1 md:mt-2 bg-gray-800 bg-opacity-50 p-2 md:p-3 rounded-lg">
+                        <div class="flex items-center gap-1 md:gap-2">
+                            <div class="bg-gray-700 rounded px-2 py-1 font-bold text-xs">SPACE</div>
+                            <span class="text-xs md:text-sm">Bass Drum (Kick)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-md md:text-lg font-semibold mb-1 md:mb-2 text-gray-200">Features</h3>
+                    <ul class="list-disc list-inside space-y-1 text-gray-300 text-xs md:text-sm">
+                        <li>Click on drums or use keyboard keys to play sounds</li>
+                        <li>Use the Beat Maker to create and play drum patterns</li>
+                        <li>Record your performances and play them back</li>
+                        <li>Adjust volume using the slider at the bottom</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-md md:text-lg font-semibold mb-1 md:mb-2 text-gray-200">Tips for Beginners</h3>
+                    <ul class="list-disc list-inside space-y-1 text-gray-300 text-xs md:text-sm">
+                        <li>Start with a simple beat: kick (space) on 1 and 3, snare (F) on 2 and 4</li>
+                        <li>Add hi-hat (E) on every beat to keep time</li>
+                        <li>Use the Beat Maker to learn common drum patterns</li>
+                        <li>Practice with the pre-made patterns before creating your own</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <footer class="relative z-10 py-2 md:py-3 text-center text-gray-400 text-xs">
+        <div class="container mx-auto px-4">
+            <p>Pro Drummer Studio by Binil Tom Jose</p>
+            <p class="mt-1">Created with ❤️ for your yearly competition</p>
+        </div>
+    </footer>
+
+    <script>
+        // Audio elements
+        const sounds = {
+            kick: new Audio("https://assets.codepen.io/605876/kick.mp3"),
+            snare: new Audio("https://assets.codepen.io/605876/snare.mp3"),
+            hihat: new Audio("https://assets.codepen.io/605876/hihat.mp3"),
+            tom: new Audio("https://assets.codepen.io/605876/tom.mp3"),
+            crash: new Audio("https://assets.codepen.io/605876/crash.mp3"),
+            ride: new Audio("https://assets.codepen.io/605876/ride.mp3"),
+            floorTom: new Audio("https://assets.codepen.io/605876/floor-tom.mp3"),
+            splash: new Audio("https://assets.codepen.io/605876/splash.mp3")
+        };
+
+        // Set initial volume
+        Object.values(sounds).forEach(sound => {
+            sound.volume = 0.7;
+        });
+
+        // DOM elements
+        const drums = document.querySelectorAll('.drum');
+        const volumeControl = document.getElementById('volumeControl');
+        const volumeValue = document.getElementById('volumeValue');
+        const beatMakerBtn = document.getElementById('beatMakerBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const tutorialBtn = document.getElementById('tutorialBtn');
+        const beatMakerModal = document.getElementById('beatMakerModal');
+        const recordModal = document.getElementById('recordModal');
+        const tutorialModal = document.getElementById('tutorialModal');
+        const closeModalBtns = document.querySelectorAll('.close-modal');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const beatCells = document.querySelectorAll('.beat-cell');
+        const playBeatBtn = document.getElementById('playBeatBtn');
+        const stopBeatBtn = document.getElementById('stopBeatBtn');
+        const bpmControl = document.getElementById('bpmControl');
+        const recordBtnContainer = document.getElementById('recordBtnContainer');
+        const recordingStatus = document.getElementById('recordingStatus');
+        const recordingProgress = document.getElementById('recordingProgress');
+        const recordingsList = document.getElementById('recordingsList');
+        const beatBars = document.querySelectorAll('.beat-bar');
+        const mobileCrash = document.getElementById('mobileCrash');
+        const mobileHihat = document.getElementById('mobileHihat');
+        const mobileSnare = document.getElementById('mobileSnare');
+        const mobileKick = document.getElementById('mobileKick');
+
+        // Game state
+        let isRecording = false;
+        let recordings = [];
+        let currentRecording = [];
+        let recordingStartTime;
+        let beatInterval;
+        let activePattern = 'pattern1';
+        let isPlaying = false;
+
+        // Volume control
+        volumeControl.addEventListener('input', (e) => {
+            const volume = e.target.value;
+            Object.values(sounds).forEach(sound => {
+                sound.volume = volume;
+            });
+            volumeValue.textContent = `${Math.round(volume * 100)}%`;
+        });
+
+        // Play drum sound
+        function playDrum(key) {
+            const drum = document.querySelector(`.drum[data-key="${key}"]`);
+            if (!drum) return;
+
+            drum.classList.add('pressed');
+            setTimeout(() => {
+                drum.classList.remove('pressed');
+            }, 100);
+
+            // Visual feedback for beat bars
+            beatBars.forEach(bar => {
+                bar.style.height = `${Math.random() * 40 + 5}px`;
+                setTimeout(() => {
+                    bar.style.height = '3px';
+                }, 100);
+            });
+
+            // Play corresponding sound
+            switch (key) {
+                case 'q':
+                    sounds.crash.currentTime = 0;
+                    sounds.crash.play();
+                    break;
+                case 'w':
+                    sounds.ride.currentTime = 0;
+                    sounds.ride.play();
+                    break;
+                case 'e':
+                    sounds.hihat.currentTime = 0;
+                    sounds.hihat.play();
+                    break;
+                case 'r':
+                    sounds.splash.currentTime = 0;
+                    sounds.splash.play();
+                    break;
+                case 'a':
+                case 's':
+                    sounds.tom.currentTime = 0;
+                    sounds.tom.play();
+                    break;
+                case 'd':
+                    sounds.floorTom.currentTime = 0;
+                    sounds.floorTom.play();
+                    break;
+                case 'f':
+                    sounds.snare.currentTime = 0;
+                    sounds.snare.play();
+                    break;
+                case ' ':
+                    sounds.kick.currentTime = 0;
+                    sounds.kick.play();
+                    break;
+            }
+
+            // If recording, add to current recording
+            if (isRecording) {
+                const time = Date.now() - recordingStartTime;
+                currentRecording.push({
+                    key,
+                    time
+                });
+            }
+        }
+
+        // Keyboard event listeners
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (['q', 'w', 'e', 'r', 'a', 's', 'd', 'f', ' '].includes(key)) {
+                e.preventDefault();
+                playDrum(key);
+            }
+        });
+
+        // Drum click event listeners
+        drums.forEach(drum => {
+            drum.addEventListener('click', () => {
+                const key = drum.getAttribute('data-key');
+                playDrum(key);
+            });
+
+            // Touch support
+            drum.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const key = drum.getAttribute('data-key');
+                playDrum(key);
+            });
+        });
+
+        // Mobile controls
+        mobileCrash.addEventListener('click', () => playDrum('q'));
+        mobileHihat.addEventListener('click', () => playDrum('e'));
+        mobileSnare.addEventListener('click', () => playDrum('f'));
+        mobileKick.addEventListener('click', () => playDrum(' '));
+
+        // Modal controls
+        beatMakerBtn.addEventListener('click', () => {
+            beatMakerModal.classList.add('active');
+        });
+
+        recordBtn.addEventListener('click', () => {
+            recordModal.classList.add('active');
+        });
+
+        tutorialBtn.addEventListener('click', () => {
+            tutorialModal.classList.add('active');
+        });
+
+        closeModalBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.currentTarget.closest('.modal').classList.remove('active');
+            });
+        });
+
+        // Close modal when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+                activePattern = tabId;
+            });
+        });
+
+        // Beat pattern cells
+        beatCells.forEach(cell => {
+            cell.addEventListener('click', () => {
+                if (activePattern === 'pattern4') { // Only allow editing in custom pattern
+                    cell.classList.toggle('active');
+                }
+            });
+        });
+
+        // Play beat pattern
+        playBeatBtn.addEventListener('click', () => {
+            if (isPlaying) return;
+            isPlaying = true;
+
+            const bpm = parseInt(bpmControl.value);
+            const interval = 60000 / bpm / 2; // 8th notes
+            let step = 0;
+
+            beatInterval = setInterval(() => {
+                // Get all active cells for current step
+                const activeCells = document.querySelectorAll(`#${activePattern} .beat-cell[data-step="${step}"].active`);
+
+                // Play corresponding sounds
+                activeCells.forEach(cell => {
+                    const instrument = cell.getAttribute('data-instrument');
+                    switch (instrument) {
+                        case 'kick':
+                            playDrum(' ');
+                            break;
+                        case 'snare':
+                            playDrum('f');
+                            break;
+                        case 'hihat':
+                            playDrum('e');
+                            break;
+                        case 'tom':
+                            playDrum('a');
+                            break;
+                        case 'crash':
+                            playDrum('q');
+                            break;
+                    }
+                });
+
+                step = (step + 1) % 8;
+            }, interval);
+        });
+
+        // Stop beat pattern
+        stopBeatBtn.addEventListener('click', () => {
+            clearInterval(beatInterval);
+            isPlaying = false;
+        });
+
+        // Recording functionality
+        recordBtnContainer.addEventListener('click', () => {
+            if (isRecording) {
+                // Stop recording
+                isRecording = false;
+                recordBtnContainer.classList.remove('recording');
+                recordingStatus.textContent = 'Recording saved';
+                recordingProgress.classList.add('hidden');
+
+                // Save recording
+                if (currentRecording.length > 0) {
+                    recordings.push(currentRecording);
+                    renderRecordings();
+                }
+            } else {
+                // Start recording
+                isRecording = true;
+                currentRecording = [];
+                recordingStartTime = Date.now();
+                recordBtnContainer.classList.add('recording');
+                recordingStatus.textContent = 'Recording...';
+                recordingProgress.classList.remove('hidden');
+
+                // Reset progress bar animation
+                const progress = recordingProgress.querySelector('.progress');
+                progress.style.width = '0%';
+                progress.style.transition = 'none';
+                setTimeout(() => {
+                    progress.style.transition = 'width 10s linear';
+                    progress.style.width = '100%';
+                }, 10);
+
+                // Auto-stop after 10 seconds
+                setTimeout(() => {
+                    if (isRecording) {
+                        recordBtnContainer.click();
+                    }
+                }, 10000);
+            }
+        });
+
+        // Render recordings list
+        function renderRecordings() {
+            if (recordings.length === 0) {
+                recordingsList.innerHTML = '<div class="text-gray-400 text-center py-3 text-xs md:text-sm">No recordings yet</div>';
+                return;
+            }
+
+            recordingsList.innerHTML = '';
+            recordings.forEach((recording, index) => {
+                const item = document.createElement('div');
+                item.className = 'recording-item';
+                item.innerHTML = `
+                    <span>Recording ${index + 1}</span>
+                    <div class="flex gap-1">
+                        <button class="play-recording px-2 py-1 bg-blue-600 rounded text-white text-xs" data-index="${index}">
+                            Play
+                        </button>
+                        <button class="delete-recording px-2 py-1 bg-red-600 rounded text-white text-xs" data-index="${index}">
+                            Delete
+                        </button>
+                    </div>
+                `;
+                recordingsList.appendChild(item);
+            });
+
+            // Add event listeners to new buttons
+            document.querySelectorAll('.play-recording').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.getAttribute('data-index'));
+                    playRecording(index);
+                });
+            });
+
+            document.querySelectorAll('.delete-recording').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.getAttribute('data-index'));
+                    deleteRecording(index);
+                });
+            });
+        }
+
+        // Play recording
+        function playRecording(index) {
+            const recording = recordings[index];
+            if (!recording) return;
+
+            let lastTime = 0;
+            recording.forEach(note => {
+                setTimeout(() => {
+                    playDrum(note.key);
+                }, note.time - lastTime);
+                lastTime = note.time;
+            });
+        }
+
+        // Delete recording
+        function deleteRecording(index) {
+            recordings.splice(index, 1);
+            renderRecordings();
+        }
+
+        // Initialize
+        renderRecordings();
+    </script>
+</body>
+</html>

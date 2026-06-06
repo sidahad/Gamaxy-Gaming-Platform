@@ -1,0 +1,353 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+/* ===== EDIT GAMER FORM STYLES ===== */
+.edit-gamer-container * {
+    box-sizing: border-box;
+}
+
+/* Isolate edit gamer styles from affecting global elements */
+.edit-gamer-container .container {
+    all: unset;
+    display: block;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Reset any potential conflicts with header navigation */
+.edit-gamer-container nav,
+.edit-gamer-container .navbar,
+.edit-gamer-container .navbar-nav,
+.edit-gamer-container .nav-link {
+    all: unset;
+}
+
+.edit-gamer-container {
+    font-family: 'Rajdhani', sans-serif;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    min-height: calc(100vh - 80px);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    padding-top: 150px;
+}
+
+    .edit-gamer-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%), radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+        animation: edit-gamer-bg-pulse 8s ease-in-out infinite alternate;
+    }
+
+@keyframes edit-gamer-bg-pulse {
+    0% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.edit-gamer-title {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 2.5rem;
+    background: linear-gradient(45deg, #008dff, #D400FF, #008dff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: edit-gamer-title-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes edit-gamer-title-glow {
+    from {
+        filter: drop-shadow(0 0 5px rgba(235, 107, 255, 0.5));
+    }
+
+    to {
+        filter: drop-shadow(0 0 15px rgba(78, 125, 205, 0.8));
+    }
+}
+
+.edit-gamer-form-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+    .edit-gamer-form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.8s;
+    }
+
+    .edit-gamer-form-card:hover::before {
+        left: 100%;
+    }
+
+    .edit-gamer-form-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3), 0 0 30px rgba(120, 119, 198, 0.2);
+    }
+
+.edit-gamer-form-group {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+    .edit-gamer-form-group label {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        color: #D400FF;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .edit-gamer-form-group input,
+    .edit-gamer-form-group select {
+        width: 100%;
+        padding: 1.2rem 1rem 0.8rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+        .edit-gamer-form-group input:focus,
+        .edit-gamer-form-group select:focus,
+        .edit-gamer-form-group input:not(:placeholder-shown),
+        .edit-gamer-form-group select:not([value=""]) {
+            border-color: #D400FF;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.2);
+        }
+
+            .edit-gamer-form-group input:focus + label,
+            .edit-gamer-form-group select:focus + label,
+            .edit-gamer-form-group input:not(:placeholder-shown) + label,
+            .edit-gamer-form-group select:not([value=""]) + label {
+                top: -0.5rem;
+                left: 0.8rem;
+                font-size: 0.75rem;
+                color: #008dff;
+                background: rgba(15, 15, 35, 0.9);
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
+            }
+
+        .edit-gamer-form-group input::placeholder {
+            color: transparent;
+        }
+
+        .edit-gamer-form-group select option {
+            background: #1a1a2e;
+            color: #ffffff;
+            padding: 0.5rem;
+        }
+
+.edit-gamer-gamer-code-field {
+    position: relative;
+}
+
+    .edit-gamer-gamer-code-field input {
+        font-family: 'Orbitron', monospace;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: linear-gradient(45deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1));
+    }
+
+        .edit-gamer-gamer-code-field input:focus {
+            background: linear-gradient(45deg, rgba(255, 107, 107, 0.2), rgba(78, 205, 196, 0.2));
+            box-shadow: 0 0 25px rgba(255, 107, 107, 0.3);
+        }
+
+.edit-gamer-file-upload {
+    position: relative;
+    border: 2px dashed rgba(103, 78, 205, 0.5);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+    .edit-gamer-file-upload:hover {
+        border-color: #D400FF;
+        background: rgba(78, 205, 196, 0.05);
+    }
+
+    .edit-gamer-file-upload input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+.edit-gamer-file-upload-text {
+    color: #D400FF;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.edit-gamer-submit-btn {
+    background: linear-gradient(45deg, #008dff, #D400FF);
+    border: none;
+    color: white;
+    padding: 1.2rem 3rem;
+    border-radius: 50px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+    .edit-gamer-submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .edit-gamer-submit-btn:hover::before {
+        left: 100%;
+    }
+
+    .edit-gamer-submit-btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4);
+    }
+
+    .edit-gamer-submit-btn:active {
+        transform: translateY(-1px) scale(1.01);
+    }
+
+.edit-gamer-floating-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.edit-gamer-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #D400FF;
+    border-radius: 50%;
+    animation: edit-gamer-float 6s infinite linear;
+    opacity: 0.6;
+}
+
+    .edit-gamer-particle:nth-child(2) {
+        left: 20%;
+        animation-delay: -1s;
+        background: #D400FF;
+    }
+
+    .edit-gamer-particle:nth-child(3) {
+        left: 40%;
+        animation-delay: -2s;
+        background: #008dff;
+    }
+
+    .edit-gamer-particle:nth-child(4) {
+        left: 60%;
+        animation-delay: -3s;
+        background: #D400FF;
+    }
+
+    .edit-gamer-particle:nth-child(5) {
+        left: 80%;
+        animation-delay: -4s;
+        background: #008dff;
+    }
+
+@keyframes edit-gamer-float {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.6;
+    }
+
+    90% {
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .edit-gamer-title {
+        font-size: 2rem;
+    }
+
+    .edit-gamer-form-card {
+        padding: 2rem;
+    }
+
+    .edit-gamer-container {
+        padding-top: 100px;
+    }
+}
+/* ===== NAVBAR FIXES ===== */
+/* Ensure navbar is visible and on top of effects */
+.site-header {
+    z-index: 1000 !important; /* Override other z-index values */
+}
+
+.header-nav ul.navbar-nav {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Fix for dropdown menus */
+.sub-menu, .mega-menu {
+    z-index: 1001;
+}

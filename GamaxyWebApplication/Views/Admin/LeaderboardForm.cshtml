@@ -1,0 +1,28 @@
+﻿@model LeaderboardPlayer
+@{
+    ViewData["Title"] = "Leaderboard Page";
+    Layout = "Admin_layout";
+}
+<div class="container py-4">
+    <h3 class="text-center">@(Model.Id == 0 ? "Add" : "Edit") Player</h3>
+    <form asp-action="LeaderboardForm" method="post">
+        <div class="mb-3">
+            <label>Name</label>
+            <input asp-for="Name" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label>Level</label>
+            <input asp-for="Level" class="form-control" type="number" />
+        </div>
+        <div class="mb-3">
+            <label>XP</label>
+            <input asp-for="XP" class="form-control" type="number" />
+        </div>
+        <div class="mb-3">
+            <label>Country Code (e.g., pk, in, us)</label>
+            <input asp-for="CountryCode" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="LeaderboardView" class="btn btn-secondary">Back</a>
+    </form>
+</div>

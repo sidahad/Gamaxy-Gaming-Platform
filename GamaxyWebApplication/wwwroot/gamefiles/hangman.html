@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEXICON MASTER - Professional Animated Hangman</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+    /* Dark Theme (Default) */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --accent-primary: #8b5cf6;
+    --accent-secondary: #a78bfa;
+    --accent-tertiary: #c4b5fd;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.3);
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.5rem;
+    --border-radius-lg: 1rem;
+    --border-radius-xl: 1.5rem;
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
+.theme-light {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #e2e8f0;
+    --bg-tertiary: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --accent-primary: #8b5cf6;
+    --accent-secondary: #7c3aed;
+    --accent-tertiary: #6d28d9;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.theme-neon {
+    --bg-primary: #050816;
+    --bg-secondary: #0a0f29;
+    --bg-tertiary: #101935;
+    --text-primary: #00ffff;
+    --text-secondary: #00ccff;
+    --accent-primary: #ff00ff;
+    --accent-secondary: #cc00ff;
+    --accent-tertiary: #aa00ff;
+    --success: #00ff00;
+    --warning: #ffff00;
+    --danger: #ff0066;
+    --info: #00ccff;
+    --shadow-sm: 0 0 5px rgba(0, 255, 255, 0.3);
+    --shadow-md: 0 0 10px rgba(0, 255, 255, 0.3);
+    --shadow-lg: 0 0 20px rgba(0, 255, 255, 0.3);
+    --shadow-xl: 0 0 30px rgba(0, 255, 255, 0.3);
+}
+
+.theme-retro {
+    --bg-primary: #2b2d42;
+    --bg-secondary: #3a3d56;
+    --bg-tertiary: #4a4e69;
+    --text-primary: #edf2f4;
+    --text-secondary: #d1d5db;
+    --accent-primary: #ef233c;
+    --accent-secondary: #d90429;
+    --accent-tertiary: #f07167;
+    --success: #06d6a0;
+    --warning: #ffd166;
+    --danger: #ef476f;
+    --info: #118ab2;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition: background-color var(--transition-normal), color var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Background Animation */
+.bg-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+.bg-animation span {
+    position: absolute;
+    display: block;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    animation: float 15s linear infinite;
+    opacity: 0.3;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.3;
+        border-radius: 50%;
+    }
+    50% {
+        transform: translateY(-100vh) rotate(180deg);
+        opacity: 0.1;
+        border-radius: 30%;
+    }
+    100% {
+        transform: translateY(-200vh) rotate(360deg);
+        opacity: 0;
+        border-radius: 50%;
+    }
+}
+
+/* Game Container - Main Layout */
+.game-wrapper {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    overflow: hidden;
+}
+
+/* Header Styles */
+.game-header {
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.game-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+}
+
+.game-title::after {
+    content: '';
+    position: absolute;
+    bottom: -0.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+    border-radius: var(--border-radius-md);
+}
+
+.game-subtitle {
+    font-size: clamp(0.7rem, 2vw, 0.9rem);
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+/* Controls Panel */
+.controls-panel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    background-color: var(--bg-secondary);
+    padding: 0.75rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.controls-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    pointer-events: none;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.control-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.select-wrapper::after {
+    content: '▼';
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-primary);
+    pointer-events: none;
+    font-size: 0.6rem;
+}
+
+select, button {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 2px solid var(--accent-primary);
+    border-radius: var(--border-radius-md);
+    padding: 0.4rem 1.5rem 0.4rem 0.75rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    appearance: none;
+    outline: none;
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+}
+
+select:hover, button:hover {
+    border-color: var(--accent-secondary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+select:focus, button:focus {
+    border-color: var(--accent-tertiary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.75rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border: none;
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+button:hover::before {
+    left: 100%;
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.button-icon {
+    font-size: clamp(0.8rem, 2vw, 1rem);
+}
+
+/* Main Game Container */
+.game-container {
+    display: flex;
+    flex: 1;
+    gap: 0.5rem;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Hangman Section */
+.hangman-section {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 300px;
+    position: relative;
+}
+
+.canvas-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3/4;
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.canvas-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.2));
+    pointer-events: none;
+}
+
+#hangman {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.streak-badge {
+    position: absolute;
+    top: -0.5rem;
+    right: -0.5rem;
+    background: linear-gradient(135deg, var(--success), var(--info));
+    color: white;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    transform: scale(0);
+    transition: all var(--transition-normal);
+    z-index: 10;
+}
+
+.streak-badge.active {
+    opacity: 1;
+    transform: scale(1);
+    animation: pulse 1s infinite;
+}
+
+.difficulty-indicator {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    display: flex;
+    gap: 0.2rem;
+    z-index: 5;
+}
+
+.difficulty-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: var(--bg-tertiary);
+    transition: background-color var(--transition-fast);
+}
+
+.difficulty-dot.active.easy {
+    background-color: var(--success);
+}
+
+.difficulty-dot.active.medium {
+    background-color: var(--warning);
+}
+
+.difficulty-dot.active.hard {
+    background-color: var(--danger);
+}
+
+/* Game Info Section */
+.game-info-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+/* Stats Panel */
+.stats-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.stat-card {
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 0.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+}
+
+.stat-label {
+    font-size: clamp(0.6rem, 1.2vw, 0.7rem);
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-value {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    font-weight: 700;
+    color: var(--accent-primary);
+    transition: all var(--transition-fast);
+}
+
+.stat-value.pulse {
+    animation: pulse 0.5s ease;
+}
+
+.timer-container {
+    width: 100%;
+    height: 0.3rem;
+    background-color: var(--bg-tertiary);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    margin-top: 0.25rem;
+}
+
+.timer-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    width: 100%;
+    transition: width 1s linear;
+}
+
+.timer-bar.warning {
+    background: linear-gradient(90deg, var(--warning), var(--danger));
+}
+
+/* Word Display */
+.word-display {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.5rem 0;
+    flex-shrink: 0;
+}
+
+.letter-box {
+    width: clamp(2rem, 5vw, 2.5rem);
+    height: clamp(2.5rem, 6vw, 3rem);
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.letter-box::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--transition-normal);
+}
+
+.letter-box.revealed {
+    animation: revealLetter 0.5s ease forwards;
+}
+
+.letter-box.revealed::before {
+    transform: scaleX(1);
+}
+
+.letter-box.wrong {
+    border-color: var(--danger);
+    color: var(--danger);
+    animation: wrongShake 0.5s ease;
+}
+
+.letter-box.wrong::before {
+    background: linear-gradient(90deg, var(--danger), var(--warning));
+}
+
+.letter-box.space {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    width: 1rem;
+}
+
+@keyframes revealLetter {
+    0% {
+        transform: rotateY(90deg);
+        opacity: 0;
+    }
+    100% {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes wrongShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    20%, 60% {
+        transform: translateX(-3px);
+    }
+    40%, 80% {
+        transform: translateX(3px);
+    }
+}
+
+/* Info Cards */
+.info-card {
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 0.75rem;
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+}
+
+.info-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.info-card-title {
+    font-weight: 600;
+    color: var(--accent-primary);
+    font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+}
+
+.guessed-letters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.guessed-letter {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+}
+
+.guessed-letter.correct {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.guessed-letter.wrong {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+}
+
+/* Message Display */
+.message-display {
+    min-height: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    font-weight: 600;
+    padding: 0.5rem;
+    border-radius: var(--border-radius-md);
+    background-color: var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+    flex-shrink: 0;
+}
+
+.message-display.success {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    border-left: 4px solid var(--success);
+}
+
+.message-display.error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border-left: 4px solid var(--danger);
+}
+
+.message-display.info {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+    border-left: 4px solid var(--info);
+}
+
+/* Virtual Keyboard */
+.keyboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(1.8rem, 1fr));
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    flex-shrink: 0;
+}
+
+.key {
+    height: clamp(2rem, 4vw, 2.5rem);
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: clamp(0.8rem, 1.8vw, 1rem);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.key::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.key:hover:not(:disabled)::before {
+    opacity: 1;
+}
+
+.key:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.key:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.key.used {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.key.correct {
+    background-color: var(--success);
+    color: white;
+}
+
+.key.wrong {
+    background-color: var(--danger);
+    color: white;
+}
+
+/* Hint Section */
+.hint-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.hint-button {
+    background: linear-gradient(135deg, var(--info), var(--accent-primary));
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+}
+
+.hint-button:disabled {
+    background: var(--bg-tertiary);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.hint-text {
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 0.75rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    min-height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+    max-height: 0;
+    overflow: hidden;
+    padding: 0;
+    opacity: 0;
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+}
+
+.hint-text.active {
+    max-height: 8rem;
+    padding: 0.75rem;
+    opacity: 1;
+}
+
+/* Definition Section */
+.definition-section {
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 0;
+    box-shadow: var(--shadow-sm);
+    max-height: 0;
+    overflow: hidden;
+    transition: all var(--transition-slow);
+    opacity: 0;
+    flex-shrink: 0;
+}
+
+.definition-section.active {
+    max-height: 15rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    opacity: 1;
+}
+
+.definition-title {
+    font-weight: 600;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+    font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.definition-text {
+    color: var(--text-secondary);
+    line-height: 1.4;
+    font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+    backdrop-filter: blur(5px);
+    padding: 1rem;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal {
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-30px);
+    transition: transform var(--transition-normal);
+    position: relative;
+}
+
+.modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+}
+
+.modal-overlay.active .modal {
+    transform: translateY(0);
+}
+
+.modal-header {
+    margin-bottom: 1rem;
+}
+
+.modal-title {
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.modal-body {
+    margin-bottom: 1.5rem;
+}
+
+.modal-message {
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.modal-button {
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-width: 100px;
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+}
+
+.modal-button.primary {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    border: none;
+}
+
+.modal-button.secondary {
+    background-color: transparent;
+    border: 2px solid var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.modal-button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.modal-button:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Stats Modal Content */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.stats-item {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.stats-item-label {
+    font-size: clamp(0.6rem, 1.2vw, 0.7rem);
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.stats-item-value {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    font-weight: 700;
+    color: var(--accent-primary);
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 0.5rem;
+    background-color: var(--bg-tertiary);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    transition: width var(--transition-normal);
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-3px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(3px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.pulse {
+    animation: pulse 0.5s ease;
+}
+
+.shake {
+    animation: shake 0.5s ease;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease forwards;
+}
+
+/* Confetti Animation */
+.confetti {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background-color: #f00;
+    opacity: 0;
+    z-index: 999;
+    animation: confetti-fall 3s ease-in-out forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 768px) {
+    .game-container {
+        flex-direction: column;
+    }
+    
+    .hangman-section {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .canvas-container {
+        max-height: 250px;
+    }
+    
+    .controls-panel {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .control-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .keyboard {
+        grid-template-columns: repeat(13, 1fr);
+        gap: 0.2rem;
+    }
+    
+    .stats-panel {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .game-wrapper {
+        padding: 0.25rem;
+        gap: 0.25rem;
+    }
+    
+    .controls-panel {
+        padding: 0.5rem;
+    }
+    
+    .keyboard {
+        grid-template-columns: repeat(10, 1fr);
+    }
+    
+    .word-display {
+        gap: 0.2rem;
+    }
+    
+    .stats-panel {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.3rem;
+    }
+    
+    .stat-card {
+        padding: 0.4rem;
+    }
+}
+
+@media (max-height: 600px) {
+    .game-header {
+        margin-bottom: 0.25rem;
+    }
+    
+    .game-subtitle {
+        margin-bottom: 0.25rem;
+    }
+    
+    .canvas-container {
+        max-height: 200px;
+    }
+    
+    .keyboard {
+        margin-top: 0.25rem;
+    }
+    
+    .info-card {
+        padding: 0.5rem;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    .game-container {
+        flex-direction: row;
+    }
+    
+    .hangman-section {
+        max-width: 200px;
+    }
+    
+    .canvas-container {
+        max-height: 180px;
+    }
+    
+    .game-header {
+        display: none;
+    }
+}
+
+/* Icons */
+.icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    stroke-width: 0;
+    stroke: currentColor;
+    fill: currentColor;
+    vertical-align: middle;
+}
+
+/* Theme Transition Effect */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-primary);
+    z-index: -2;
+    transition: background-color var(--transition-normal);
+}
+</style>
+</head>
+
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <div class="game-wrapper">
+        <!-- Game Header -->
+        <header class="game-header">
+            <h1 class="game-title">LEXICON MASTER</h1>
+            <p class="game-subtitle">The Ultimate Animated Hangman Experience</p>
+        </header>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <span class="control-label">Theme:</span>
+                <div class="select-wrapper">
+                    <select id="themeSelect">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="neon">Neon</option>
+                        <option value="retro">Retro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Category:</span>
+                <div class="select-wrapper">
+                    <select id="categorySelect">
+                        <option value="Animals">Animals</option>
+                        <option value="Countries">Countries</option>
+                        <option value="Tech">Technology</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Science">Science</option>
+                        <option value="Movies">Movies</option>
+                        <option value="Food">Food & Cuisine</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Difficulty:</span>
+                <div class="select-wrapper">
+                    <select id="difficultySelect">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="restartBtn">
+                <svg class="icon button-icon" viewBox="0 0 24 24">
+                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                </svg>
+                Restart
+            </button>
+        </div>
+
+        <!-- Main Game Container -->
+        <div class="game-container">
+            <!-- Hangman Section -->
+            <section class="hangman-section">
+                <div class="canvas-container">
+                    <div class="difficulty-indicator" id="difficultyIndicator">
+                        <div class="difficulty-dot"></div>
+                        <div class="difficulty-dot"></div>
+                        <div class="difficulty-dot"></div>
+                    </div>
+                    <canvas id="hangman" width="400" height="500"></canvas>
+                    <div class="streak-badge" id="streakBadge">0</div>
+                </div>
+            </section>
+
+            <!-- Game Info Section -->
+            <section class="game-info-section">
+                <!-- Stats Panel -->
+                <div class="stats-panel">
+                    <div class="stat-card">
+                        <div class="stat-label">Score</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">High Score</div>
+                        <div class="stat-value" id="highScore">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Streak</div>
+                        <div class="stat-value" id="streak">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Time</div>
+                        <div class="stat-value" id="timer">60</div>
+                        <div class="timer-container">
+                            <div class="timer-bar" id="timerBar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Word Display -->
+                <div class="word-display" id="wordDisplay"></div>
+
+                <!-- Guessed Letters -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div class="info-card-title">
+                            <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                            </svg>
+                            Guessed Letters
+                        </div>
+                    </div>
+                    <div class="guessed-letters" id="guessedLetters"></div>
+                </div>
+
+                <!-- Message Display -->
+                <div class="message-display" id="message"></div>
+
+                <!-- Virtual Keyboard -->
+                <div class="keyboard" id="keyboard"></div>
+
+                <!-- Hint Section -->
+                <div class="hint-section">
+                    <button class="hint-button" id="hintBtn">
+                        <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-4h2v2h-2zm0-10h2v8h-2z" />
+                        </svg>
+                        Get Hint (-50 points)
+                    </button>
+                    <div class="hint-text" id="hintText"></div>
+                </div>
+
+                <!-- Definition Section -->
+                <div class="definition-section" id="definitionSection">
+                    <div class="definition-title">
+                        <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                        </svg>
+                        Word Definition
+                    </div>
+                    <div class="definition-text" id="definitionText"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Game Over</h2>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message" id="modalMessage">Your score: 0</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button primary" id="playAgainBtn">Play Again</button>
+                <button class="modal-button secondary" id="viewStatsBtn">View Stats</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById("hangman");
+        const ctx = canvas.getContext("2d");
+        const wordDisplay = document.getElementById("wordDisplay");
+        const guessedLettersEl = document.getElementById("guessedLetters");
+        const messageEl = document.getElementById("message");
+        const keyboardEl = document.getElementById("keyboard");
+        const scoreEl = document.getElementById("score");
+        const highScoreEl = document.getElementById("highScore");
+        const timerEl = document.getElementById("timer");
+        const timerBar = document.getElementById("timerBar");
+        const themeSelect = document.getElementById("themeSelect");
+        const categorySelect = document.getElementById("categorySelect");
+        const difficultySelect = document.getElementById("difficultySelect");
+        const restartBtn = document.getElementById("restartBtn");
+        const hintBtn = document.getElementById("hintBtn");
+        const hintText = document.getElementById("hintText");
+        const definitionSection = document.getElementById("definitionSection");
+        const definitionText = document.getElementById("definitionText");
+        const gameOverModal = document.getElementById("gameOverModal");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalMessage = document.getElementById("modalMessage");
+        const playAgainBtn = document.getElementById("playAgainBtn");
+        const viewStatsBtn = document.getElementById("viewStatsBtn");
+        const streakEl = document.getElementById("streak");
+        const streakBadge = document.getElementById("streakBadge");
+        const difficultyIndicator = document.getElementById("difficultyIndicator");
+        const bgAnimation = document.getElementById("bgAnimation");
+
+        // Extended Word Bank with Hints and Definitions
+        const wordBank = {
+            Animals: [
+                { word: "ELEPHANT", hint: "Largest land mammal with a trunk", definition: "A very large plant-eating mammal with a prehensile trunk, long curved ivory tusks, and large ears, native to Africa and southern Asia." },
+                { word: "TIGER", hint: "Large cat with orange fur and black stripes", definition: "A large carnivorous feline mammal with a tawny coat striped with black, native to Asia." },
+                { word: "GIRAFFE", hint: "Tallest living animal with a long neck", definition: "A large African mammal with a very long neck and forelegs, having a coat patterned with brown patches separated by lighter lines." },
+                { word: "DOLPHIN", hint: "Intelligent marine mammal known for its playfulness", definition: "A small toothed whale that typically has a beaklike snout and a curved dorsal fin. Dolphins are known for their intelligence and playful behavior." },
+                { word: "KANGAROO", hint: "Australian marsupial that hops", definition: "A large plant-eating marsupial with a long powerful tail and strongly developed hind limbs that enable it to travel by leaping, native to Australia." },
+                { word: "PENGUIN", hint: "Flightless bird that swims and lives in cold regions", definition: "A flightless seabird of the southern hemisphere, with black upper parts and white underparts and wings developed into flippers for swimming underwater." },
+                { word: "OCTOPUS", hint: "Sea creature with eight arms", definition: "A cephalopod mollusk with eight sucker-bearing arms, a soft body, strong beaklike jaws, and no internal shell." },
+                { word: "CHEETAH", hint: "Fastest land animal", definition: "A large slender spotted cat found in Africa and parts of Asia, the fastest land animal in the world." },
+                { word: "RHINOCEROS", hint: "Large mammal with one or two horns on its snout", definition: "A large, heavily built plant-eating mammal with one or two horns on the nose and thick folded skin, native to Africa and southern Asia." }
+            ],
+            Countries: [
+                { word: "PAKISTAN", hint: "South Asian country with Islamabad as capital", definition: "A country in South Asia, bordered by India, Afghanistan, Iran, and China, with Islamabad as its capital city." },
+                { word: "BRAZIL", hint: "Largest country in South America", definition: "The largest country in South America and the fifth largest in the world, known for the Amazon rainforest, carnival celebrations, and football." },
+                { word: "GERMANY", hint: "European country known for engineering and beer", definition: "A country in central Europe, known for its rich history, engineering achievements, beer culture, and as a leading economy in the European Union." },
+                { word: "CANADA", hint: "Second largest country by land area", definition: "A country in North America, the second largest country in the world by total area, known for its vast wilderness, multiculturalism, and ice hockey." },
+                { word: "NEPAL", hint: "Himalayan country with Mount Everest", definition: "A landlocked country in South Asia, located in the Himalayas, home to Mount Everest (the world's highest mountain) and known for its ancient culture and religious diversity." },
+                { word: "AUSTRALIA", hint: "Country that is also a continent", definition: "A country and continent surrounded by the Indian and Pacific oceans, known for its unique wildlife, natural wonders, and vibrant cities." },
+                { word: "MOROCCO", hint: "North African country with Casablanca", definition: "A country in North Africa with coastlines on the Atlantic Ocean and Mediterranean Sea, known for its diverse culture, ancient cities, and distinctive cuisine." },
+                { word: "SWITZERLAND", hint: "European country known for mountains and chocolate", definition: "A mountainous Central European country known for its neutrality, banking system, chocolate, cheese, and watches." },
+                { word: "SINGAPORE", hint: "Small island city-state in Southeast Asia", definition: "A sovereign island city-state in Southeast Asia, known for its modern architecture, multicultural population, and being a global financial center." }
+            ],
+            Tech: [
+                { word: "PYTHON", hint: "Programming language named after a snake", definition: "A high-level, interpreted programming language known for its readability and versatility, named after the British comedy group Monty Python." },
+                { word: "ROBOT", hint: "Mechanical device that can be programmed", definition: "A machine capable of carrying out a complex series of actions automatically, especially one programmable by a computer." },
+                { word: "INTERNET", hint: "Global network connecting computers", definition: "A global computer network providing a variety of information and communication facilities, consisting of interconnected networks using standardized communication protocols." },
+                { word: "COMPUTER", hint: "Electronic device that processes data", definition: "An electronic device for storing and processing data, typically in binary form, according to instructions given to it in a variable program." },
+                { word: "JAVASCRIPT", hint: "Programming language for web development", definition: "A high-level, interpreted programming language that conforms to the ECMAScript specification, commonly used to create interactive effects within web browsers." },
+                { word: "BLOCKCHAIN", hint: "Technology behind cryptocurrencies", definition: "A system in which a record of transactions made in bitcoin or another cryptocurrency is maintained across several computers that are linked in a peer-to-peer network." },
+                { word: "ALGORITHM", hint: "Step-by-step procedure for calculations", definition: "A process or set of rules to be followed in calculations or other problem-solving operations, especially by a computer." },
+                { word: "QUANTUM", hint: "Computing based on quantum physics principles", definition: "A type of computing that uses quantum-mechanical phenomena, such as superposition and entanglement, to perform operations on data." },
+                { word: "ARTIFICIAL", hint: "Man-made intelligence in computers", definition: "The simulation of human intelligence processes by machines, especially computer systems, including learning, reasoning, and self-correction." }
+            ],
+            Sports: [
+                { word: "SOCCER", hint: "Sport played with a round ball and feet", definition: "A team sport played between two teams of eleven players with a spherical ball. It is played by 250 million players in over 200 countries, making it the world's most popular sport." },
+                { word: "CRICKET", hint: "Bat-and-ball game popular in Commonwealth countries", definition: "A bat-and-ball game played between two teams of eleven players on a field with a 22-yard pitch in the center, particularly popular in Commonwealth countries." },
+                { word: "TENNIS", hint: "Racket sport played on a court", definition: "A racket sport that can be played individually against a single opponent (singles) or between two teams of two players each (doubles), using a felt-covered rubber ball and rackets." },
+                { word: "HOCKEY", hint: "Sport played with sticks and a puck or ball", definition: "A family of sports in which two teams play against each other by trying to maneuver a ball or a puck into the opponent's goal using a hockey stick." },
+                { word: "BASKETBALL", hint: "Sport where players shoot a ball through a hoop", definition: "A team sport in which two teams, most commonly of five players each, opposing one another on a rectangular court, compete with the primary objective of shooting a basketball through the defender's hoop." },
+                { word: "SWIMMING", hint: "Sport performed in water", definition: "The sport or activity of propelling oneself through water using the limbs, often as a competitive sport or for exercise." },
+                { word: "VOLLEYBALL", hint: "Team sport where you hit a ball over a net", definition: "A team sport in which two teams of six players are separated by a net, with the objective of scoring points by sending a ball over the net to ground it on the opponent's court." },
+                { word: "GYMNASTICS", hint: "Sport involving physical exercises requiring balance, strength, and flexibility", definition: "A sport involving the performance of exercises requiring physical strength, flexibility, agility, coordination, balance, and grace." },
+                { word: "BADMINTON", hint: "Racket sport played with a shuttlecock", definition: "A racket sport played using rackets to hit a shuttlecock across a net, either as singles or doubles." }
+            ],
+            Science: [
+                { word: "GRAVITY", hint: "Force that attracts objects toward each other", definition: "The force that attracts a body toward the center of the earth, or toward any other physical body having mass." },
+                { word: "MOLECULE", hint: "Group of atoms bonded together", definition: "A group of atoms bonded together, representing the smallest fundamental unit of a chemical compound that can take part in a chemical reaction." },
+                { word: "QUANTUM", hint: "Smallest discrete unit of a phenomenon", definition: "The minimum amount of any physical entity involved in an interaction, especially in quantum mechanics where it represents the fundamental unit of energy and matter." },
+                { word: "EVOLUTION", hint: "Process of biological change over time", definition: "The process by which different kinds of living organisms are thought to have developed and diversified from earlier forms during the history of the earth." },
+                { word: "PHOTOSYNTHESIS", hint: "Process plants use to make food from sunlight", definition: "The process by which green plants and some other organisms use sunlight to synthesize foods with carbon dioxide and water, generating oxygen as a byproduct." },
+                { word: "NEURON", hint: "Cell that transmits nerve impulses", definition: "A specialized cell transmitting nerve impulses; a nerve cell, consisting of a cell body, an axon, and dendrites." },
+                { word: "ECOSYSTEM", hint: "Community of living organisms and their environment", definition: "A biological community of interacting organisms and their physical environment, functioning together as a unit." },
+                { word: "RELATIVITY", hint: "Einstein's theory about space and time", definition: "The dependence of various physical phenomena on relative motion of the observer and the observed objects, especially regarding the nature and behavior of light, space, time, and gravity." },
+                { word: "CHROMOSOME", hint: "Structure containing genetic information", definition: "A thread-like structure of nucleic acids and protein found in the nucleus of most living cells, carrying genetic information in the form of genes." }
+            ],
+            Movies: [
+                { word: "AVATAR", hint: "Highest-grossing film about blue aliens", definition: "A 2009 science fiction film directed by James Cameron, set in the mid-22nd century when humans are colonizing a habitable moon called Pandora, inhabited by the Na'vi, a humanoid species." },
+                { word: "INCEPTION", hint: "Dream within a dream concept film", definition: "A 2010 science fiction action film written and directed by Christopher Nolan, involving a thief who steals corporate secrets through the use of dream-sharing technology." },
+                { word: "TITANIC", hint: "Film about a famous shipwreck", definition: "A 1997 American epic romance and disaster film directed by James Cameron, based on accounts of the sinking of the RMS Titanic in 1912." },
+                { word: "MATRIX", hint: "Film about a simulated reality", definition: "A 1999 science fiction action film depicting a dystopian future in which humanity is unknowingly trapped inside a simulated reality called the Matrix." },
+                { word: "GLADIATOR", hint: "Roman warrior film with Russell Crowe", definition: "A 2000 epic historical drama film directed by Ridley Scott, featuring Russell Crowe as a former Roman general who is forced to become a gladiator." },
+                { word: "FROZEN", hint: "Animated film about a snow queen", definition: "A 2013 American 3D computer-animated musical fantasy film produced by Walt Disney Animation Studios, inspired by Hans Christian Andersen's fairy tale 'The Snow Queen'." },
+                { word: "INTERSTELLAR", hint: "Space exploration film by Christopher Nolan", definition: "A 2014 epic science fiction film directed by Christopher Nolan, set in a dystopian future where humanity is struggling to survive, following a group of astronauts who travel through a wormhole in search of a new home for humanity." },
+                { word: "PARASITE", hint: "Oscar-winning Korean film about social inequality", definition: "A 2019 South Korean black comedy thriller film directed by Bong Joon-ho, which follows a poor family who scheme to become employed by a wealthy family by infiltrating their household and posing as unrelated, highly qualified individuals." },
+                { word: "JOKER", hint: "Origin story of Batman's arch-nemesis", definition: "A 2019 psychological thriller film directed by Todd Phillips, based on DC Comics characters, that follows the life of Arthur Fleck, a failed clown and stand-up comedian whose descent into insanity and nihilism inspires a violent counter-cultural revolution." }
+            ],
+            Food: [
+                { word: "SUSHI", hint: "Japanese dish with vinegared rice", definition: "A Japanese dish consisting of small balls or rolls of vinegar-flavored cold cooked rice served with a garnish of raw fish, vegetables, or egg." },
+                { word: "PIZZA", hint: "Italian dish with a round, flat base", definition: "A dish of Italian origin consisting of a flattened disk of bread dough topped with various ingredients such as tomato sauce, cheese, and often meat or vegetables, then baked." },
+                { word: "CHOCOLATE", hint: "Sweet food made from cacao beans", definition: "A food preparation in the form of a paste or solid block made from roasted and ground cacao seeds, typically sweetened and eaten as confectionery." },
+                { word: "PASTA", hint: "Italian food made from dough", definition: "A type of food typically made from an unleavened dough of wheat flour mixed with water or eggs, formed into sheets or other shapes, then cooked by boiling or baking." },
+                { word: "CURRY", hint: "Spiced dish from Indian subcontinent", definition: "A dish of meat, vegetables, etc., cooked in an Indian-style sauce of strong spices and typically served with rice." },
+                { word: "HAMBURGER", hint: "Sandwich with a patty of ground beef", definition: "A sandwich consisting of one or more cooked patties of ground meat, usually beef, placed inside a sliced bread roll or bun, often served with various condiments and toppings." },
+                { word: "CROISSANT", hint: "French crescent-shaped pastry", definition: "A French crescent-shaped roll made of sweet flaky pastry, often eaten for breakfast." },
+                { word: "GUACAMOLE", hint: "Avocado-based dip from Mexico", definition: "A dip made from mashed avocados, typically with added lime juice, onion, tomato, garlic, and seasonings, originating from Mexico." },
+                { word: "TIRAMISU", hint: "Italian coffee-flavored dessert", definition: "An Italian dessert consisting of layers of sponge cake soaked in coffee and brandy or liqueur with powdered chocolate and mascarpone cheese." }
+            ]
+        };
+
+        // Game variables
+        let word = "";
+        let wordObj = null;
+        let guessed = [];
+        let wrongGuesses = 0;
+        let score = 0;
+        let highScore = localStorage.getItem("hangmanHighScore") || 0;
+        let timer = 60;
+        let timerInterval;
+        let streak = 0;
+        let maxStreak = localStorage.getItem("hangmanMaxStreak") || 0;
+        let hintsUsed = 0;
+        let difficulty = "easy";
+        let maxWrong = 6;
+        let gameActive = false;
+        let totalGames = parseInt(localStorage.getItem("hangmanTotalGames")) || 0;
+        let gamesWon = parseInt(localStorage.getItem("hangmanGamesWon")) || 0;
+        let totalScore = parseInt(localStorage.getItem("hangmanTotalScore")) || 0;
+        let letterPoints = 10;
+        let animationFrameId;
+        let hangmanAnimationProgress = 0;
+
+        // Initialize the game
+        function init() {
+            // Create background animation
+            createBackgroundAnimation();
+
+            // Update high score display
+            highScoreEl.textContent = highScore;
+            streakEl.textContent = streak;
+
+            // Create keyboard
+            createKeyboard();
+
+            // Set theme from localStorage or default
+            const savedTheme = localStorage.getItem("hangmanTheme") || "dark";
+            themeSelect.value = savedTheme;
+            applyTheme(savedTheme);
+
+            // Set category from localStorage or default
+            const savedCategory = localStorage.getItem("hangmanCategory") || "Animals";
+            categorySelect.value = savedCategory;
+
+            // Set difficulty from localStorage or default
+            const savedDifficulty = localStorage.getItem("hangmanDifficulty") || "easy";
+            difficultySelect.value = savedDifficulty;
+            setDifficulty(savedDifficulty);
+
+            // Start a new game
+            restartGame();
+        }
+
+        // Create background animation
+        function createBackgroundAnimation() {
+            bgAnimation.innerHTML = '';
+            const count = 20;
+
+            for (let i = 0; i < count; i++) {
+                const span = document.createElement('span');
+                span.style.width = `${Math.random() * 30 + 10}px`;
+                span.style.height = span.style.width;
+                span.style.left = `${Math.random() * 100}%`;
+                span.style.top = `${Math.random() * 100}%`;
+                span.style.animationDelay = `${Math.random() * 15}s`;
+                span.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                bgAnimation.appendChild(span);
+            }
+        }
+
+        // Create keyboard
+        function createKeyboard() {
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            keyboardEl.innerHTML = "";
+
+            for (let letter of letters) {
+                const key = document.createElement("button");
+                key.classList.add("key");
+                key.textContent = letter;
+                key.addEventListener("click", () => handleGuess(letter));
+                keyboardEl.appendChild(key);
+            }
+        }
+
+        // Apply theme
+        function applyTheme(theme) {
+            document.body.className = theme === "dark" ? "" : `theme-${theme}`;
+            localStorage.setItem("hangmanTheme", theme);
+
+            // Redraw hangman with new theme colors
+            if (gameActive) {
+                drawHangman(wrongGuesses);
+            }
+        }
+
+        // Set difficulty
+        function setDifficulty(level) {
+            difficulty = level;
+            localStorage.setItem("hangmanDifficulty", level);
+
+            // Update difficulty indicator
+            const dots = difficultyIndicator.querySelectorAll(".difficulty-dot");
+            dots.forEach(dot => dot.classList.remove("active", "easy", "medium", "hard"));
+
+            switch(level) {
+                case "easy":
+                    dots[0].classList.add("active", "easy");
+                    letterPoints = 10;
+                    timer = 60;
+                    break;
+                case "medium":
+                    dots[0].classList.add("active", "medium");
+                    dots[1].classList.add("active", "medium");
+                    letterPoints = 20;
+                    timer = 45;
+                    break;
+                case "hard":
+                    dots.forEach(dot => dot.classList.add("active", "hard"));
+                    letterPoints = 30;
+                    timer = 30;
+                    break;
+            }
+
+            timerEl.textContent = timer;
+        }
+
+        // Pick a random word based on category and difficulty
+        function pickWord() {
+            const category = categorySelect.value;
+            const words = wordBank[category];
+
+            // Filter words based on difficulty
+            let filteredWords = words;
+            if (difficulty === "easy") {
+                filteredWords = words.filter(w => w.word.length <= 6);
+            } else if (difficulty === "medium") {
+                filteredWords = words.filter(w => w.word.length > 4 && w.word.length <= 8);
+            } else {
+                filteredWords = words.filter(w => w.word.length > 6);
+            }
+
+            // If no words match the criteria, use all words
+            if (filteredWords.length === 0) {
+                filteredWords = words;
+            }
+
+            const randomIndex = Math.floor(Math.random() * filteredWords.length);
+            return filteredWords[randomIndex];
+        }
+
+        // Display the word with blanks for unguessed letters
+        function displayWord() {
+            wordDisplay.innerHTML = "";
+            let correctCount = 0;
+
+            for (let i = 0; i < wordObj.word.length; i++) {
+                const letter = wordObj.word[i];
+                const letterBox = document.createElement("div");
+                letterBox.classList.add("letter-box");
+
+                if (letter === " ") {
+                    letterBox.classList.add("space");
+                    correctCount++;
+                } else if (guessed.includes(letter)) {
+                    letterBox.textContent = letter;
+                    letterBox.classList.add("revealed");
+                    correctCount++;
+                }
+
+                wordDisplay.appendChild(letterBox);
+            }
+
+            // Check if all letters are guessed
+            if (correctCount === wordObj.word.replace(/ /g, "").length) {
+                gameWon();
+            }
+        }
+
+        // Handle letter guess
+        function handleGuess(letter) {
+            if (!gameActive) return;
+
+            // If already guessed, do nothing
+            if (guessed.includes(letter)) return;
+
+            // Add to guessed letters
+            guessed.push(letter);
+            updateGuessedLettersDisplay(letter, wordObj.word.includes(letter));
+
+            // Find all keys with this letter
+            const keys = keyboardEl.querySelectorAll(".key");
+            keys.forEach(key => {
+                if (key.textContent === letter) {
+                    if (wordObj.word.includes(letter)) {
+                        key.classList.add("correct");
+                        playSound("correct");
+
+                        // Calculate points based on letter frequency
+                        const letterCount = (wordObj.word.match(new RegExp(letter, "g")) || []).length;
+                        addScore(letterPoints * letterCount);
+
+                        // Reveal letters with animation
+                        const letterBoxes = wordDisplay.querySelectorAll(".letter-box:not(.space)");
+                        let revealCount = 0;
+
+                        for (let i = 0; i < wordObj.word.length; i++) {
+                            if (wordObj.word[i] === letter) {
+                                setTimeout(() => {
+                                    letterBoxes[i - revealCount].textContent = letter;
+                                    letterBoxes[i - revealCount].classList.add("revealed");
+                                }, 150 * (i - revealCount));
+                            } else if (wordObj.word[i] === " ") {
+                                revealCount++;
+                            }
+                        }
+                    } else {
+                        key.classList.add("wrong");
+                        wrongGuess();
+                    }
+                    key.classList.add("used");
+                }
+            });
+
+            // Check if word is complete
+            if (!wordObj.word.split("").some(letter => !guessed.includes(letter) && letter !== " ")) {
+                gameWon();
+            }
+        }
+
+        // Update guessed letters display
+        function updateGuessedLettersDisplay(letter, isCorrect) {
+            const letterEl = document.createElement("div");
+            letterEl.classList.add("guessed-letter");
+            letterEl.classList.add(isCorrect ? "correct" : "wrong");
+            letterEl.textContent = letter;
+            guessedLettersEl.appendChild(letterEl);
+        }
+
+        // Handle wrong guess
+        function wrongGuess() {
+            wrongGuesses++;
+            playSound("wrong");
+
+            // Animate hangman drawing
+            animateHangman(wrongGuesses - 1, wrongGuesses);
+
+            // Shake the canvas
+            canvas.classList.add("shake");
+            setTimeout(() => canvas.classList.remove("shake"), 500);
+
+            if (wrongGuesses >= maxWrong) {
+                gameLost();
+            }
+        }
+
+        // Animate hangman drawing
+        function animateHangman(fromStage, toStage) {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            hangmanAnimationProgress = 0;
+
+            function animate() {
+                hangmanAnimationProgress += 0.05;
+
+                if (hangmanAnimationProgress >= 1) {
+                    hangmanAnimationProgress = 1;
+                    drawHangman(toStage);
+                    cancelAnimationFrame(animationFrameId);
+                    return;
+                }
+
+                // Draw intermediate stage
+                drawHangman(fromStage + hangmanAnimationProgress);
+                animationFrameId = requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        // Draw hangman based on wrong guesses
+        function drawHangman(stage) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Get hangman color from CSS variable
+            const hangmanColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
+
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = hangmanColor;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            // Draw gallows
+            ctx.beginPath();
+            ctx.moveTo(80, 380);
+            ctx.lineTo(320, 380);
+            ctx.stroke();
+
+            if (stage >= 0.1) {
+                ctx.beginPath();
+                ctx.moveTo(120, 380);
+                ctx.lineTo(120, 80);
+                const height = Math.min(300, 300 * ((stage - 0.1) / 0.2));
+                ctx.lineTo(120, 380 - height);
+                ctx.stroke();
+            }
+
+            if (stage >= 0.3) {
+                ctx.beginPath();
+                ctx.moveTo(120, 80);
+                const width = Math.min(150, 150 * ((stage - 0.3) / 0.2));
+                ctx.lineTo(120 + width, 80);
+                ctx.stroke();
+            }
+
+            if (stage >= 0.5) {
+                ctx.beginPath();
+                ctx.moveTo(270, 80);
+                const height = Math.min(50, 50 * ((stage - 0.5) / 0.1));
+                ctx.lineTo(270, 80 + height);
+                ctx.stroke();
+            }
+
+            // Draw hangman parts based on wrong guesses
+            if (stage >= 0.6) {
+                // Head
+                ctx.beginPath();
+                ctx.arc(270, 160, Math.min(30, 30 * ((stage - 0.6) / 0.1)), 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            if (stage >= 0.7) {
+                // Body
+                ctx.beginPath();
+                ctx.moveTo(270, 190);
+                const height = Math.min(80, 80 * ((stage - 0.7) / 0.1));
+                ctx.lineTo(270, 190 + height);
+                ctx.stroke();
+            }
+
+            if (stage >= 0.8) {
+                // Left arm
+                ctx.beginPath();
+                ctx.moveTo(270, 220);
+                const length = Math.min(40, 40 * ((stage - 0.8) / 0.05));
+                ctx.lineTo(270 - length, 220 + length * 0.8);
+                ctx.stroke();
+            }
+
+            if (stage >= 0.85) {
+                // Right arm
+                ctx.beginPath();
+                ctx.moveTo(270, 220);
+                const length = Math.min(40, 40 * ((stage - 0.85) / 0.05));
+                ctx.lineTo(270 + length, 220 + length * 0.8);
+                ctx.stroke();
+            }
+
+            if (stage >= 0.9) {
+                // Left leg
+                ctx.beginPath();
+                ctx.moveTo(270, 270);
+                const length = Math.min(50, 50 * ((stage - 0.9) / 0.05));
+                ctx.lineTo(270 - length * 0.5, 270 + length);
+                ctx.stroke();
+            }
+
+            if (stage >= 0.95) {
+                // Right leg
+                ctx.beginPath();
+                ctx.moveTo(270, 270);
+                const length = Math.min(50, 50 * ((stage - 0.95) / 0.05));
+                ctx.lineTo(270 + length * 0.5, 270 + length);
+                ctx.stroke();
+
+                // Face details for complete hangman
+                if (stage >= 1) {
+                    // X eyes for dead hangman
+                    ctx.beginPath();
+                    ctx.moveTo(260, 155);
+                    ctx.lineTo(270, 165);
+                    ctx.moveTo(270, 155);
+                    ctx.lineTo(260, 165);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(270, 155);
+                    ctx.lineTo(280, 165);
+                    ctx.moveTo(280, 155);
+                    ctx.lineTo(270, 165);
+                    ctx.stroke();
+
+                    // Sad mouth
+                    ctx.beginPath();
+                    ctx.arc(270, 175, 10, 0, Math.PI, true);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Game won
+        function gameWon() {
+            if (!gameActive) return;
+            gameActive = false;
+            clearInterval(timerInterval);
+
+            // Bonus points for remaining time and fewer wrong guesses
+            const timeBonus = timer * 5;
+            const accuracyBonus = (maxWrong - wrongGuesses) * 50;
+            const difficultyBonus = difficulty === "easy" ? 0 : (difficulty === "medium" ? 100 : 250);
+            const totalBonus = timeBonus + accuracyBonus + difficultyBonus;
+
+            addScore(totalBonus);
+
+            // Update streak
+            streak++;
+            streakEl.textContent = streak;
+            streakBadge.textContent = streak;
+            streakBadge.classList.add("active");
+            setTimeout(() => streakBadge.classList.remove("active"), 3000);
+
+            if (streak > maxStreak) {
+                maxStreak = streak;
+                localStorage.setItem("hangmanMaxStreak", maxStreak);
+            }
+
+            // Update stats
+            totalGames++;
+            gamesWon++;
+            totalScore += score;
+            localStorage.setItem("hangmanTotalGames", totalGames);
+            localStorage.setItem("hangmanGamesWon", gamesWon);
+            localStorage.setItem("hangmanTotalScore", totalScore);
+
+            // Show definition
+            showDefinition();
+
+            // Show success message
+            messageEl.innerHTML = `<span>Excellent! You guessed the word correctly!</span>`;
+            messageEl.className = "message-display success";
+
+            // Create confetti effect
+            createConfetti();
+
+            // Play success sound
+            playSound("win");
+
+            // Show modal after a delay
+            setTimeout(() => {
+                modalTitle.textContent = "Victory!";
+                modalTitle.style.color = "var(--success)";
+                modalMessage.innerHTML = `
+                    <p>You guessed <strong>${wordObj.word}</strong> correctly!</p>
+                    <div class="stats-grid">
+                        <div class="stats-item">
+                            <div class="stats-item-label">Score</div>
+                            <div class="stats-item-value">${score}</div>
+                        </div>
+                        <div class="stats-item">
+                            <div class="stats-item-label">Streak</div>
+                            <div class="stats-item-value">${streak}</div>
+                        </div>
+                        <div class="stats-item">
+                            <div class="stats-item-label">Time Bonus</div>
+                            <div class="stats-item-value">+${timeBonus}</div>
+                        </div>
+                        <div class="stats-item">
+                            <div class="stats-item-label">Accuracy Bonus</div>
+                            <div class="stats-item-value">+${accuracyBonus}</div>
+                        </div>
+                    </div>
+                `;
+                gameOverModal.classList.add("active");
+            }, 2000);
+        }
+
+        // Game lost
+        function gameLost() {
+            if (!gameActive) return;
+            gameActive = false;
+            clearInterval(timerInterval);
+
+            // Reset streak
+            streak = 0;
+            streakEl.textContent = streak;
+
+            // Update stats
+            totalGames++;
+            localStorage.setItem("hangmanTotalGames", totalGames);
+
+            // Reveal the word
+            const letterBoxes = wordDisplay.querySelectorAll(".letter-box:not(.space)");
+            let nonSpaceIndex = 0;
+
+            for (let i = 0; i < wordObj.word.length; i++) {
+                const letter = wordObj.word[i];
+                if (letter !== " ") {
+                    if (!guessed.includes(letter)) {
+                        setTimeout(() => {
+                            letterBoxes[nonSpaceIndex].textContent = letter;
+                            letterBoxes[nonSpaceIndex].classList.add("revealed", "wrong");
+                        }, 100 * nonSpaceIndex);
+                    }
+                    nonSpaceIndex++;
+                }
+            }
+
+            // Show definition
+            showDefinition();
+
+            // Show failure message
+            messageEl.innerHTML = `<span>Game Over! The word was ${wordObj.word}</span>`;
+            messageEl.className = "message-display error";
+
+            // Play failure sound
+            playSound("lose");
+
+            // Show modal after a delay
+            setTimeout(() => {
+                modalTitle.textContent = "Game Over";
+                modalTitle.style.color = "var(--danger)";
+                modalMessage.innerHTML = `
+                    <p>The word was <strong>${wordObj.word}</strong></p>
+                    <div class="stats-grid">
+                        <div class="stats-item">
+                            <div class="stats-item-label">Final Score</div>
+                            <div class="stats-item-value">${score}</div>
+                        </div>
+                        <div class="stats-item">
+                            <div class="stats-item-label">High Score</div>
+                            <div class="stats-item-value">${highScore}</div>
+                        </div>
+                    </div>
+                    <p style="margin-top: 1rem;">Better luck next time!</p>
+                `;
+                gameOverModal.classList.add("active");
+            }, 2000);
+        }
+
+        // Show definition
+        function showDefinition() {
+            definitionText.textContent = wordObj.definition;
+            definitionSection.classList.add("active");
+        }
+
+        // Add score
+        function addScore(points) {
+            score += points;
+            scoreEl.textContent = score;
+
+            // Update high score if needed
+            if (score > highScore) {
+                highScore = score;
+                highScoreEl.textContent = highScore;
+                localStorage.setItem("hangmanHighScore", highScore);
+
+                // Highlight high score
+                highScoreEl.classList.add("pulse");
+                setTimeout(() => highScoreEl.classList.remove("pulse"), 1000);
+            }
+
+            // Animate score
+            scoreEl.classList.add("pulse");
+            setTimeout(() => scoreEl.classList.remove("pulse"), 500);
+        }
+
+        // Get hint
+        function getHint() {
+            if (!gameActive || hintsUsed > 0) return;
+
+            // Deduct points for using hint
+            addScore(-50);
+            hintsUsed++;
+
+            // Show hint
+            hintText.textContent = wordObj.hint;
+            hintText.classList.add("active");
+
+            // Disable hint button
+            hintBtn.disabled = true;
+
+            // Play hint sound
+            playSound("hint");
+
+            // Show message
+            messageEl.innerHTML = "<span>Hint used! -50 points</span>";
+            messageEl.className = "message-display info";
+            setTimeout(() => {
+                messageEl.innerHTML = "";
+                messageEl.className = "message-display";
+            }, 3000);
+        }
+
+        // Start timer
+        function startTimer() {
+            clearInterval(timerInterval);
+            timer = difficulty === "easy" ? 60 : (difficulty === "medium" ? 45 : 30);
+            timerEl.textContent = timer;
+            timerBar.style.width = "100%";
+            timerBar.classList.remove("warning");
+
+            timerInterval = setInterval(() => {
+                timer--;
+                timerEl.textContent = timer;
+                timerBar.style.width = `${(timer / (difficulty === "easy" ? 60 : (difficulty === "medium" ? 45 : 30))) * 100}%`;
+
+                if (timer <= 10) {
+                    timerBar.classList.add("warning");
+                    if (timer <= 5) {
+                        playSound("tick");
+                    }
+                } else {
+                    timerBar.classList.remove("warning");
+                }
+
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    gameLost();
+                }
+            }, 1000);
+        }
+
+        // Restart game
+        function restartGame() {
+            // Reset game state
+            gameActive = true;
+            wordObj = pickWord();
+            guessed = [];
+            wrongGuesses = 0;
+            hintsUsed = 0;
+            score = 0;
+            scoreEl.textContent = "0";
+
+            // Clear UI
+            guessedLettersEl.innerHTML = "";
+            messageEl.innerHTML = "";
+            messageEl.className = "message-display";
+            hintText.textContent = "";
+            hintText.classList.remove("active");
+            hintBtn.disabled = false;
+            definitionSection.classList.remove("active");
+
+            // Reset keyboard
+            const keys = keyboardEl.querySelectorAll(".key");
+            keys.forEach(key => {
+                key.classList.remove("used", "correct", "wrong");
+                key.disabled = false;
+            });
+
+            // Draw empty gallows
+            drawHangman(0);
+
+            // Display word
+            displayWord();
+
+            // Start timer
+            startTimer();
+
+            // Hide modal if open
+            gameOverModal.classList.remove("active");
+
+            // Save category preference
+            localStorage.setItem("hangmanCategory", categorySelect.value);
+
+            // Log for debugging
+            console.log("New word:", wordObj.word);
+        }
+
+        // Play sound effects
+        function playSound(type) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const gainNode = audioContext.createGain();
+                gainNode.connect(audioContext.destination);
+
+                switch(type) {
+                    case "correct":
+                        const correctOsc = audioContext.createOscillator();
+                        correctOsc.connect(gainNode);
+                        correctOsc.type = "sine";
+                        correctOsc.frequency.setValueAtTime(800, audioContext.currentTime);
+                        correctOsc.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        correctOsc.start();
+                        correctOsc.stop(audioContext.currentTime + 0.3);
+                        break;
+
+                    case "wrong":
+                        const wrongOsc = audioContext.createOscillator();
+                        wrongOsc.connect(gainNode);
+                        wrongOsc.type = "sawtooth";
+                        wrongOsc.frequency.setValueAtTime(200, audioContext.currentTime);
+                        wrongOsc.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        wrongOsc.start();
+                        wrongOsc.stop(audioContext.currentTime + 0.3);
+                        break;
+
+                    case "win":
+                        // First note
+                        const winOsc1 = audioContext.createOscillator();
+                        const winGain1 = audioContext.createGain();
+                        winOsc1.connect(winGain1);
+                        winGain1.connect(audioContext.destination);
+                        winOsc1.type = "sine";
+                        winOsc1.frequency.setValueAtTime(500, audioContext.currentTime);
+                        winOsc1.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+                        winGain1.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        winGain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                        winOsc1.start();
+                        winOsc1.stop(audioContext.currentTime + 0.4);
+
+                        // Second note
+                        setTimeout(() => {
+                            const winOsc2 = audioContext.createOscillator();
+                            const winGain2 = audioContext.createGain();
+                            winOsc2.connect(winGain2);
+                            winGain2.connect(audioContext.destination);
+                            winOsc2.type = "sine";
+                            winOsc2.frequency.setValueAtTime(800, audioContext.currentTime);
+                            winOsc2.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.2);
+                            winGain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                            winGain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                            winOsc2.start();
+                            winOsc2.stop(audioContext.currentTime + 0.4);
+                        }, 200);
+
+                        // Third note
+                        setTimeout(() => {
+                            const winOsc3 = audioContext.createOscillator();
+                            const winGain3 = audioContext.createGain();
+                            winOsc3.connect(winGain3);
+                            winGain3.connect(audioContext.destination);
+                            winOsc3.type = "sine";
+                            winOsc3.frequency.setValueAtTime(1200, audioContext.currentTime);
+                            winOsc3.frequency.exponentialRampToValueAtTime(1600, audioContext.currentTime + 0.2);
+                            winGain3.gain.setValueAtTime(0.3, audioContext.currentTime);
+                            winGain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+                            winOsc3.start();
+                            winOsc3.stop(audioContext.currentTime + 0.6);
+                        }, 400);
+                        break;
+
+                    case "lose":
+                        // First note
+                        const loseOsc1 = audioContext.createOscillator();
+                        const loseGain1 = audioContext.createGain();
+                        loseOsc1.connect(loseGain1);
+                        loseGain1.connect(audioContext.destination);
+                        loseOsc1.type = "sawtooth";
+                        loseOsc1.frequency.setValueAtTime(400, audioContext.currentTime);
+                        loseOsc1.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.2);
+                        loseGain1.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        loseGain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                        loseOsc1.start();
+                        loseOsc1.stop(audioContext.currentTime + 0.4);
+
+                        // Second note
+                        setTimeout(() => {
+                            const loseOsc2 = audioContext.createOscillator();
+                            const loseGain2 = audioContext.createGain();
+                            loseOsc2.connect(loseGain2);
+                            loseGain2.connect(audioContext.destination);
+                            loseOsc2.type = "sawtooth";
+                            loseOsc2.frequency.setValueAtTime(300, audioContext.currentTime);
+                            loseOsc2.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.3);
+                            loseGain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                            loseGain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                            loseOsc2.start();
+                            loseOsc2.stop(audioContext.currentTime + 0.5);
+                        }, 300);
+                        break;
+
+                    case "hint":
+                        const hintOsc = audioContext.createOscillator();
+                        hintOsc.connect(gainNode);
+                        hintOsc.type = "triangle";
+                        hintOsc.frequency.setValueAtTime(600, audioContext.currentTime);
+                        hintOsc.frequency.exponentialRampToValueAtTime(900, audioContext.currentTime + 0.1);
+                        hintOsc.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+                        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        hintOsc.start();
+                        hintOsc.stop(audioContext.currentTime + 0.3);
+                        break;
+
+                    case "tick":
+                        const tickOsc = audioContext.createOscillator();
+                        tickOsc.connect(gainNode);
+                        tickOsc.type = "sine";
+                        tickOsc.frequency.setValueAtTime(800, audioContext.currentTime);
+                        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                        tickOsc.start();
+                        tickOsc.stop(audioContext.currentTime + 0.1);
+                        break;
+                }
+            } catch (e) {
+                // Silently fail if audio context isn't available
+                console.log("Audio not available");
+            }
+        }
+
+        // Create confetti effect
+        function createConfetti() {
+            const colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8800", "#00ff88"];
+
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement("div");
+                confetti.classList.add("confetti");
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = `${Math.random() * 8 + 4}px`;
+                confetti.style.height = `${Math.random() * 8 + 4}px`;
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+                confetti.style.animationDuration = `${Math.random() * 2 + 2}s`;
+
+                document.body.appendChild(confetti);
+
+                // Remove after animation completes
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        // Show stats
+        function showStats() {
+            const winRate = totalGames > 0 ? Math.round((gamesWon / totalGames) * 100) : 0;
+
+            modalTitle.textContent = "Your Statistics";
+            modalTitle.style.color = "var(--info)";
+            modalMessage.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stats-item">
+                        <div class="stats-item-label">Games Played</div>
+                        <div class="stats-item-value">${totalGames}</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-item-label">Games Won</div>
+                        <div class="stats-item-value">${gamesWon}</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-item-label">Win Rate</div>
+                        <div class="stats-item-value">${winRate}%</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-item-label">Max Streak</div>
+                        <div class="stats-item-value">${maxStreak}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <div style="margin-bottom: 0.5rem;">Total Score: ${totalScore}</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: ${winRate}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Handle window resize
+        function handleResize() {
+            // Redraw hangman canvas on resize
+            if (gameActive) {
+                drawHangman(wrongGuesses);
+            }
+        }
+
+        // Event listeners
+        themeSelect.addEventListener("change", () => applyTheme(themeSelect.value));
+        difficultySelect.addEventListener("change", () => setDifficulty(difficultySelect.value));
+        restartBtn.addEventListener("click", restartGame);
+        hintBtn.addEventListener("click", getHint);
+        playAgainBtn.addEventListener("click", restartGame);
+        viewStatsBtn.addEventListener("click", showStats);
+        window.addEventListener("resize", handleResize);
+
+        // Keyboard event listener
+        document.addEventListener("keydown", (e) => {
+            if (!gameActive) return;
+
+            const key = e.key.toUpperCase();
+            if (/^[A-Z]$/.test(key)) {
+                handleGuess(key);
+            }
+        });
+
+        // Modal close on background click
+        gameOverModal.addEventListener("click", (e) => {
+            if (e.target === gameOverModal) {
+                gameOverModal.classList.remove("active");
+            }
+        });
+
+        // Prevent scrolling on mobile
+        document.addEventListener("touchmove", (e) => {
+            if (e.target.closest('.game-info-section') || e.target.closest('.modal')) {
+                return; // Allow scrolling in these areas
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        // Initialize the game
+        init();
+    </script>
+</body>
+</html>

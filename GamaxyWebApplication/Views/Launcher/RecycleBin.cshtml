@@ -1,0 +1,64 @@
+﻿@model List<GamaxyWebApplication.Models.Game>
+}
+<div class="container-fluid d-flex justify-content-center align-items-center" style=" padding-bottom:100px;  background:black;">
+    <div class="cardrr p-4 shadow-lg rounded border-0 body" style="margin-top:180px; max-width: 900px; width: 100%;">
+        <!-- Upload Method Selection -->
+        <section class="p-4" style=" background:black;">
+            <div class="mb-3">
+
+<div class="container mt-4">
+    <h2 class="text-white">Recycle Bin</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No deleted games in recycle bin.</div>
+    }
+    else
+    {
+        <!-- 🔹 Clear All Button -->
+        <form asp-action="ClearRecycleBin" asp-controller="Launcher" method="post" style="margin-bottom:15px;">
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Are you sure you want to permanently delete ALL games in the recycle bin? This cannot be undone.');">
+                🗑️ Clear All
+            </button>
+        </form>
+
+        <table class="table table-dark table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Thumbnail</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Deleted On</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var game in Model)
+                {
+                    <tr>
+                        <td><img src="@game.ImagePath" alt="@game.Title" width="80" class="rounded" /></td>
+                        <td>@game.Title</td>
+                        <td>@game.Category?.CategoryName</td>
+                        <td>@game.UploadedDate.ToString("dd MMM yyyy")</td>
+                        <form asp-action="Recover" method="post">
+                            <input type="hidden" name="id" value="@game.GameId" />
+                            <button type="submit" class="btn btn-success">Recover</button>
+                        </form>
+
+                        <form asp-action="PermanentDelete" method="post"
+                              onsubmit="return confirm('Are you sure? This cannot be undone.');">
+                            <input type="hidden" name="id" value="@game.GameId" />
+                            <button type="submit" class="btn btn-danger">Delete Permanently</button>
+                        </form>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+            </div>
+        </section>
+    </div>
+</div>

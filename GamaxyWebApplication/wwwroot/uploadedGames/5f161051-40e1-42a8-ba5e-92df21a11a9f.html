@@ -1,0 +1,990 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Street Racer Pro - Ultimate Racing Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Racing Sans One', cursive;
+            background: linear-gradient(180deg, #87CEEB 0%, #4682B4 30%, #2F4F4F 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .track-selector {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .selector-title {
+            font-size: 48px;
+            color: #ff4500;
+            text-shadow: 0 0 20px #ff4500;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        
+        .track-options {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .track-option {
+            width: 300px;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #fff;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .track-option:hover {
+            transform: scale(1.05);
+            border-color: #ff4500;
+            box-shadow: 0 0 30px rgba(255, 69, 0, 0.5);
+        }
+        
+        .track-preview {
+            width: 250px;
+            height: 200px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #333;
+        }
+        
+        .city-preview {
+            background: linear-gradient(180deg, #4169E1 0%, #1E90FF 30%, #333 50%, #555 100%);
+            position: relative;
+        }
+        
+        .city-preview::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: repeating-linear-gradient(90deg, #fff 0px, #fff 20px, transparent 20px, transparent 40px);
+        }
+        
+        .desert-preview {
+            background: linear-gradient(180deg, #FFD700 0%, #FFA500 30%, #8B4513 50%, #654321 100%);
+            position: relative;
+        }
+        
+        .desert-preview::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: repeating-linear-gradient(90deg, #fff 0px, #fff 20px, transparent 20px, transparent 40px);
+        }
+        
+        .forest-preview {
+            background: linear-gradient(180deg, #87CEEB 0%, #228B22 30%, #006400 50%, #2F4F2F 100%);
+            position: relative;
+        }
+        
+        .forest-preview::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: repeating-linear-gradient(90deg, #fff 0px, #fff 20px, transparent 20px, transparent 40px);
+        }
+        
+        .track-name {
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .track-desc {
+            font-size: 16px;
+            color: #ccc;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                linear-gradient(90deg, #228B22 0%, #32CD32 20%, #228B22 40%, #32CD32 60%, #228B22 80%, #32CD32 100%);
+        }
+        
+        .road {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 600px;
+            height: 100vh;
+            transform: translateX(-50%);
+            background: #333;
+            border-left: 8px solid #fff;
+            border-right: 8px solid #fff;
+            overflow: hidden;
+        }
+        
+        .road-lines {
+            position: absolute;
+            top: 0;
+            width: 8px;
+            height: 100vh;
+            background: 
+                repeating-linear-gradient(
+                    to bottom,
+                    #fff 0px,
+                    #fff 40px,
+                    transparent 40px,
+                    transparent 80px
+                );
+            animation: roadMove 0.5s linear infinite;
+        }
+        
+        .road-lines.line1 {
+            left: 33.33%;
+            transform: translateX(-50%);
+        }
+        
+        .road-lines.line2 {
+            left: 66.66%;
+            transform: translateX(-50%);
+        }
+        
+        @keyframes roadMove {
+            0% { transform: translateX(-50%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(80px); }
+        }
+        
+        .player-car {
+            position: absolute;
+            width: 60px;
+            height: 120px;
+            left: 50%;
+            bottom: 100px;
+            transform: translateX(-50%);
+            transition: left 0.2s ease;
+            z-index: 10;
+        }
+        
+        .player-car svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.5));
+        }
+        
+        .enemy-car {
+            position: absolute;
+            width: 60px;
+            height: 120px;
+            top: -150px;
+            animation: carMove 3s linear infinite;
+        }
+        
+        .enemy-car svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        @keyframes carMove {
+            0% { top: -150px; }
+            100% { top: 100vh; }
+        }
+        
+        .power-up {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            top: -50px;
+            border-radius: 50%;
+            animation: carMove 4s linear infinite;
+            z-index: 5;
+        }
+        
+        .power-up.nitro {
+            background: radial-gradient(circle, #ff4500, #ff6347);
+            box-shadow: 0 0 20px #ff4500;
+        }
+        
+        .power-up.shield {
+            background: radial-gradient(circle, #00ff00, #32cd32);
+            box-shadow: 0 0 20px #00ff00;
+        }
+        
+        .power-up.coin {
+            background: radial-gradient(circle, #ffd700, #ffff00);
+            box-shadow: 0 0 20px #ffd700;
+        }
+        
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #fff;
+        }
+        
+        .speed-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #ff4500;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ff4500;
+        }
+        
+        .power-up-status {
+            position: absolute;
+            top: 120px;
+            left: 20px;
+            color: #00ff00;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #00ff00;
+            min-height: 60px;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #ff0000;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            display: none;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #ff0000;
+        }
+        
+        .game-over button {
+            margin-top: 30px;
+            padding: 15px 30px;
+            font-family: 'Racing Sans One', cursive;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff4500, #ff6347);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .game-over button:hover {
+            background: linear-gradient(45deg, #ff6347, #ff4500);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ff4500;
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #fff;
+        }
+        
+        .explosion {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffff00, #ff4500, #ff0000, transparent);
+            animation: explode 0.6s ease-out forwards;
+            pointer-events: none;
+            z-index: 15;
+        }
+        
+        @keyframes explode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+        
+        .nitro-effect {
+            animation: nitroBoost 0.3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes nitroBoost {
+            0% { filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.5)); }
+            100% { filter: drop-shadow(0 0 20px rgba(255, 69, 0, 1)) drop-shadow(0 0 30px rgba(255, 140, 0, 0.8)); }
+        }
+        
+        .shield-effect {
+            animation: shieldGlow 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes shieldGlow {
+            0% { filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.8)); }
+            100% { filter: drop-shadow(0 0 25px rgba(0, 255, 0, 1)) drop-shadow(0 0 35px rgba(50, 205, 50, 0.8)); }
+        }
+    </style>
+</head>
+<body>
+    <div class="track-selector" id="trackSelector">
+        <div class="selector-title">CHOOSE YOUR TRACK</div>
+        <div class="track-options">
+            <div class="track-option" onclick="selectTrack('city')">
+                <div class="track-preview city-preview"></div>
+                <div class="track-name">CITY STREETS</div>
+                <div class="track-desc">Urban racing through downtown</div>
+            </div>
+            <div class="track-option" onclick="selectTrack('desert')">
+                <div class="track-preview desert-preview"></div>
+                <div class="track-name">DESERT HIGHWAY</div>
+                <div class="track-desc">High-speed desert racing</div>
+            </div>
+            <div class="track-option" onclick="selectTrack('forest')">
+                <div class="track-preview forest-preview"></div>
+                <div class="track-name">FOREST ROAD</div>
+                <div class="track-desc">Winding through the woods</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container" id="gameContainer" style="display: none;">
+        <div class="road" id="road">
+            <div class="road-lines line1" id="roadLines1"></div>
+            <div class="road-lines line2" id="roadLines2"></div>
+        </div>
+        
+        <div class="hud">
+            <div>Score: <span id="score">0</span></div>
+            <div>Distance: <span id="distance">0</span>m</div>
+            <div>Lives: <span id="lives">3</span> ❤️</div>
+        </div>
+        
+        <div class="speed-display">
+            <div>SPEED</div>
+            <div><span id="speed">60</span> KM/H</div>
+        </div>
+        
+        <div class="power-up-status" id="powerUpStatus">
+            <div>Active Effects:</div>
+            <div id="activeEffects">None</div>
+        </div>
+        
+        <div class="player-car" id="playerCar">
+            <svg viewBox="0 0 60 120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="carGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
+                        <stop offset="30%" style="stop-color:#ff3333;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#cc0000;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#990000;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="wheelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#333;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#000;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#111;stop-opacity:1" />
+                    </linearGradient>
+                    <radialGradient id="headlightGradient" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" style="stop-color:#ffff00;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#ffcc00;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#ff9900;stop-opacity:0.8" />
+                    </radialGradient>
+                </defs>
+                
+                <!-- Car shadow -->
+                <ellipse cx="30" cy="115" rx="25" ry="8" fill="#000" opacity="0.3"/>
+                
+                <!-- Main car body -->
+                <path d="M8 25 L8 95 Q8 105 18 105 L42 105 Q52 105 52 95 L52 25 Q52 15 42 15 L18 15 Q8 15 8 25 Z" 
+                      fill="url(#carGradient)" stroke="#000" stroke-width="1.5"/>
+                
+                <!-- Car roof -->
+                <path d="M12 30 L12 70 Q12 75 17 75 L43 75 Q48 75 48 70 L48 30 Q48 25 43 25 L17 25 Q12 25 12 30 Z" 
+                      fill="#cc0000" opacity="0.8"/>
+                
+                <!-- Windshield -->
+                <path d="M15 28 L15 45 Q15 48 18 48 L42 48 Q45 48 45 45 L45 28 Q45 25 42 25 L18 25 Q15 25 15 28 Z" 
+                      fill="#87CEEB" opacity="0.9" stroke="#333" stroke-width="0.5"/>
+                
+                <!-- Rear window -->
+                <path d="M15 72 L15 85 Q15 88 18 88 L42 88 Q45 88 45 85 L45 72 Q45 69 42 69 L18 69 Q15 69 15 72 Z" 
+                      fill="#87CEEB" opacity="0.9" stroke="#333" stroke-width="0.5"/>
+                
+                <!-- Side windows -->
+                <rect x="10" y="50" width="6" height="15" rx="2" fill="#87CEEB" opacity="0.7"/>
+                <rect x="44" y="50" width="6" height="15" rx="2" fill="#87CEEB" opacity="0.7"/>
+                
+                <!-- Wheels with rims -->
+                <circle cx="15" cy="15" r="9" fill="url(#wheelGradient)" stroke="#666" stroke-width="1"/>
+                <circle cx="15" cy="15" r="6" fill="#444" stroke="#888" stroke-width="0.5"/>
+                <circle cx="15" cy="15" r="3" fill="#666"/>
+                
+                <circle cx="45" cy="15" r="9" fill="url(#wheelGradient)" stroke="#666" stroke-width="1"/>
+                <circle cx="45" cy="15" r="6" fill="#444" stroke="#888" stroke-width="0.5"/>
+                <circle cx="45" cy="15" r="3" fill="#666"/>
+                
+                <circle cx="15" cy="105" r="9" fill="url(#wheelGradient)" stroke="#666" stroke-width="1"/>
+                <circle cx="15" cy="105" r="6" fill="#444" stroke="#888" stroke-width="0.5"/>
+                <circle cx="15" cy="105" r="3" fill="#666"/>
+                
+                <circle cx="45" cy="105" r="9" fill="url(#wheelGradient)" stroke="#666" stroke-width="1"/>
+                <circle cx="45" cy="105" r="6" fill="#444" stroke="#888" stroke-width="0.5"/>
+                <circle cx="45" cy="105" r="3" fill="#666"/>
+                
+                <!-- Headlights -->
+                <ellipse cx="18" cy="110" rx="4" ry="3" fill="url(#headlightGradient)" stroke="#333" stroke-width="0.5"/>
+                <ellipse cx="42" cy="110" rx="4" ry="3" fill="url(#headlightGradient)" stroke="#333" stroke-width="0.5"/>
+                
+                <!-- Taillights -->
+                <ellipse cx="18" cy="10" rx="3" ry="2" fill="#ff0000" opacity="0.9"/>
+                <ellipse cx="42" cy="10" rx="3" ry="2" fill="#ff0000" opacity="0.9"/>
+                
+                <!-- Racing stripes -->
+                <rect x="27" y="15" width="6" height="90" fill="#fff" opacity="0.9"/>
+                <rect x="28" y="15" width="4" height="90" fill="#ffff00" opacity="0.7"/>
+                
+                <!-- Side details -->
+                <rect x="5" y="40" width="3" height="25" rx="1" fill="#333" opacity="0.8"/>
+                <rect x="52" y="40" width="3" height="25" rx="1" fill="#333" opacity="0.8"/>
+                
+                <!-- Exhaust pipes -->
+                <circle cx="22" cy="8" r="2" fill="#333" stroke="#666" stroke-width="0.5"/>
+                <circle cx="38" cy="8" r="2" fill="#333" stroke="#666" stroke-width="0.5"/>
+            </svg>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <div>RACE OVER!</div>
+            <div style="font-size: 24px; margin-top: 20px;">Final Score: <span id="finalScore">0</span></div>
+            <div style="font-size: 18px; margin-top: 10px;">Distance: <span id="finalDistance">0</span>m</div>
+            <button onclick="restartGame()">RACE AGAIN</button>
+        </div>
+        
+        <div class="instructions">
+            <div>🏎️ LEFT/RIGHT ARROWS or A/D to steer</div>
+            <div>🚗 Avoid enemy cars!</div>
+            <div>⭐ Collect power-ups:</div>
+            <div>🔥 Nitro Boost | 🛡️ Shield | 💰 Coins</div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            isPlaying: false,
+            score: 0,
+            distance: 0,
+            lives: 3,
+            speed: 60,
+            playerX: 0, // -1 = left lane, 0 = center, 1 = right lane
+            enemyCars: [],
+            powerUps: [],
+            lastEnemyTime: 0,
+            lastPowerUpTime: 0,
+            keys: {},
+            selectedTrack: null,
+            powerUpEffects: {
+                nitro: { active: false, endTime: 0 },
+                shield: { active: false, endTime: 0 }
+            }
+        };
+
+        const trackConfigs = {
+            city: {
+                background: 'linear-gradient(90deg, #4169E1 0%, #1E90FF 20%, #333 40%, #555 60%, #333 80%, #1E90FF 100%)',
+                roadColor: '#333',
+                lineColor: '#fff'
+            },
+            desert: {
+                background: 'linear-gradient(90deg, #FFD700 0%, #FFA500 20%, #8B4513 40%, #654321 60%, #8B4513 80%, #FFA500 100%)',
+                roadColor: '#654321',
+                lineColor: '#fff'
+            },
+            forest: {
+                background: 'linear-gradient(90deg, #228B22 0%, #32CD32 20%, #006400 40%, #2F4F2F 60%, #006400 80%, #32CD32 100%)',
+                roadColor: '#2F4F2F',
+                lineColor: '#fff'
+            }
+        };
+
+        function selectTrack(trackType) {
+            gameState.selectedTrack = trackType;
+            const config = trackConfigs[trackType];
+            
+            // Update game container background
+            document.getElementById('gameContainer').style.background = config.background;
+            
+            // Update road appearance
+            document.getElementById('road').style.background = config.roadColor;
+            document.getElementById('roadLines1').style.background = 
+                `repeating-linear-gradient(to bottom, ${config.lineColor} 0px, ${config.lineColor} 40px, transparent 40px, transparent 80px)`;
+            document.getElementById('roadLines2').style.background = 
+                `repeating-linear-gradient(to bottom, ${config.lineColor} 0px, ${config.lineColor} 40px, transparent 40px, transparent 80px)`;
+            
+            // Hide track selector and show game
+            document.getElementById('trackSelector').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            
+            // Start the game
+            gameState.isPlaying = true;
+            gameLoop();
+        }
+
+        const playerCar = document.getElementById('playerCar');
+        const gameContainer = document.getElementById('gameContainer');
+        const scoreElement = document.getElementById('score');
+        const distanceElement = document.getElementById('distance');
+        const livesElement = document.getElementById('lives');
+        const speedElement = document.getElementById('speed');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalDistanceElement = document.getElementById('finalDistance');
+        const activeEffectsElement = document.getElementById('activeEffects');
+
+        // Lane positions for 3 lanes - properly centered within the 600px road
+        const lanes = [
+            window.innerWidth/2 - 300 + 70,   // Left lane (70px from left edge)
+            window.innerWidth/2 - 30,         // Center lane (middle of road)
+            window.innerWidth/2 - 300 + 530   // Right lane (70px from right edge)
+        ];
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            gameState.keys[e.key.toLowerCase()] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            gameState.keys[e.key.toLowerCase()] = false;
+        });
+
+        let lastLaneChange = 0;
+        
+        function updatePlayerPosition() {
+            if (!gameState.isPlaying) return;
+            
+            const now = Date.now();
+            
+            if ((gameState.keys['arrowleft'] || gameState.keys['a']) && gameState.playerX > -1 && now - lastLaneChange > 200) {
+                gameState.playerX--;
+                lastLaneChange = now;
+            }
+            if ((gameState.keys['arrowright'] || gameState.keys['d']) && gameState.playerX < 1 && now - lastLaneChange > 200) {
+                gameState.playerX++;
+                lastLaneChange = now;
+            }
+
+            playerCar.style.left = lanes[gameState.playerX + 1] + 'px';
+        }
+
+        function createEnemyCar() {
+            const now = Date.now();
+            const enemyDelay = gameState.powerUpEffects.nitro.active ? 800 : 1500;
+            
+            if (now - gameState.lastEnemyTime < enemyDelay) return;
+
+            const laneIndex = Math.floor(Math.random() * 3);
+            const carColors = ['#0000ff', '#00ff00', '#ffff00', '#ff00ff', '#00ffff'];
+            const color = carColors[Math.floor(Math.random() * carColors.length)];
+            
+            const enemyCar = document.createElement('div');
+            enemyCar.className = 'enemy-car';
+            enemyCar.style.left = lanes[laneIndex] + 'px';
+            
+            const animationSpeed = gameState.powerUpEffects.nitro.active ? 1.5 : 3;
+            enemyCar.style.animationDuration = animationSpeed + 's';
+            
+            enemyCar.innerHTML = `
+                <svg viewBox="0 0 60 120" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="enemyGradient${Date.now()}" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:${color};stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:${color}cc;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:${color}99;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="enemyWheelGrad${Date.now()}" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#333;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Car shadow -->
+                    <ellipse cx="30" cy="115" rx="22" ry="6" fill="#000" opacity="0.2"/>
+                    
+                    <!-- Main body -->
+                    <path d="M10 25 L10 95 Q10 100 15 100 L45 100 Q50 100 50 95 L50 25 Q50 20 45 20 L15 20 Q10 20 10 25 Z" 
+                          fill="url(#enemyGradient${Date.now()})" stroke="#000" stroke-width="1"/>
+                    
+                    <!-- Windshield -->
+                    <path d="M15 25 L15 40 Q15 42 17 42 L43 42 Q45 42 45 40 L45 25 Q45 23 43 23 L17 23 Q15 23 15 25 Z" 
+                          fill="#87CEEB" opacity="0.8" stroke="#333" stroke-width="0.5"/>
+                    
+                    <!-- Rear window -->
+                    <path d="M15 75 L15 90 Q15 92 17 92 L43 92 Q45 92 45 90 L45 75 Q45 73 43 73 L17 73 Q15 73 15 75 Z" 
+                          fill="#87CEEB" opacity="0.8" stroke="#333" stroke-width="0.5"/>
+                    
+                    <!-- Wheels -->
+                    <circle cx="18" cy="15" r="7" fill="url(#enemyWheelGrad${Date.now()})" stroke="#555" stroke-width="0.5"/>
+                    <circle cx="18" cy="15" r="4" fill="#222"/>
+                    <circle cx="42" cy="15" r="7" fill="url(#enemyWheelGrad${Date.now()})" stroke="#555" stroke-width="0.5"/>
+                    <circle cx="42" cy="15" r="4" fill="#222"/>
+                    <circle cx="18" cy="105" r="7" fill="url(#enemyWheelGrad${Date.now()})" stroke="#555" stroke-width="0.5"/>
+                    <circle cx="18" cy="105" r="4" fill="#222"/>
+                    <circle cx="42" cy="105" r="7" fill="url(#enemyWheelGrad${Date.now()})" stroke="#555" stroke-width="0.5"/>
+                    <circle cx="42" cy="105" r="4" fill="#222"/>
+                    
+                    <!-- Headlights -->
+                    <ellipse cx="20" cy="110" rx="3" ry="2" fill="#ffff88" stroke="#333" stroke-width="0.5"/>
+                    <ellipse cx="40" cy="110" rx="3" ry="2" fill="#ffff88" stroke="#333" stroke-width="0.5"/>
+                    
+                    <!-- Taillights -->
+                    <ellipse cx="20" cy="10" rx="2" ry="1.5" fill="#ff4444"/>
+                    <ellipse cx="40" cy="10" rx="2" ry="1.5" fill="#ff4444"/>
+                    
+                    <!-- Side details -->
+                    <rect x="8" y="45" width="2" height="20" rx="1" fill="#333" opacity="0.6"/>
+                    <rect x="50" y="45" width="2" height="20" rx="1" fill="#333" opacity="0.6"/>
+                </svg>
+            `;
+            
+            gameContainer.appendChild(enemyCar);
+            gameState.enemyCars.push(enemyCar);
+            gameState.lastEnemyTime = now;
+
+            setTimeout(() => {
+                if (enemyCar.parentNode) {
+                    enemyCar.parentNode.removeChild(enemyCar);
+                    gameState.enemyCars = gameState.enemyCars.filter(car => car !== enemyCar);
+                }
+            }, animationSpeed * 1000);
+        }
+
+        function createPowerUp() {
+            const now = Date.now();
+            if (now - gameState.lastPowerUpTime < 5000) return;
+
+            const powerUpTypes = ['nitro', 'shield', 'coin'];
+            const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+            const laneIndex = Math.floor(Math.random() * 3);
+            
+            const powerUp = document.createElement('div');
+            powerUp.className = `power-up ${type}`;
+            powerUp.style.left = lanes[laneIndex] + 10 + 'px';
+            
+            // Add power-up symbols
+            const symbols = { nitro: '🔥', shield: '🛡️', coin: '💰' };
+            powerUp.innerHTML = `<div style="font-size: 20px; text-align: center; line-height: 40px;">${symbols[type]}</div>`;
+            
+            gameContainer.appendChild(powerUp);
+            gameState.powerUps.push({ element: powerUp, type: type });
+            gameState.lastPowerUpTime = now;
+
+            setTimeout(() => {
+                if (powerUp.parentNode) {
+                    powerUp.parentNode.removeChild(powerUp);
+                    gameState.powerUps = gameState.powerUps.filter(pu => pu.element !== powerUp);
+                }
+            }, 4000);
+        }
+
+        function checkCollisions() {
+            if (!gameState.isPlaying) return;
+
+            const playerRect = playerCar.getBoundingClientRect();
+            
+            // Check enemy car collisions
+            gameState.enemyCars.forEach(enemyCar => {
+                const enemyRect = enemyCar.getBoundingClientRect();
+                
+                if (playerRect.left < enemyRect.right &&
+                    playerRect.right > enemyRect.left &&
+                    playerRect.top < enemyRect.bottom &&
+                    playerRect.bottom > enemyRect.top) {
+                    
+                    if (!gameState.powerUpEffects.shield.active) {
+                        createExplosion(playerRect.left + playerRect.width/2, playerRect.top + playerRect.height/2);
+                        gameState.lives--;
+                        livesElement.textContent = gameState.lives;
+                        
+                        if (gameState.lives <= 0) {
+                            gameOver();
+                        } else {
+                            // Temporary shield
+                            gameState.powerUpEffects.shield.active = true;
+                            gameState.powerUpEffects.shield.endTime = Date.now() + 3000;
+                            playerCar.classList.add('shield-effect');
+                        }
+                    }
+                    
+                    // Remove enemy car
+                    if (enemyCar.parentNode) {
+                        enemyCar.parentNode.removeChild(enemyCar);
+                        gameState.enemyCars = gameState.enemyCars.filter(car => car !== enemyCar);
+                    }
+                }
+            });
+
+            // Check power-up collisions
+            gameState.powerUps.forEach(powerUpObj => {
+                const powerUpRect = powerUpObj.element.getBoundingClientRect();
+                
+                if (playerRect.left < powerUpRect.right &&
+                    playerRect.right > powerUpRect.left &&
+                    playerRect.top < powerUpRect.bottom &&
+                    playerRect.bottom > powerUpRect.top) {
+                    
+                    activatePowerUp(powerUpObj.type);
+                    
+                    // Remove power-up
+                    if (powerUpObj.element.parentNode) {
+                        powerUpObj.element.parentNode.removeChild(powerUpObj.element);
+                        gameState.powerUps = gameState.powerUps.filter(pu => pu !== powerUpObj);
+                    }
+                }
+            });
+        }
+
+        function activatePowerUp(type) {
+            const now = Date.now();
+            
+            switch(type) {
+                case 'nitro':
+                    gameState.powerUpEffects.nitro.active = true;
+                    gameState.powerUpEffects.nitro.endTime = now + 10000;
+                    playerCar.classList.add('nitro-effect');
+                    gameState.speed = 120;
+                    break;
+                case 'shield':
+                    gameState.powerUpEffects.shield.active = true;
+                    gameState.powerUpEffects.shield.endTime = now + 15000;
+                    playerCar.classList.add('shield-effect');
+                    break;
+                case 'coin':
+                    gameState.score += 500;
+                    break;
+            }
+            
+            updatePowerUpDisplay();
+        }
+
+        function updatePowerUpEffects() {
+            const now = Date.now();
+            let changed = false;
+            
+            if (gameState.powerUpEffects.nitro.active && now > gameState.powerUpEffects.nitro.endTime) {
+                gameState.powerUpEffects.nitro.active = false;
+                playerCar.classList.remove('nitro-effect');
+                gameState.speed = 60;
+                changed = true;
+            }
+            
+            if (gameState.powerUpEffects.shield.active && now > gameState.powerUpEffects.shield.endTime) {
+                gameState.powerUpEffects.shield.active = false;
+                playerCar.classList.remove('shield-effect');
+                changed = true;
+            }
+            
+            if (changed) {
+                updatePowerUpDisplay();
+            }
+        }
+
+        function updatePowerUpDisplay() {
+            const activeEffects = [];
+            const now = Date.now();
+            
+            if (gameState.powerUpEffects.nitro.active) {
+                const remaining = Math.ceil((gameState.powerUpEffects.nitro.endTime - now) / 1000);
+                activeEffects.push(`🔥 Nitro (${remaining}s)`);
+            }
+            if (gameState.powerUpEffects.shield.active) {
+                const remaining = Math.ceil((gameState.powerUpEffects.shield.endTime - now) / 1000);
+                activeEffects.push(`🛡️ Shield (${remaining}s)`);
+            }
+            
+            activeEffectsElement.textContent = activeEffects.length > 0 ? activeEffects.join(', ') : 'None';
+            speedElement.textContent = gameState.speed;
+        }
+
+        function createExplosion(x, y) {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = (x - 50) + 'px';
+            explosion.style.top = (y - 50) + 'px';
+            gameContainer.appendChild(explosion);
+            
+            setTimeout(() => {
+                if (explosion.parentNode) {
+                    explosion.parentNode.removeChild(explosion);
+                }
+            }, 600);
+        }
+
+        function updateScore() {
+            if (!gameState.isPlaying) return;
+            
+            const increment = gameState.powerUpEffects.nitro.active ? 5 : 2;
+            gameState.score += increment;
+            gameState.distance += increment * 2;
+            
+            scoreElement.textContent = gameState.score;
+            distanceElement.textContent = gameState.distance;
+        }
+
+        function gameOver() {
+            gameState.isPlaying = false;
+            finalScoreElement.textContent = gameState.score;
+            finalDistanceElement.textContent = gameState.distance;
+            gameOverElement.style.display = 'block';
+            
+            // Stop all animations
+            gameState.enemyCars.forEach(car => {
+                car.style.animationPlayState = 'paused';
+            });
+            gameState.powerUps.forEach(powerUpObj => {
+                powerUpObj.element.style.animationPlayState = 'paused';
+            });
+        }
+
+        function restartGame() {
+            gameState = {
+                isPlaying: false,
+                score: 0,
+                distance: 0,
+                lives: 3,
+                speed: 60,
+                playerX: 0,
+                enemyCars: [],
+                powerUps: [],
+                lastEnemyTime: 0,
+                lastPowerUpTime: 0,
+                keys: {},
+                selectedTrack: null,
+                powerUpEffects: {
+                    nitro: { active: false, endTime: 0 },
+                    shield: { active: false, endTime: 0 }
+                }
+            };
+            
+            // Reset UI
+            scoreElement.textContent = '0';
+            distanceElement.textContent = '0';
+            livesElement.textContent = '3';
+            speedElement.textContent = '60';
+            activeEffectsElement.textContent = 'None';
+            gameOverElement.style.display = 'none';
+            playerCar.style.left = lanes[1] + 'px';
+            playerCar.classList.remove('nitro-effect', 'shield-effect');
+            
+            // Clear all game objects
+            [...gameState.enemyCars, ...gameState.powerUps.map(pu => pu.element)].forEach(element => {
+                if (element.parentNode) {
+                    element.parentNode.removeChild(element);
+                }
+            });
+            
+            // Clear explosions
+            document.querySelectorAll('.explosion').forEach(element => {
+                if (element.parentNode) {
+                    element.parentNode.removeChild(element);
+                }
+            });
+            
+            // Show track selector again
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('trackSelector').style.display = 'flex';
+        }
+
+        // Game loop
+        function gameLoop() {
+            updatePlayerPosition();
+            createEnemyCar();
+            createPowerUp();
+            checkCollisions();
+            updateScore();
+            updatePowerUpEffects();
+            updatePowerUpDisplay();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize player position
+        playerCar.style.left = lanes[1] + 'px';
+
+        // Game will start after track selection
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const newLanes = [
+                window.innerWidth/2 - 300 + 70,   // Left lane
+                window.innerWidth/2 - 30,         // Center lane
+                window.innerWidth/2 - 300 + 530   // Right lane
+            ];
+            lanes.splice(0, 3, ...newLanes);
+            playerCar.style.left = lanes[gameState.playerX + 1] + 'px';
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95d883f261884b13',t:'MTc1MjIzOTE1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

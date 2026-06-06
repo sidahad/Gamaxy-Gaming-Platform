@@ -1,0 +1,577 @@
+﻿body {
+    background-color: black;
+}
+
+.bg-white {
+    background-color: #000000 !important;
+}
+
+.step-card {
+    width: 180px;
+    padding: 20px;
+    border-radius: 10px;
+    position: relative;
+    text-align: center;
+    color: white;
+    min-height: 160px;
+    transition: transform 0.3s ease;
+    clip-path: polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%, 10% 50%);
+}
+
+    .step-card .icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .step-card:hover {
+        transform: scale(1.05);
+    }
+
+
+
+.step-3d {
+    width: 190px;
+    padding: 20px;
+    color: white;
+    text-align: center;
+    position: relative;
+    border-radius: 10px;
+    clip-path: polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%, 10% 50%);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: linear-gradient(145deg, #2c2c2c, #1c1c1c);
+}
+
+    .step-3d:hover {
+        transform: translateY(-5px) scale(1.03);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    .step-3d .icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+/* #008dff 0%, #D400FF */
+/* Colors */
+.bg-blue {
+    background: linear-gradient(135deg, #008dff, #0056b3);
+}
+
+.bg-purple {
+    background: linear-gradient(135deg, #D400FF, #8e00b3);
+}
+
+.bg-green {
+    background: linear-gradient(135deg, #008dff, #0056b3);
+}
+
+.bg-yellow {
+    background: linear-gradient(135deg, #D400FF, #8e00b3);
+}
+
+.bg-orange {
+    background: linear-gradient(135deg, #008dff, #0056b3);
+}
+
+.bg-pink {
+    background: linear-gradient(135deg, #D400FF, #8e00b3);
+}
+
+.launch-game-section {
+    background: linear-gradient(135deg, #1a1a1a, #121212);
+    border-top: 2px solid #008dff;
+    border-bottom: 2px solid #D400FF;
+    box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.03);
+}
+
+    .launch-game-section h2 {
+        font-size: 2.5rem;
+        color: #fff;
+        text-shadow: 0 0 6px rgba(0, 141, 255, 0.6);
+    }
+
+    .launch-game-section p {
+        font-size: 1.1rem;
+        color: #ccc;
+        max-width: 600px;
+    }
+
+.text-glow {
+    text-shadow: 0 0 10px #008dff, 0 0 20px #D400FF;
+}
+
+.launch-btn {
+    display: inline-block;
+    padding: 14px 30px;
+    font-size: 1.1rem;
+    color: white;
+    background: linear-gradient(to right, #008dff, #D400FF, #008dff);
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 0 15px rgba(0, 141, 255, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+    .launch-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(0, 141, 255, 0.7), 0 0 20px rgba(212, 0, 255, 0.5);
+    }
+
+/* Glow Text */
+.text-glow {
+    text-shadow: 0 0 8px #008dff, 0 0 20px #D400FF;
+}
+
+/* Button */
+.launch-btn {
+    display: inline-block;
+    padding: 14px 30px;
+    font-size: 1.1rem;
+    color: white;
+    background: linear-gradient(to right, #008dff, #D400FF, #008dff);
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 0 15px rgba(0, 141, 255, 0.4);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition: 0.4s ease-in-out;
+}
+
+    .launch-btn::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -75%;
+        width: 150%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transform: skewX(-25deg);
+        animation: light-flash 2.5s infinite linear;
+        z-index: 0;
+    }
+
+    .launch-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(0, 141, 255, 0.7), 0 0 20px rgba(212, 0, 255, 0.5);
+    }
+
+@@keyframes light-flash {
+    0% {
+        left: -75%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+/* Glowing Image Container */
+.glow-container {
+    display: inline-block;
+    position: relative;
+}
+
+.glowing-img {
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(0, 141, 255, 0.5), 0 0 60px rgba(212, 0, 255, 0.3);
+    transition: 0.3s ease-in-out;
+}
+
+    .glowing-img:hover {
+        transform: scale(1.03);
+        box-shadow: 0 0 50px rgba(0, 141, 255, 0.6), 0 0 80px rgba(212, 0, 255, 0.4);
+    }
+
+/* Background Glow */
+.glow-effect-bg {
+    content: "";
+    position: absolute;
+    top: 30%;
+    right: 0;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent 70%);
+    filter: blur(60px);
+    z-index: 1;
+}
+
+.section-full {
+    padding: 60px 0;
+}
+
+.section-head {
+    margin-bottom: 40px;
+}
+
+    .section-head h2 {
+        font-size: 32px;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .section-head p {
+        color: #555;
+        font-size: 16px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+.game-category {
+    background: black;
+    border-radius: 12px;
+    padding: 20px 10px;
+    transition: 0.3s ease-in-out;
+    cursor: pointer;
+    height: 120px;
+    border: 4px solid #008dff;
+    width: 100px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+    .game-category i {
+        font-size: 30px;
+        color: #D400FF;
+        margin-bottom: 10px;
+        transition: color 0.3s ease;
+    }
+
+    .game-category span {
+        font-size: 14px;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .game-category:hover {
+        background: linear-gradient(135deg, #008dff, #d400ff);
+        transform: translateY(-5px);
+    }
+
+        .game-category:hover i,
+        .game-category:hover span {
+            color: #fff;
+        }
+
+.category-slider .swiper-slide {
+    width: auto !important;
+    padding: 10px;
+}
+
+.swiper-slide.active .game-category {
+    background: linear-gradient(45deg, #008dff, #D400FF);
+    color: #fff;
+    transition: 0.3s;
+}
+
+.card_box > span {
+    position: absolute;
+    overflow: hidden;
+    width: 150px;
+    height: 150px;
+    top: -20px;
+    left: -20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .card_box > span::before {
+        content: 'Signature';
+        position: absolute;
+        width: 150%;
+        height: 40px;
+        background-image: linear-gradient(45deg, #da006a 0%, #ff00b3 51%, #ff047d 100%);
+        transform: rotate(-45deg) translateY(-20px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.23);
+    }
+
+    .card_box > span::after {
+        content: '';
+        position: absolute;
+        width: 10px;
+        bottom: 0;
+        left: 0;
+        height: 10px;
+        z-index: -1;
+        box-shadow: 140px -140px #cc3f9f;
+        background-image: linear-gradient(45deg, #da006a 0%, #ff00b3 51%, #ff047d 100%);
+    }
+
+.card_box1 > span {
+    position: absolute;
+    overflow: hidden;
+    width: 150px;
+    height: 150px;
+    top: -20px;
+    left: -20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .card_box1 > span::before {
+        content: 'Deluxe';
+        position: absolute;
+        width: 150%;
+        height: 40px;
+        background-image: linear-gradient(45deg, #002aff 0%, #00ccff 51%, #0015ff 100%);
+        transform: rotate(-45deg) translateY(-20px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.23);
+    }
+
+    .card_box1 > span::after {
+        content: '';
+        position: absolute;
+        width: 10px;
+        bottom: 0;
+        left: 0;
+        height: 10px;
+        z-index: -1;
+        box-shadow: 140px -140px #3f4bcc;
+        background-image: linear-gradient(45deg, #002aff 0%, #00ccff 51%, #0015ff 100%);
+    }
+
+.card_box2 > span {
+    position: absolute;
+    overflow: hidden;
+    width: 150px;
+    height: 150px;
+    top: -20px;
+    left: -20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .card_box2 > span::before {
+        content: 'Premium';
+        position: absolute;
+        width: 150%;
+        height: 40px;
+        background-image: linear-gradient(45deg, #ff6547 0%, #ffb144 51%, #ff7053 100%);
+        transform: rotate(-45deg) translateY(-20px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.23);
+    }
+
+    .card_box2 > span::after {
+        content: '';
+        position: absolute;
+        width: 10px;
+        bottom: 0;
+        left: 0;
+        height: 10px;
+        z-index: -1;
+        box-shadow: 140px -140px #cc3f47;
+        background-image: linear-gradient(45deg, #FF512F 0%, #F09819 51%, #FF512F 100%);
+    }
+
+.cal {
+    background-color: rgb(255, 255, 255);
+}
+
+.calendar-wrapper,
+.calendar-wrapper * {
+    box-sizing: border-box;
+    font-family: sans-serif;
+    position: relative;
+    font-size: .5rem;
+}
+
+.calendar-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-width: 90%;
+    height: 50%;
+    margin-left: 10px;
+    padding: 10px;
+    color: rgb(0, 0, 0);
+}
+
+.month-name-wrapper {
+    text-align: center;
+    font-weight: 900;
+    font-size: 1.5em;
+    color: rgb(0, 0, 0);
+}
+
+.calendar-wrapper .days-names-wrapper,
+.calendar-wrapper .days-wrapper {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.calendar-wrapper .day-name,
+.calendar-wrapper .day {
+    border: 1px solid #ff0000;
+    background-color: rgb(255, 255, 255);
+    text-align: center;
+    width: calc(100% / 7);
+    height: 0;
+    padding-bottom: calc(100% / 7 / 2);
+    padding-top: calc(100% / 7 / 2);
+    line-height: 0;
+}
+
+.calendar-wrapper .day-name {
+    background-color: rgb(255, 0, 0);
+    border: 1px solid white;
+    border-bottom: 2px solid white;
+    color: #fff;
+    font-size: .5rem;
+}
+
+.calendar-wrapper .today {
+    background-color: rgb(255, 255, 255);
+    color: #000000;
+    font-size: .5rem;
+}
+
+.calendar-wrapper .day.prev-month,
+.calendar-wrapper .day.next-month {
+    background-color: rgb(232, 230, 230);
+    color: gray;
+    font-size: .5rem;
+}
+
+.calendar-wrapper .btn-prev-month,
+.calendar-wrapper .btn-next-month {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20%;
+    height: 100%;
+    background-color: black;
+    border: 1px solid black;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    color: white;
+}
+
+.calendar-wrapper .btn-next-month {
+    right: 0;
+    left: auto;
+}
+
+.event-container {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+}
+
+.calendar-event {
+    position: relative;
+    display: inline-block;
+    background: rgb(255, 0, 0);
+    border-radius: 50%;
+    width: 5px;
+    height: 5px;
+    margin: 2px;
+}
+
+    .calendar-event:after {
+        content: attr(data-cal-tip);
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.8);
+        width: auto;
+        min-width: 60px;
+        height: auto;
+        line-height: 1;
+        padding: 5px;
+        z-index: 100;
+        border-radius: 7px;
+        left: 50%;
+        transform: translate(-50%, -5px);
+        color: #fff;
+        bottom: 100%;
+        font-size: 0.8em;
+        display: none;
+    }
+
+    .calendar-event:hover {
+        animation: none;
+    }
+
+        .calendar-event:hover:after {
+            display: block;
+        }
+
+    .calendar-event.event-without-tip:hover:after {
+        display: none;
+    }
+
+.red {
+    background: red;
+}
+
+.calendar-wrapper .day.gold {
+    background: rgb(255, 255, 255);
+}
+
+.cal-animate {
+    animation: calAni 450ms infinite;
+    z-index: 10;
+}
+
+@@keyframes calAni {
+    from, 80% {
+        transform: scale(1);
+    }
+
+    90% {
+        transform: scale(1.4);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+* {
+    font-family: sans-serif;
+}
+
+h1 {
+    text-align: center;
+}
+
+.text {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    color: #fff;
+    border-radius: 10px;
+}
+
+li {
+    list-style: none;
+}

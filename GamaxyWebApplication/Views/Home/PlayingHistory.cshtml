@@ -1,0 +1,132 @@
+﻿@model List<GamerPlayinghistory>
+
+@{
+    ViewData["Title"] = "Playing History";
+}
+
+<div class="container mt-5 playing-history">
+    <h2 class="history-title"> Playing History - @ViewBag.Name</h2>
+
+    @if (ViewBag.NoHistory != null)
+    {
+        <div class="alert alert-warning history-alert">@ViewBag.NoHistory</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table history-table">
+                <thead>
+                    <tr>
+                        <th>Game Title</th>
+                        <th>Category</th>
+                        <th>Played On</th>
+                        <th>Score</th>
+                        <th>Duration</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var h in Model)
+                    {
+                        <tr>
+                            <td>@h.PremiumGame?.Title</td>
+                            <td>@h.PremiumGame?.Category?.CategoryName</td>
+                            <td>@h.PlayedOn.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(h.Score.HasValue ? h.Score.ToString() : "-")</td>
+                            <td>@(h.Duration.HasValue ? h.Duration.ToString() : "-")</td>
+                            <td>
+                                <form asp-action="DeleteHistory" asp-controller="Home" method="post" style="display:inline;">
+                                    <input type="hidden" name="id" value="@h.PlayHistoryId" />
+                                    <button type="submit" class="btn-delete"
+                                            onclick="return confirm('Are you sure you want to delete this history?');">
+                                         Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<style>
+    /* Gamaxy Playing History Styling */
+    .playing-history {
+        background: #0d0d0f;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0px 0px 20px rgba(0, 141, 255, 0.2);
+    }
+
+    .history-title {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        font-size: 28px;
+        background: linear-gradient(to right, #008dff, #D400FF);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 20px;
+    }
+
+    .history-alert {
+        font-size: 16px;
+        border-radius: 10px;
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border: 1px solid #ffc107;
+    }
+
+    /* Neon Table */
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(20, 20, 30, 0.95);
+        box-shadow: 0 0 15px rgba(0,141,255,0.25);
+    }
+
+        .history-table thead {
+            background: linear-gradient(to right, #008dff, #D400FF);
+            color: white;
+            text-align: center;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 15px;
+            color: #ddd;
+        }
+
+        .history-table tbody tr {
+            transition: 0.3s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+            .history-table tbody tr:hover {
+                background: rgba(0, 141, 255, 0.1);
+                transform: scale(1.01);
+            }
+
+    /* Delete Button */
+    .btn-delete {
+        background: linear-gradient(45deg, #ff004c, #ff0055);
+        border: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .btn-delete:hover {
+            background: linear-gradient(45deg, #ff3366, #ff004c);
+            box-shadow: 0 0 10px rgba(255, 0, 76, 0.6);
+        }
+</style>

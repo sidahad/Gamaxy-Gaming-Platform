@@ -1,0 +1,98 @@
+﻿@model GamaxyWebApplication.Models.Registration
+@{
+    ViewData["Title"] = "Edit User Registration Details";
+    Layout = "_layout";
+}
+
+@section Styles {
+    <link href="~/css/EditUserRegistrationDetails.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+}
+
+<div class="edit-user-container">
+    <div class="edit-user-floating-particles">
+        <div class="edit-user-particle"></div>
+        <div class="edit-user-particle"></div>
+        <div class="edit-user-particle"></div>
+        <div class="edit-user-particle"></div>
+        <div class="edit-user-particle"></div>
+        <div class="edit-user-particle"></div>
+    </div>
+
+    <div class="edit-user-main-content container mx-auto px-4 py-8 relative z-10">
+        <h2 class="edit-user-title">Edit User Registration</h2>
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Message</div>
+        }
+
+        <div class="edit-user-form-card">
+            <form asp-action="EditUserRegistrationDetails" method="post" enctype="multipart/form-data">
+                <div class="edit-user-form-group">
+                    <input asp-for="Name" placeholder=" " />
+                    <label>Name</label>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="edit-user-form-group">
+                    <input asp-for="Email" type="email" placeholder=" " />
+                    <label>Email</label>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="edit-user-form-group">
+                    <input asp-for="Password" type="password" placeholder=" " />
+                    <label>Password</label>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="edit-user-form-group">
+                    <input asp-for="Age" placeholder=" " />
+                    <label>Age</label>
+                    <span asp-validation-for="Age" class="text-danger"></span>
+                </div>
+
+                <div class="edit-user-form-group">
+                    <input asp-for="Phone" placeholder=" " />
+                    <label>是</label>
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="edit-user-form-group">
+                    <input asp-for="Address" placeholder=" " />
+                    <label>Address</label>
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="edit-user-form-group">
+                    <select asp-for="Gender">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                    <label>Gender</label>
+                    <span asp-validation-for="Gender" class="text-danger"></span>
+                </div>
+
+                <div class="edit-user-form-group">
+                    <div class="edit-user-file-upload">
+                        <input asp-for="UserImage" type="file" accept="image/*" />
+                        <div class="edit-user-file-upload-text">
+                            📷 Click or drag to upload profile image
+                        </div>
+                        <span asp-validation-for="UserImage" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="edit-user-submit-btn">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

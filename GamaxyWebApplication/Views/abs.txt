@@ -1,0 +1,105 @@
+﻿Add-Migration InitialCreate
+
+pwil hwcr quvv ltbl
+
+select * from Registrationinfo
+
+select * from Gamers
+
+select * from Games
+
+select * from Payments
+
+select * from Playinghistorygamer
+
+select * from Categories
+
+select * from Favourites
+
+select * from Contactinfo
+
+select * from LeaderboardPlayers
+
+select * from Feedbacks
+
+select * from FreeGameRatings
+
+select * from PremiumGameRatings
+
+select * from Matches
+
+select * from ChatFiles
+
+select * from ChatMessages
+
+select * from UploadedFiles
+
+select * from Users
+
+select * from MatchAssignToUsers
+
+DELETE FROM Games WHERE GameId = 1;
+
+DELETE FROM Registrationinfo WHERE RegistrationId = 1;
+
+Visa: 4111 1111 1111 1111
+MasterCard: 5555 5555 5555 4444
+American Express: 3782 822463 10005
+Discover: 6011 1111 1111 1117
+
+i have a competition ahead in my Aptech where whole karachi developers took part in it so i am making a Gaming Website where almost 40 to 50 free games and premium game aswell so make me a Gaming Website Blog page which is incredible , high quality, innovative with transitions and with a high quality theme and sections
+
+
+        //User Pages after login 
+
+        public async Task<IActionResult> Wishgames()
+        {
+            var games = await _context.Games
+                .Include(p => p.Category)
+                .ToListAsync();
+
+            return View(games);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Wishgames(int? id)
+        {
+            if (HttpContext.Session.GetInt32("userid") != null)
+            {
+                var userId = Convert.ToInt32(HttpContext.Session.GetInt32("userid"));
+
+                var prod = await _context.Games.Include(p => p.Category).FirstOrDefaultAsync(p => p.GameId == id);
+
+                if (prod == null || prod.Category == null)
+                {
+                    return NotFound("Game or category not found.");
+                }
+
+                // Validate cateId
+                var categoryExists = await _context.Categories.AnyAsync(c => c.CategoryId == prod.Category.CategoryId);
+                if (!categoryExists)
+                {
+                    return BadRequest("Invalid category.");
+                }
+
+                var existingWishlistItem = await _context.Favourites
+                    .FirstOrDefaultAsync(w => w.gameId == prod.GameId && w.UserId == userId);
+
+                if (existingWishlistItem == null)
+                {
+                    var addToWishlist = new Favourite()
+                    {
+                        gameId = prod.GameId,
+                        cateId = prod.Category.CategoryId, 
+                        UserId = userId
+                    };
+
+                    await _context.Favourites.AddAsync(addToWishlist);
+                    await _context.SaveChangesAsync();
+                }
+
+                return RedirectToAction("Favourite ");
+            }
+            return RedirectToAction("Login");
+        }
+

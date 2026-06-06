@@ -1,0 +1,150 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Rock Paper Scissors";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Rock Paper Scissors</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/RockPaperScissor.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">ROCK PAPER SCISSORS</h1>
+                <div class="game-subtitle">CLASSIC STRATEGY DUEL</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container">
+                    <div class="scoreboard">
+                        <div class="player-score">
+                            <span class="player-name">YOU</span>
+                            <span class="score" id="user-score">0</span>
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="player-score">
+                            <span class="player-name">AI</span>
+                            <span class="score" id="comp-score">0</span>
+                        </div>
+                    </div>
+
+                    <div class="choices">
+                        <button class="choice" data-choice="rock">✊</button>
+                        <button class="choice" data-choice="paper">✋</button>
+                        <button class="choice" data-choice="scissors">✌</button>
+                    </div>
+
+                    <p id="result" class="result">Make your move!</p>
+                </div>
+            </div>
+
+            <div class="controls">
+                <p>Click an emoji to make your move!</p>
+            </div>
+
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        const choices = document.querySelectorAll(".choice");
+        const result = document.getElementById("result");
+        const userScoreElem = document.getElementById("user-score");
+        const compScoreElem = document.getElementById("comp-score");
+
+        let userScore = 0;
+        let compScore = 0;
+
+        const getComputerChoice = () => {
+            const choices = ["rock", "paper", "scissors"];
+            return choices[Math.floor(Math.random() * choices.length)];
+        };
+
+        const getWinner = (user, comp) => {
+            if (user === comp) return "draw";
+            if (
+                (user === "rock" && comp === "scissors") ||
+                (user === "paper" && comp === "rock") ||
+                (user === "scissors" && comp === "paper")
+            ) return "user";
+            return "comp";
+        };
+
+        choices.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const userChoice = btn.dataset.choice;
+                const compChoice = getComputerChoice();
+                const winner = getWinner(userChoice, compChoice);
+
+                if (winner === "user") {
+                    result.innerText = `You Win! ${userChoice} beats ${compChoice}`;
+                    userScore++;
+                } else if (winner === "comp") {
+                    result.innerText = `You Lose! ${compChoice} beats ${userChoice}`;
+                    compScore++;
+                } else {
+                    result.innerText = `It's a Draw! You both chose ${userChoice}`;
+                }
+
+                userScoreElem.innerText = userScore;
+                compScoreElem.innerText = compScore;
+            });
+        });
+    </script>
+</body>
+</html>

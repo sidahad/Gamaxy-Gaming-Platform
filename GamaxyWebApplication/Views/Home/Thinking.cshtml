@@ -1,0 +1,604 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Quantum Nexus";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Quantum Nexus - The Ultimate Mind Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link href="~/css/Thinking.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <canvas id="particleCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></canvas>
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">QUANTUM NEXUS</h1>
+                <div class="game-subtitle">THE ULTIMATE MIND-BENDING CHALLENGE</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container">
+                    <div class="stats-panel">
+                        <div class="stat">
+                            <div class="stat-label">SCORE</div>
+                            <div class="stat-value" id="score">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">LEVEL</div>
+                            <div class="stat-value" id="level">1</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">STREAK</div>
+                            <div class="stat-value" id="streak">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">TIME</div>
+                            <div class="stat-value" id="time">60</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+
+                    <div class="game-modes">
+                        <div class="mode-card active" data-mode="memory">
+                            <div class="mode-title">🧠 Memory Matrix</div>
+                            <div class="mode-description">Remember the sequence and repeat it perfectly</div>
+                        </div>
+                        <div class="mode-card" data-mode="reflex">
+                            <div class="mode-title">⚡ Lightning Reflex</div>
+                            <div class="mode-description">Click the glowing cells as fast as possible</div>
+                        </div>
+                        <div class="mode-card" data-mode="pattern">
+                            <div class="mode-title">🔮 Pattern Master</div>
+                            <div class="mode-description">Solve complex mathematical patterns</div>
+                        </div>
+                        <div class="mode-card" data-mode="chaos">
+                            <div class="mode-title">🌪️ Chaos Mode</div>
+                            <div class="mode-description">All modes combined - Ultimate challenge!</div>
+                        </div>
+                    </div>
+
+                    <div class="game-board" id="gameBoard"></div>
+
+                    <div class="controls">
+                        <button class="btn btn-start" id="startBtn">Start Game</button>
+                        <button class="btn btn-pause" id="pauseBtn">Pause</button>
+                        <button class="btn btn-reset" id="resetBtn">Reset</button>
+                    </div>
+
+                    <div class="achievement" id="achievement"></div>
+                </div>
+            </div>
+
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        class QuantumNexus {
+            constructor() {
+                this.score = 0;
+                this.level = 1;
+                this.streak = 0;
+                this.timeLeft = 60;
+                this.gameMode = 'memory';
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.sequence = [];
+                this.playerSequence = [];
+                this.currentStep = 0;
+                this.gameTimer = null;
+                this.sequenceTimer = null;
+                this.reflexTargets = [];
+                this.patterns = [];
+
+                this.initializeGame();
+                this.bindEvents();
+                this.createParticles();
+            }
+
+            initializeGame() {
+                this.createGameBoard();
+                this.updateDisplay();
+            }
+
+            createGameBoard() {
+                const board = document.getElementById('gameBoard');
+                board.innerHTML = '';
+
+                for (let i = 0; i < 36; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'game-cell';
+                    cell.dataset.index = i;
+                    cell.addEventListener('click', () => this.handleCellClick(i));
+                    board.appendChild(cell);
+                }
+            }
+
+            bindEvents() {
+                document.getElementById('startBtn').addEventListener('click', () => this.startGame());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.pauseGame());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
+
+                document.querySelectorAll('.mode-card').forEach(card => {
+                    card.addEventListener('click', () => this.selectMode(card.dataset.mode));
+                });
+            }
+
+            selectMode(mode) {
+                document.querySelectorAll('.mode-card').forEach(card => card.classList.remove('active'));
+                document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+                this.gameMode = mode;
+                this.resetGame();
+            }
+
+            startGame() {
+                if (this.isPaused) {
+                    this.isPaused = false;
+                    document.getElementById('pauseBtn').textContent = 'Pause';
+                    this.startTimer();
+                    return;
+                }
+
+                this.isPlaying = true;
+                this.timeLeft = 60;
+                this.startTimer();
+
+                switch (this.gameMode) {
+                    case 'memory':
+                        this.startMemoryGame();
+                        break;
+                    case 'reflex':
+                        this.startReflexGame();
+                        break;
+                    case 'pattern':
+                        this.startPatternGame();
+                        break;
+                    case 'chaos':
+                        this.startChaosMode();
+                        break;
+                }
+
+                this.updateDisplay();
+            }
+
+            startMemoryGame() {
+                this.sequence = [];
+                this.playerSequence = [];
+                this.currentStep = 0;
+                this.generateSequence();
+                this.showSequence();
+            }
+
+            generateSequence() {
+                const sequenceLength = Math.min(3 + this.level, 10);
+                this.sequence = [];
+                for (let i = 0; i < sequenceLength; i++) {
+                    this.sequence.push(Math.floor(Math.random() * 36));
+                }
+            }
+
+            showSequence() {
+                let index = 0;
+                const showNext = () => {
+                    if (index < this.sequence.length) {
+                        const cell = document.querySelector(`[data-index="${this.sequence[index]}"]`);
+                        cell.classList.add('active');
+
+                        setTimeout(() => {
+                            cell.classList.remove('active');
+                            index++;
+                            setTimeout(showNext, 300);
+                        }, 600);
+                    }
+                };
+                showNext();
+            }
+
+            startReflexGame() {
+                this.reflexTargets = [];
+                this.spawnReflexTarget();
+            }
+
+            spawnReflexTarget() {
+                if (!this.isPlaying || this.isPaused) return;
+
+                const randomCell = Math.floor(Math.random() * 36);
+                const cell = document.querySelector(`[data-index="${randomCell}"]`);
+                cell.classList.add('active');
+
+                this.reflexTargets.push({
+                    index: randomCell,
+                    timestamp: Date.now()
+                });
+
+                setTimeout(() => {
+                    cell.classList.remove('active');
+                    this.reflexTargets = this.reflexTargets.filter(target => target.index !== randomCell);
+                }, 1500);
+
+                setTimeout(() => this.spawnReflexTarget(), Math.random() * 1000 + 500);
+            }
+
+            startPatternGame() {
+                this.generatePattern();
+                this.displayPattern();
+            }
+
+            generatePattern() {
+                this.patterns = [];
+                const patternType = Math.floor(Math.random() * 3);
+
+                switch (patternType) {
+                    case 0: // Fibonacci
+                        this.patterns = [1, 1, 2, 3, 5, 8, 13, 21];
+                        break;
+                    case 1: // Prime numbers
+                        this.patterns = [2, 3, 5, 7, 11, 13, 17, 19];
+                        break;
+                    case 2: // Squares
+                        this.patterns = [1, 4, 9, 16, 25, 36, 49, 64];
+                        break;
+                }
+            }
+
+            displayPattern() {
+                const cells = document.querySelectorAll('.game-cell');
+                cells.forEach((cell, index) => {
+                    if (index < this.patterns.length - 1) {
+                        cell.textContent = this.patterns[index];
+                        cell.style.color = 'var(--success)';
+                    } else if (index === this.patterns.length - 1) {
+                        cell.textContent = '?';
+                        cell.style.color = 'var(--accent)';
+                        cell.dataset.answer = this.patterns[index];
+                    } else {
+                        cell.textContent = '';
+                    }
+                });
+            }
+
+            startChaosMode() {
+                const modes = ['memory', 'reflex', 'pattern'];
+                const randomMode = modes[Math.floor(Math.random() * modes.length)];
+
+                switch (randomMode) {
+                    case 'memory':
+                        this.startMemoryGame();
+                        break;
+                    case 'reflex':
+                        this.startReflexGame();
+                        break;
+                    case 'pattern':
+                        this.startPatternGame();
+                        break;
+                }
+
+                setTimeout(() => {
+                    if (this.isPlaying) this.startChaosMode();
+                }, 10000);
+            }
+
+            handleCellClick(index) {
+                if (!this.isPlaying || this.isPaused) return;
+
+                const cell = document.querySelector(`[data-index="${index}"]`);
+
+                switch (this.gameMode) {
+                    case 'memory':
+                        this.handleMemoryClick(index, cell);
+                        break;
+                    case 'reflex':
+                        this.handleReflexClick(index, cell);
+                        break;
+                    case 'pattern':
+                        this.handlePatternClick(index, cell);
+                        break;
+                    case 'chaos':
+                        this.handleChaosClick(index, cell);
+                        break;
+                }
+            }
+
+            handleMemoryClick(index, cell) {
+                if (this.sequence[this.currentStep] === index) {
+                    cell.classList.add('correct');
+                    setTimeout(() => cell.classList.remove('correct'), 500);
+
+                    this.currentStep++;
+                    this.addScore(10);
+                    this.streak++;
+
+                    if (this.currentStep >= this.sequence.length) {
+                        this.levelUp();
+                        setTimeout(() => this.startMemoryGame(), 1000);
+                    }
+                } else {
+                    cell.classList.add('wrong');
+                    setTimeout(() => cell.classList.remove('wrong'), 500);
+                    this.streak = 0;
+                    this.addScore(-5);
+                }
+
+                this.updateDisplay();
+            }
+
+            handleReflexClick(index, cell) {
+                const target = this.reflexTargets.find(t => t.index === index);
+                if (target) {
+                    const reactionTime = Date.now() - target.timestamp;
+                    const points = Math.max(50 - Math.floor(reactionTime / 10), 10);
+
+                    cell.classList.add('correct');
+                    setTimeout(() => cell.classList.remove('correct'), 300);
+
+                    this.addScore(points);
+                    this.streak++;
+                    this.reflexTargets = this.reflexTargets.filter(t => t.index !== index);
+
+                    if (this.streak % 10 === 0) this.levelUp();
+                } else {
+                    cell.classList.add('wrong');
+                    setTimeout(() => cell.classList.remove('wrong'), 300);
+                    this.streak = 0;
+                    this.addScore(-10);
+                }
+
+                this.updateDisplay();
+            }
+
+            handlePatternClick(index, cell) {
+                if (cell.dataset.answer) {
+                    const userInput = prompt('What number completes the pattern?');
+                    if (parseInt(userInput) === parseInt(cell.dataset.answer)) {
+                        cell.classList.add('correct');
+                        cell.textContent = cell.dataset.answer;
+                        this.addScore(100);
+                        this.streak++;
+                        this.levelUp();
+                        setTimeout(() => this.startPatternGame(), 1500);
+                    } else {
+                        cell.classList.add('wrong');
+                        setTimeout(() => cell.classList.remove('wrong'), 500);
+                        this.streak = 0;
+                        this.addScore(-20);
+                    }
+                }
+
+                this.updateDisplay();
+            }
+
+            handleChaosClick(index, cell) {
+                if (this.sequence.length > 0) {
+                    this.handleMemoryClick(index, cell);
+                } else if (this.reflexTargets.length > 0) {
+                    this.handleReflexClick(index, cell);
+                } else if (this.patterns.length > 0) {
+                    this.handlePatternClick(index, cell);
+                }
+            }
+
+            addScore(points) {
+                this.score += points;
+                if (this.score < 0) this.score = 0;
+
+                if (points > 0 && this.streak > 0 && this.streak % 5 === 0) {
+                    this.showAchievement(`🔥 ${this.streak} Streak Bonus! +${this.streak * 5} points`);
+                    this.score += this.streak * 5;
+                }
+            }
+
+            levelUp() {
+                this.level++;
+                this.timeLeft += 10;
+                this.showAchievement(`🎉 Level ${this.level} Reached!`);
+            }
+
+            showAchievement(text) {
+                const achievement = document.getElementById('achievement');
+                achievement.textContent = text;
+                achievement.classList.add('active');
+
+                setTimeout(() => {
+                    achievement.classList.remove('active');
+                }, 3000);
+            }
+
+            startTimer() {
+                this.gameTimer = setInterval(() => {
+                    if (!this.isPaused) {
+                        this.timeLeft--;
+                        this.updateDisplay();
+
+                        if (this.timeLeft <= 0) {
+                            this.endGame();
+                        }
+                    }
+                }, 1000);
+            }
+
+            pauseGame() {
+                this.isPaused = !this.isPaused;
+                document.getElementById('pauseBtn').textContent = this.isPaused ? 'Resume' : 'Pause';
+            }
+
+            resetGame() {
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.score = 0;
+                this.level = 1;
+                this.streak = 0;
+                this.timeLeft = 60;
+                this.sequence = [];
+                this.playerSequence = [];
+                this.currentStep = 0;
+                this.reflexTargets = [];
+                this.patterns = [];
+
+                if (this.gameTimer) clearInterval(this.gameTimer);
+                if (this.sequenceTimer) clearInterval(this.sequenceTimer);
+
+                document.getElementById('pauseBtn').textContent = 'Pause';
+                this.createGameBoard();
+                this.updateDisplay();
+            }
+
+            endGame() {
+                this.isPlaying = false;
+                if (this.gameTimer) clearInterval(this.gameTimer);
+
+                this.showAchievement(`🏆 Game Over! Final Score: ${this.score}`);
+
+                setTimeout(() => {
+                    if (confirm(`Amazing! You scored ${this.score} points and reached level ${this.level}!\n\nWould you like to play again?`)) {
+                        this.resetGame();
+                    }
+                }, 1000);
+            }
+
+            updateDisplay() {
+                const scoreEl = document.getElementById('score');
+                const levelEl = document.getElementById('level');
+                const streakEl = document.getElementById('streak');
+                const timeEl = document.getElementById('time');
+
+                // Animate stat updates
+                [scoreEl, levelEl, streakEl, timeEl].forEach(el => {
+                    el.classList.add('stat-update');
+                    setTimeout(() => el.classList.remove('stat-update'), 300);
+                });
+
+                scoreEl.textContent = this.score;
+                levelEl.textContent = this.level;
+                streakEl.textContent = this.streak;
+                timeEl.textContent = this.timeLeft;
+
+                const progress = ((60 - this.timeLeft) / 60) * 100;
+                document.getElementById('progressFill').style.width = `${progress}%`;
+            }
+
+            createParticles() {
+                const canvas = document.getElementById('particleCanvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const particlesArray = [];
+                const colors = ['#00ffcc', '#f5c518', '#f72585'];
+
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                        this.size = Math.random() * 3 + 1;
+                        this.speedX = Math.random() * 0.5 - 0.25;
+                        this.speedY = Math.random() * 0.5 - 0.25;
+                        this.color = colors[Math.floor(Math.random() * colors.length)];
+                    }
+
+                    update() {
+                        this.x += this.speedX;
+                        this.y += this.speedY;
+                        if (this.size > 0.2) this.size -= 0.05;
+                    }
+
+                    draw() {
+                        ctx.fillStyle = this.color;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                function handleParticles() {
+                    for (let i = 0; i < particlesArray.length; i++) {
+                        particlesArray[i].update();
+                        particlesArray[i].draw();
+                        if (particlesArray[i].size <= 0.2) {
+                            particlesArray.splice(i, 1);
+                            i--;
+                        }
+                    }
+                }
+
+                function animateParticles() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    if (particlesArray.length < 50) {
+                        particlesArray.push(new Particle());
+                    }
+                    handleParticles();
+                    requestAnimationFrame(animateParticles);
+                }
+
+                window.addEventListener('resize', () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                });
+
+                animateParticles();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new QuantumNexus();
+        });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95bf22d9612a90a1',t:'MTc1MTk3MzAzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

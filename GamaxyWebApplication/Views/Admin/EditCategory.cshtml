@@ -1,0 +1,33 @@
+﻿@model Category
+@{
+    ViewData["Title"] = "Edit Category Page";
+    Layout = "Admin_layout";
+}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-secondary rounded h-100 p-4">
+                <h6 class="mb-4">Edit Category</h6>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <form method="post">
+                                <div class="mb-3">
+                                    <label for="inputEmail" class="form-label">CategoryId</label>
+                                    <input type="text" asp-for="CategoryId" />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputEmail" class="form-label">Category Name</label>
+                                    <input type="text" asp-for="CategoryName" />
+                                </div>
+                                <div class="mb-3">
+                                    <input type="submit" />
+                                </div>
+                            </form>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

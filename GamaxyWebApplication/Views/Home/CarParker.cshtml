@@ -1,0 +1,1611 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "3D Luxury Car Parking Game";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>3D Luxury Car Parking Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link href="~/css/CarParker.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color: #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">3D LUXURY CAR PARKING</h1>
+                <div class="game-subtitle">PARK IN STYLE</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container">
+                    <canvas id="gameCanvas"></canvas>
+                    <div class="ui-container">
+                        <div id="ui" class="score-display">Score: <span id="score">0</span> | Time: <span id="time">0</span>s</div>
+                        <div id="message" class="message-display">Parked Successfully!</div>
+                        <canvas id="minimap" class="minimap"></canvas>
+                        <button id="parkButton" class="btn">Park</button>
+                        <button id="cameraButton" class="btn">Toggle Camera</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile controls -->
+            <div class="mobile-controls">
+                <div class="mobile-btn" id="mobileParkBtn">P</div>
+                <div class="mobile-btn" id="mobileCameraBtn">📷</div>
+            </div>
+
+            <!-- Desktop controls -->
+            <div class="controls">
+                <p>Use Arrow Keys to move • Space to brake • Click Park to confirm parking • Toggle Camera to switch views</p>
+            </div>
+
+            <!-- Rating Section -->
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+
+            // Main scene setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.getElementById('gameCanvas') });
+            renderer.setSize(document.querySelector('.game-container').clientWidth, document.querySelector('.game-container').clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Minimap setup
+            const minimapScene = new THREE.Scene();
+            const minimapCamera = new THREE.OrthographicCamera(-25, 25, 25, -25, 0.1, 100);
+            const minimapRenderer = new THREE.WebGLRenderer({ canvas: document.getElementById('minimap'), alpha: true });
+            minimapRenderer.setSize(200, 200);
+            minimapCamera.position.set(0, 20, 0);
+            minimapCamera.lookAt(0, 0, 0);
+
+            // Skybox
+            const skyTexture = new THREE.TextureLoader().load(
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAABJklEQVR4nO2VsQ2DMBCF7/QKbv8K7l7AhUtEaBFEnHAD3sAtaOb5JYwhahMCi2auCyzavS6waOa6wKLr6wILrrkv0Oj6usCi7+sCi76/Cyz6/i6w6Pu6wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6AAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+            );
+            const skyGeometry = new THREE.BoxGeometry(1000, 1000, 1000);
+            const skyMaterial = new THREE.MeshBasicMaterial({ map: skyTexture, side: THREE.BackSide });
+            const skybox = new THREE.Mesh(skyGeometry, skyMaterial);
+            scene.add(skybox);
+
+            // Sun
+            const sun = new THREE.Mesh(
+                new THREE.SphereGeometry(5, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0xFFFF00 })
+            );
+            sun.position.set(50, 100, -50);
+            scene.add(sun);
+
+            // Clouds
+            const cloudTexture = new THREE.TextureLoader().load(
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAABGElEQVR4nO2VsQrDMBBF3/oV3P4V3L2AC5eI0CKIuOAGvIFb0M3zSxhD1iYEFs1cF1i0c11g0c51gUXX3BZY9M19gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+            );
+            cloudTexture.transparent = true;
+            const clouds = [];
+            for (let i = 0; i < 5; i++) {
+                const cloud = new THREE.Mesh(
+                    new THREE.PlaneGeometry(20, 10),
+                    new THREE.MeshBasicMaterial({ map: cloudTexture, transparent: true, side: THREE.DoubleSide })
+                );
+                cloud.position.set(
+                    (Math.random() - 0.5) * 200,
+                    50 + Math.random() * 20,
+                    (Math.random() - 0.5) * 200
+                );
+                cloud.rotation.y = Math.random() * Math.PI;
+                scene.add(cloud);
+            }
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            dirLight.position.set(50, 100, -50);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            scene.add(dirLight);
+
+            // Infinite road with dashed lines
+            const roadTexture = new THREE.TextureLoader().load(
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAAAGUlEQVR4nGNgGAWjYBSMglEwCkYhKAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+            );
+            roadTexture.wrapS = roadTexture.wrapT = THREE.RepeatWrapping;
+            roadTexture.repeat.set(5, 100);
+            const road = new THREE.Mesh(
+                new THREE.PlaneGeometry(10, 1000),
+                new THREE.MeshPhongMaterial({ map: roadTexture, color: 0x333333 })
+            );
+            road.rotation.x = -Math.PI / 2;
+            road.receiveShadow = true;
+            scene.add(road);
+            minimapScene.add(road.clone());
+
+            // Dashed road lines
+            const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+            const lineGeometry = new THREE.PlaneGeometry(0.2, 2);
+            for (let z = -500; z <= 500; z += 4) {
+                const line = new THREE.Mesh(lineGeometry, lineMaterial);
+                line.rotation.x = -Math.PI / 2;
+                line.position.set(0, 0.02, z);
+                scene.add(line);
+                minimapScene.add(line.clone());
+            }
+
+            // Ground with grass texture
+            const groundTexture = new THREE.TextureLoader().load(
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAAAM0lEQVR4nGNgGAWjYBSMglEwCkYhKJi4eP78/////w8DAwPDw8PDw8PDw8PDw8PDw8PDw8AAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+            );
+            groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+            groundTexture.repeat.set(50, 50);
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(100, 1000),
+                new THREE.MeshPhongMaterial({ map: groundTexture, color: 0x228B22 })
+            );
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.01;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            minimapScene.add(ground.clone());
+
+            // Distant trees for background
+            const trees = [];
+            for (let i = 0; i < 20; i++) {
+                const tree = new THREE.Group();
+                const trunk = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.2, 0.2, 2, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+                );
+                trunk.position.y = 1;
+                tree.add(trunk);
+                const foliage = new THREE.Mesh(
+                    new THREE.SphereGeometry(1, 16, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x228B22 })
+                );
+                foliage.position.y = 2.5;
+                tree.add(foliage);
+                tree.position.set(
+                    (Math.random() < 0.5 ? -1 : 1) * (20 + Math.random() * 30),
+                    0,
+                    -500 + i * 50
+                );
+                tree.castShadow = true;
+                scene.add(tree);
+            }
+
+            // Path to parking slot (for minimap)
+            const pathMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+            const pathPoints = [
+                new THREE.Vector3(0, 0.1, -20),
+                new THREE.Vector3(0, 0.1, -50),
+                new THREE.Vector3(12, 0.1, -50)
+            ];
+            const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
+            const pathLine = new THREE.Line(pathGeometry, pathMaterial);
+            minimapScene.add(pathLine);
+
+            // Luxury parking slot with dynamic color
+            const luxurySlotTexture = new THREE.TextureLoader().load(
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAAAUUlEQVR4nGNgGAWjYBSMglEwCkYhKJi4eP78/////w8DAwPDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8AAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+            );
+            luxurySlotTexture.wrapS = luxurySlotTexture.wrapT = THREE.RepeatWrapping;
+            luxurySlotTexture.repeat.set(2, 2);
+            const luxurySlotMaterial = new THREE.MeshBasicMaterial({ map: luxurySlotTexture, color: 0xFF0000 });
+            const luxurySlot = new THREE.Mesh(
+                new THREE.PlaneGeometry(8, 12),
+                luxurySlotMaterial
+            );
+            luxurySlot.rotation.x = -Math.PI / 2;
+            luxurySlot.position.set(12, 0.02, -50);
+            scene.add(luxurySlot);
+            const minimapLuxurySlot = new THREE.Mesh(
+                new THREE.PlaneGeometry(8, 12),
+                new THREE.MeshBasicMaterial({ color: 0xFF0000 })
+            );
+            minimapLuxurySlot.rotation.x = -Math.PI / 2;
+            minimapLuxurySlot.position.set(12, 0.02, -50);
+            minimapScene.add(minimapLuxurySlot);
+            const parkingSpace = { x: 12, z: -50, width: 8, depth: 12 };
+
+            // Parking slot outline
+            const outlineMaterial = new THREE.LineBasicMaterial({ color: 0xFFFFFF, linewidth: 2 });
+            const outlineGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(12 - 4, 0.03, -50 - 6),
+                new THREE.Vector3(12 + 4, 0.03, -50 - 6),
+                new THREE.Vector3(12 + 4, 0.03, -50 + 6),
+                new THREE.Vector3(12 - 4, 0.03, -50 + 6),
+                new THREE.Vector3(12 - 4, 0.03, -50 - 6)
+            ]);
+            const parkingOutline = new THREE.Line(outlineGeometry, outlineMaterial);
+            scene.add(parkingOutline);
+            minimapScene.add(parkingOutline.clone());
+
+            // "Park Here" line
+            const parkHereLine = new THREE.Mesh(
+                new THREE.PlaneGeometry(8, 0.5),
+                new THREE.MeshBasicMaterial({ color: 0xffffff })
+            );
+            parkHereLine.rotation.x = -Math.PI / 2;
+            parkHereLine.position.set(12, 0.03, -44);
+            scene.add(parkHereLine);
+            minimapScene.add(parkHereLine.clone());
+
+            // Pre-parked cars
+            const parkedCarColors = [0x0000FF, 0xFFFFFF, 0x808080, 0xFF4500, 0x00CED1];
+            const parkedCars = [];
+            for (let i = 0; i < 5; i++) {
+                const parkedCar = new THREE.Group();
+                const carMain = new THREE.Mesh(
+                    new THREE.BoxGeometry(2, 0.8, 4),
+                    new THREE.MeshStandardMaterial({ color: parkedCarColors[i], metalness: 0.7, roughness: 0.2 })
+                );
+                carMain.position.y = 0.4;
+                carMain.castShadow = true;
+                parkedCar.add(carMain);
+                const carHood = new THREE.Mesh(
+                    new THREE.BoxGeometry(2, 0.2, 1.5),
+                    new THREE.MeshStandardMaterial({ color: parkedCarColors[i], metalness: 0.7, roughness: 0.2 })
+                );
+                carHood.position.set(0, 0.7, 1.25);
+                parkedCar.add(carHood);
+                const carWindowMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.1 });
+                const carFrontWindow = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.8, 0.3, 0.1),
+                    carWindowMat
+                );
+                carFrontWindow.position.set(0, 0.7, 0.5);
+                parkedCar.add(carFrontWindow);
+                const carRearWindow = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.8, 0.3, 0.1),
+                    carWindowMat
+                );
+                carRearWindow.position.set(0, 0.7, -0.5);
+                parkedCar.add(carRearWindow);
+                for (let j = 0; j < 4; j++) {
+                    const wheel = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.3, 0.3, 0.2, 32),
+                        new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.5, roughness: 0.5 })
+                    );
+                    wheel.rotation.z = Math.PI / 2;
+                    wheel.position.set(
+                        (j % 2 === 0 ? 1 : -1) * 0.8,
+                        0.2,
+                        (j < 2 ? 1 : -1) * 1.2
+                    );
+                    parkedCar.add(wheel);
+                }
+                parkedCar.position.set(12, 0.4, -46 + i * 4);
+                parkedCar.rotation.y = Math.PI / 2;
+                scene.add(parkedCar);
+                minimapScene.add(parkedCar.clone());
+                parkedCars.push(parkedCar);
+            }
+
+            // Crowd near parking slot
+            const crowd = [];
+            for (let i = 0; i < 6; i++) {
+                const person = new THREE.Group();
+                const body = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.2, 0.2, 1.5, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x555555 })
+                );
+                body.position.y = 0.75;
+                person.add(body);
+                const head = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.2, 16, 16),
+                    new THREE.MeshStandardMaterial({ color: 0xFFDAB9 })
+                );
+                head.position.y = 1.7;
+                person.add(head);
+                person.position.set(15 + (i % 2) * 2, 0, -50 + (Math.floor(i / 2) - 1) * 2);
+                person.castShadow = true;
+                scene.add(person);
+                minimapScene.add(person.clone());
+                crowd.push(person);
+            }
+
+            // Infinite buildings
+            const buildingTexture = new THREE.TextureLoader().load(
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAAAYElEQVR4nO2TQQqAMAxE36S9i/6vF6QzqYQUzL0E8AOg0M3zSxhD1iYEFs1cF1i0c11g0c51gUXX3BZYdM19gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+            );
+            buildingTexture.wrapS = buildingTexture.wrapT = THREE.RepeatWrapping;
+            buildingTexture.repeat.set(2, 2);
+            const colors = [0xFF4500, 0xFFD700, 0x00CED1, 0xFF69B4];
+            const buildings = [];
+            function createBuilding(z) {
+                const height = 4 + Math.random() * 5;
+                const building = new THREE.Mesh(
+                    new THREE.BoxGeometry(6, height, 6),
+                    new THREE.MeshPhongMaterial({ map: buildingTexture, color: colors[Math.floor(Math.random() * colors.length)] })
+                );
+                building.position.set(
+                    Math.random() < 0.5 ? -10 : 10,
+                    height / 2,
+                    z
+                );
+                building.castShadow = true;
+                building.receiveShadow = true;
+                const windowGeo = new THREE.PlaneGeometry(1, 1);
+                const windowMat = new THREE.MeshBasicMaterial({ color: 0x87CEEB });
+                for (let j = 0; j < 4; j++) {
+                    const windowMesh = new THREE.Mesh(windowGeo, windowMat);
+                    windowMesh.position.set(
+                        (j % 2 === 0 ? -3.1 : 3.1),
+                        height / 2 - j * 1.5,
+                        0
+                    );
+                    building.add(windowMesh);
+                }
+                scene.add(building);
+                minimapScene.add(building.clone());
+                buildings.push(building);
+            }
+            for (let i = -5; i <= 5; i++) {
+                createBuilding(i * 8);
+            }
+
+            // Enhanced car model with interior
+            const carTexture = new THREE.TextureLoader().load(
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAABGklEQVR4nO2VSwqDMBBF3/oV3P4V3L2AC5eI0CKIuOAGvIFb0M3zSxhD1iYEFs1cF1i0c11g0c51gUXX3BZY9M19gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+            );
+            carTexture.wrapS = carTexture.wrapT = THREE.RepeatWrapping;
+            carTexture.repeat.set(2, 2);
+            const carBody = new THREE.Group();
+            const mainBody = new THREE.Mesh(
+                new THREE.BoxGeometry(2, 0.8, 4),
+                new THREE.MeshStandardMaterial({ map: carTexture, color: 0xFF3333, metalness: 0.7, roughness: 0.2 })
+            );
+            mainBody.position.y = 0.4;
+            mainBody.castShadow = true;
+            carBody.add(mainBody);
+            const hood = new THREE.Mesh(
+                new THREE.BoxGeometry(2, 0.2, 1.5),
+                new THREE.MeshStandardMaterial({ map: carTexture, color: 0xFF3333, metalness: 0.7, roughness: 0.2 })
+            );
+            hood.position.set(0, 0.6, 1.25);
+            hood.rotation.x = -0.2;
+            carBody.add(hood);
+            const trunk = new THREE.Mesh(
+                new THREE.BoxGeometry(2, 0.2, 1.5),
+                new THREE.MeshStandardMaterial({ map: carTexture, color: 0xFF3333, metalness: 0.7, roughness: 0.2 })
+            );
+            trunk.position.set(0, 0.6, -1.25);
+            trunk.rotation.x = 0.2;
+            carBody.add(trunk);
+            const windowMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.1, transparent: true, opacity: 0.5 });
+            const frontWindow = new THREE.Mesh(
+                new THREE.BoxGeometry(1.8, 0.3, 0.1),
+                windowMat
+            );
+            frontWindow.position.set(0, 0.7, 0.5);
+            frontWindow.rotation.x = -0.3;
+            carBody.add(frontWindow);
+            const rearWindow = new THREE.Mesh(
+                new THREE.BoxGeometry(1.8, 0.3, 0.1),
+                windowMat
+            );
+            rearWindow.position.set(0, 0.7, -0.5);
+            rearWindow.rotation.x = 0.3;
+            carBody.add(rearWindow);
+            const sideWindow1 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.1, 0.3, 1.5),
+                windowMat
+            );
+            sideWindow1.position.set(-1, 0.7, 0);
+            carBody.add(sideWindow1);
+            const sideWindow2 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.1, 0.3, 1.5),
+                windowMat
+            );
+            sideWindow2.position.set(1, 0.7, 0);
+            carBody.add(sideWindow2);
+            const headlightMat = new THREE.MeshBasicMaterial({ color: 0xFFFFE0 });
+            const headlight1 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.3, 0.2, 0.1),
+                headlightMat
+            );
+            headlight1.position.set(-0.8, 0.5, 2);
+            carBody.add(headlight1);
+            const headlight2 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.3, 0.2, 0.1),
+                headlightMat
+            );
+            headlight2.position.set(0.8, 0.5, 2);
+            carBody.add(headlight2);
+            const taillightMat = new THREE.MeshBasicMaterial({ color: 0xFF0000 });
+            const taillight1 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.3, 0.2, 0.1),
+                taillightMat
+            );
+            taillight1.position.set(-0.8, 0.5, -2);
+            carBody.add(taillight1);
+            const taillight2 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.3, 0.2, 0.1),
+                taillightMat
+            );
+            taillight2.position.set(0.8, 0.5, -2);
+            carBody.add(taillight2);
+            const mirrorMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.3 });
+            const mirror1 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.2, 0.1, 0.3),
+                mirrorMat
+            );
+            mirror1.position.set(-1.1, 0.7, 0.8);
+            carBody.add(mirror1);
+            const mirror2 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.2, 0.1, 0.3),
+                mirrorMat
+            );
+            mirror2.position.set(1.1, 0.7, 0.8);
+            carBody.add(mirror2);
+            const wheels = [];
+            for (let i = 0; i < 4; i++) {
+                const wheel = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.3, 0.3, 0.2, 32),
+                    new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.5, roughness: 0.5 })
+                );
+                wheel.rotation.z = Math.PI / 2;
+                wheel.position.set(
+                    (i % 2 === 0 ? 1 : -1) * 0.8,
+                    0.2,
+                    (i < 2 ? 1 : -1) * 1.2
+                );
+                carBody.add(wheel);
+                wheels.push(wheel);
+            }
+            // Interior: Steering wheel
+            const steeringWheel = new THREE.Mesh(
+                new THREE.TorusGeometry(0.3, 0.05, 16, 32),
+                new THREE.MeshStandardMaterial({ color: 0x333333 })
+            );
+            steeringWheel.position.set(0, 0.7, 0.7);
+            steeringWheel.rotation.x = Math.PI / 2;
+            carBody.add(steeringWheel);
+            // Interior: Speedometer
+            const speedometerCanvas = document.createElement('canvas');
+            speedometerCanvas.width = 256;
+            speedometerCanvas.height = 128;
+            const speedometerContext = speedometerCanvas.getContext('2d');
+            const speedometerTexture = new THREE.CanvasTexture(speedometerCanvas);
+            const speedometer = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.5, 0.25),
+                new THREE.MeshBasicMaterial({ map: speedometerTexture, transparent: true })
+            );
+            speedometer.position.set(0.3, 0.7, 0.6);
+            speedometer.rotation.y = -Math.PI / 4;
+            carBody.add(speedometer);
+            carBody.position.set(0, 0.4, -20);
+            carBody.rotation.y = Math.PI;
+            scene.add(carBody);
+            const minimapCar = new THREE.Mesh(
+                new THREE.BoxGeometry(2, 0.8, 4),
+                new THREE.MeshBasicMaterial({ color: 0xFF0000 })
+            );
+            minimapScene.add(minimapCar);
+
+            // Camera setup
+            let isInsideView = false;
+            camera.position.set(0, 5, -5);
+            camera.lookAt(carBody.position);
+            const insideCameraPos = new THREE.Vector3(0, 0.7, 0.5);
+
+            // Toggle camera button
+            const cameraButton = document.getElementById('cameraButton');
+            cameraButton.addEventListener('click', () => {
+                isInsideView = !isInsideView;
+                cameraButton.textContent = isInsideView ? 'Third-Person View' : 'Inside View';
+            });
+
+            // Mobile controls
+            const mobileParkBtn = document.getElementById('mobileParkBtn');
+            const mobileCameraBtn = document.getElementById('mobileCameraBtn');
+            mobileParkBtn.addEventListener('click', () => {
+                parkButton.click();
+            });
+            mobileCameraBtn.addEventListener('click', () => {
+                cameraButton.click();
+            });
+
+            // Controls
+            let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, ' ': false };
+            document.addEventListener('keydown', e => keys[e.key] = true);
+            document.addEventListener('keyup', e => keys[e.key] = false);
+
+            // Game state
+            let speed = 0,
+                maxSpeed = 0.3,
+                acceleration = 0.01,
+                rotationSpeed = 0.05,
+                driftFactor = 0.9,
+                score = 0,
+                time = 0,
+                parked = false;
+            const scoreDisplay = document.getElementById('score');
+            const timeDisplay = document.getElementById('time');
+            const messageDisplay = document.getElementById('message');
+            const parkButton = document.getElementById('parkButton');
+
+            // Parking button and slot color logic
+            function checkParking() {
+                const dx = Math.abs(carBody.position.x - parkingSpace.x);
+                const dz = Math.abs(carBody.position.z - parkingSpace.z);
+                const angle = Math.abs(carBody.rotation.y % (2 * Math.PI));
+                if (dx < parkingSpace.width / 2 && dz < parkingSpace.depth / 2 && (angle < 0.1 || Math.abs(angle - Math.PI) < 0.1)) {
+                    parkButton.style.display = 'block';
+                    luxurySlotMaterial.color.set(0xFFD700);
+                    minimapLuxurySlot.material.color.set(0xFFD700);
+                } else {
+                    parkButton.style.display = 'none';
+                    luxurySlotMaterial.color.set(0xFF0000);
+                    minimapLuxurySlot.material.color.set(0xFF0000);
+                }
+            }
+            parkButton.addEventListener('click', () => {
+                const dx = Math.abs(carBody.position.x - parkingSpace.x);
+                const dz = Math.abs(carBody.position.z - parkingSpace.z);
+                const angle = Math.abs(carBody.rotation.y % (2 * Math.PI));
+                if (dx < parkingSpace.width / 2 && dz < parkingSpace.depth / 2 && (angle < 0.1 || Math.abs(angle - Math.PI) < 0.1)) {
+                    parked = true;
+                    score += Math.max(50, 100 - Math.floor(time));
+                    scoreDisplay.textContent = score;
+                    messageDisplay.style.display = 'block';
+                    parkButton.style.display = 'none';
+                    setTimeout(() => {
+                        messageDisplay.style.display = 'none';
+                        carBody.position.set(0, 0.4, -20);
+                        carBody.rotation.y = Math.PI;
+                        speed = 0;
+                        parked = false;
+                        time = 0;
+                        luxurySlotMaterial.color.set(0xFF0000);
+                        minimapLuxurySlot.material.color.set(0xFF0000);
+                    }, 2000);
+                }
+            });
+
+            // Update speedometer
+            function updateSpeedometer() {
+                speedometerContext.clearRect(0, 0, 256, 128);
+                speedometerContext.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                speedometerContext.fillRect(0, 0, 256, 128);
+                speedometerContext.fillStyle = 'white';
+                speedometerContext.font = '30px Arial';
+                speedometerContext.textAlign = 'center';
+                speedometerContext.textBaseline = 'middle';
+                const speedKmh = Math.abs(speed / maxSpeed * 120).toFixed(0);
+                speedometerContext.fillText(`${speedKmh} km/h`, 128, 64);
+                speedometerTexture.needsUpdate = true;
+            }
+
+            // Infinite building generation
+            function updateBuildings() {
+                const z = carBody.position.z;
+                const buildingSpacing = 8;
+                const zMin = Math.floor(z / buildingSpacing) * buildingSpacing - 40;
+                const zMax = zMin + 80;
+                buildings.forEach(b => {
+                    if (b.position.z < zMin - 8 || b.position.z > zMax + 8) {
+                        scene.remove(b);
+                        minimapScene.remove(minimapScene.children.find(c => c.position.equals(b.position)));
+                        buildings.splice(buildings.indexOf(b), 1);
+                    }
+                });
+                for (let i = Math.floor(zMin / buildingSpacing); i <= Math.ceil(zMax / buildingSpacing); i++) {
+                    if (!buildings.some(b => Math.abs(b.position.z - i * buildingSpacing) < 1)) {
+                        createBuilding(i * buildingSpacing);
+                    }
+                }
+            }
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                if (parked) return;
+
+                // Update time
+                time += 1 / 60;
+                timeDisplay.textContent = time.toFixed(1);
+
+                // Movement with drifting
+                const forward = keys.ArrowUp ? 1 : keys.ArrowDown ? -1 : 0;
+                const turn = keys.ArrowLeft ? -1 : keys.ArrowRight ? 1 : 0;
+
+                if (keys[' ']) {
+                    speed *= 0.9;
+                } else {
+                    speed += forward * acceleration;
+                    speed = Math.max(Math.min(speed, maxSpeed), -maxSpeed * 0.5);
+                }
+
+                // Drifting mechanics
+                carBody.rotation.y -= turn * rotationSpeed * (speed / maxSpeed);
+                const velocityX = speed * Math.sin(carBody.rotation.y) * driftFactor;
+                const velocityZ = speed * Math.cos(carBody.rotation.y) * driftFactor;
+                carBody.position.x += velocityX;
+                carBody.position.z += velocityZ;
+
+                // Wheel and steering wheel animation
+                wheels.forEach(wheel => {
+                    wheel.rotation.x += speed * 2;
+                    if (wheel.position.x > 0 && wheel.position.z > 0) {
+                        wheel.rotation.y = turn * 0.5;
+                    }
+                });
+                steeringWheel.rotation.z = turn * 0.5;
+
+                // Update speedometer
+                updateSpeedometer();
+
+                // Update infinite buildings
+                updateBuildings();
+
+                // Collision detection (exclude crowd)
+                for (let b of buildings.concat(parkedCars)) {
+                    const dx = carBody.position.x - b.position.x;
+                    const dz = carBody.position.z - b.position.z;
+                    if (Math.sqrt(dx * dx + dz * dz) < 4) {
+                        speed = 0;
+                        score = Math.max(0, score - 10);
+                        scoreDisplay.textContent = score;
+                    }
+                }
+
+                // Check parking for button visibility and slot color
+                checkParking();
+
+                // Camera update
+                if (isInsideView) {
+                    camera.position.copy(carBody.position).add(carBody.localToWorld(insideCameraPos.clone()));
+                    camera.rotation.copy(carBody.rotation);
+                    camera.rotateX(-0.2);
+                } else {
+                    camera.position.set(carBody.position.x, carBody.position.y + 4, carBody.position.z + 8);
+                    camera.lookAt(carBody.position);
+                }
+
+                // Minimap update
+                minimapCar.position.copy(carBody.position);
+                minimapCar.rotation.copy(carBody.rotation);
+                minimapCamera.position.set(carBody.position.x, 20, carBody.position.z);
+                minimapCamera.lookAt(carBody.position);
+                minimapRenderer.render(minimapScene, minimapCamera);
+
+                renderer.render(scene, camera);
+            }
+
+            // Handle resize
+            function handleResize() {
+                const container = document.querySelector('.game-container');
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+            }
+            window.addEventListener('resize', () => {
+                clearTimeout(window.resizeTimeout);
+                window.resizeTimeout = setTimeout(handleResize, 100);
+            });
+            window.addEventListener('orientationchange', () => {
+                clearTimeout(window.resizeTimeout);
+                window.resizeTimeout = setTimeout(handleResize, 100);
+            });
+            handleResize();
+
+            animate();
+        });
+    </script>
+</body>
+</html>
+
+@* @model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "GameName";
+    Layout = "_layout3";
+}
+<script type="text/javascript">
+    var gk_isXlsx = false;
+    var gk_xlsxFileLookup = {};
+    var gk_fileData = {};
+    function filledCell(cell) {
+      return cell !== '' && cell != null;
+    }
+    function loadFileData(filename) {
+    if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+        try {
+            var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+            var firstSheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert sheet to JSON to filter blank rows
+            var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+            // Filter out blank rows (rows where all cells are empty, null, or undefined)
+            var filteredData = jsonData.filter(row => row.some(filledCell));
+
+            // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+            var headerRowIndex = filteredData.findIndex((row, index) =>
+              row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+            );
+            // Fallback
+            if (headerRowIndex === -1 || headerRowIndex > 25) {
+              headerRowIndex = 0;
+            }
+
+            // Convert filtered JSON back to CSV
+            var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+            csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+            return csv;
+        } catch (e) {
+            console.error(e);
+            return "";
+        }
+    }
+    return gk_fileData[filename] || "";
+    }
+</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Luxury Car Parking Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #1a1a1a;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: lime;
+            font-size: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        #minimap {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 200px;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid white;
+            border-radius: 5px;
+        }
+
+        #parkButton, #cameraButton {
+            position: absolute;
+            bottom: 220px;
+            right: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #FFD700;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #cameraButton {
+            bottom: 270px;
+            background: #00CED1;
+        }
+
+        #parkButton:hover {
+            background: #FFEC8B;
+        }
+
+        #cameraButton:hover {
+            background: #40E0D0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+
+        <div id="ui">Score: <span id="score">0</span> | Time: <span id="time">0</span>s</div>
+        <div id="message">Parked Successfully!</div>
+        <canvas id="minimap"></canvas>
+        <button id="parkButton">Park</button>
+        <button id="cameraButton">Toggle Camera</button>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        // Main scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        // Minimap setup
+        const minimapScene = new THREE.Scene();
+        const minimapCamera = new THREE.OrthographicCamera(-25, 25, 25, -25, 0.1, 100);
+        const minimapRenderer = new THREE.WebGLRenderer({ canvas: document.getElementById('minimap'), alpha: true });
+        minimapRenderer.setSize(200, 200);
+        minimapCamera.position.set(0, 20, 0);
+        minimapCamera.lookAt(0, 0, 0);
+
+        // Skybox
+        const skyTexture = new THREE.TextureLoader().load(
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAABJklEQVR4nO2VsQ2DMBCF7/QKbv8K7l7AhUtEaBFEnHAD3sAtaOb5JYwhahMCi2auCyzavS6waOa6wKLr6wILrrkv0Oj6usCi7+sCi76/Cyz6/i6w6Pu6wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6AAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+        );
+        const skyGeometry = new THREE.BoxGeometry(1000, 1000, 1000);
+        const skyMaterial = new THREE.MeshBasicMaterial({ map: skyTexture, side: THREE.BackSide });
+        const skybox = new THREE.Mesh(skyGeometry, skyMaterial);
+        scene.add(skybox);
+
+        // Sun
+        const sun = new THREE.Mesh(
+          new THREE.SphereGeometry(5, 32, 32),
+          new THREE.MeshBasicMaterial({ color: 0xFFFF00 })
+        );
+        sun.position.set(50, 100, -50);
+        scene.add(sun);
+
+        // Clouds
+        const cloudTexture = new THREE.TextureLoader().load(
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAABGElEQVR4nO2VsQrDMBBF3/oV3P4V3L2AC5eI0CKIuOAGvIFb0M3zSxhD1iYEFs1cF1i0c11g0c51gUXX3BZY9M19gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+        );
+        cloudTexture.transparent = true;
+        const clouds = [];
+        for (let i = 0; i < 5; i++) {
+          const cloud = new THREE.Mesh(
+            new THREE.PlaneGeometry(20, 10),
+            new THREE.MeshBasicMaterial({ map: cloudTexture, transparent: true, side: THREE.DoubleSide })
+          );
+          cloud.position.set(
+            (Math.random() - 0.5) * 200,
+            50 + Math.random() * 20,
+            (Math.random() - 0.5) * 200
+          );
+          cloud.rotation.y = Math.random() * Math.PI;
+          scene.add(cloud);
+        }
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+        dirLight.position.set(50, 100, -50);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
+
+        // Infinite road with dashed lines
+        const roadTexture = new THREE.TextureLoader().load(
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAAAGUlEQVR4nGNgGAWjYBSMglEwCkYhKAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+        );
+        roadTexture.wrapS = roadTexture.wrapT = THREE.RepeatWrapping;
+        roadTexture.repeat.set(5, 100);
+        const road = new THREE.Mesh(
+          new THREE.PlaneGeometry(10, 1000),
+          new THREE.MeshPhongMaterial({ map: roadTexture, color: 0x333333 })
+        );
+        road.rotation.x = -Math.PI / 2;
+        road.receiveShadow = true;
+        scene.add(road);
+        minimapScene.add(road.clone());
+
+        // Dashed road lines
+        const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+        const lineGeometry = new THREE.PlaneGeometry(0.2, 2);
+        for (let z = -500; z <= 500; z += 4) {
+          const line = new THREE.Mesh(lineGeometry, lineMaterial);
+          line.rotation.x = -Math.PI / 2;
+          line.position.set(0, 0.02, z);
+          scene.add(line);
+          minimapScene.add(line.clone());
+        }
+
+        // Ground with grass texture
+        const groundTexture = new THREE.TextureLoader().load(
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAAAM0lEQVR4nGNgGAWjYBSMglEwCkYhKJi4eP78/////w8DAwPDwPDw8PDw8PDw8PDw8PDw8AAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+        );
+        groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+        groundTexture.repeat.set(50, 50);
+        const ground = new THREE.Mesh(
+          new THREE.PlaneGeometry(100, 1000),
+          new THREE.MeshPhongMaterial({ map: groundTexture, color: 0x228B22 })
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -0.01;
+        ground.receiveShadow = true;
+        scene.add(ground);
+        minimapScene.add(ground.clone());
+
+        // Distant trees for background
+        const trees = [];
+        for (let i = 0; i < 20; i++) {
+          const tree = new THREE.Group();
+          const trunk = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.2, 0.2, 2, 16),
+            new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+          );
+          trunk.position.y = 1;
+          tree.add(trunk);
+          const foliage = new THREE.Mesh(
+            new THREE.SphereGeometry(1, 16, 16),
+            new THREE.MeshStandardMaterial({ color: 0x228B22 })
+          );
+          foliage.position.y = 2.5;
+          tree.add(foliage);
+          tree.position.set(
+            (Math.random() < 0.5 ? -1 : 1) * (20 + Math.random() * 30),
+            0,
+            -500 + i * 50
+          );
+          tree.castShadow = true;
+          scene.add(tree);
+        }
+
+        // Path to parking slot (for minimap)
+        const pathMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+        const pathPoints = [
+          new THREE.Vector3(0, 0.1, -20),
+          new THREE.Vector3(0, 0.1, -50),
+          new THREE.Vector3(12, 0.1, -50)
+        ];
+        const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
+        const pathLine = new THREE.Line(pathGeometry, pathMaterial);
+        minimapScene.add(pathLine);
+
+        // Luxury parking slot with dynamic color
+        const luxurySlotTexture = new THREE.TextureLoader().load(
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAAAUUlEQVR4nGNgGAWjYBSMglEwCkYhKJi4eP78/////w8DAwPDwPDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8AAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+        );
+        luxurySlotTexture.wrapS = luxurySlotTexture.wrapT = THREE.RepeatWrapping;
+        luxurySlotTexture.repeat.set(2, 2);
+        const luxurySlotMaterial = new THREE.MeshBasicMaterial({ map: luxurySlotTexture, color: 0xFF0000 }); // Start red
+        const luxurySlot = new THREE.Mesh(
+          new THREE.PlaneGeometry(8, 12),
+          luxurySlotMaterial
+        );
+        luxurySlot.rotation.x = -Math.PI / 2;
+        luxurySlot.position.set(12, 0.02, -50);
+        scene.add(luxurySlot);
+        const minimapLuxurySlot = new THREE.Mesh(
+          new THREE.PlaneGeometry(8, 12),
+          new THREE.MeshBasicMaterial({ color: 0xFF0000 })
+        );
+        minimapLuxurySlot.rotation.x = -Math.PI / 2;
+        minimapLuxurySlot.position.set(12, 0.02, -50);
+        minimapScene.add(minimapLuxurySlot);
+        const parkingSpace = { x: 12, z: -50, width: 8, depth: 12 };
+
+        // Parking slot outline
+        const outlineMaterial = new THREE.LineBasicMaterial({ color: 0xFFFFFF, linewidth: 2 });
+        const outlineGeometry = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(12 - 4, 0.03, -50 - 6),
+          new THREE.Vector3(12 + 4, 0.03, -50 - 6),
+          new THREE.Vector3(12 + 4, 0.03, -50 + 6),
+          new THREE.Vector3(12 - 4, 0.03, -50 + 6),
+          new THREE.Vector3(12 - 4, 0.03, -50 - 6)
+        ]);
+        const parkingOutline = new THREE.Line(outlineGeometry, outlineMaterial);
+        scene.add(parkingOutline);
+        minimapScene.add(parkingOutline.clone());
+
+        // "Park Here" line
+        const parkHereLine = new THREE.Mesh(
+          new THREE.PlaneGeometry(8, 0.5),
+          new THREE.MeshBasicMaterial({ color: 0xffffff })
+        );
+        parkHereLine.rotation.x = -Math.PI / 2;
+        parkHereLine.position.set(12, 0.03, -44);
+        scene.add(parkHereLine);
+        minimapScene.add(parkHereLine.clone());
+
+        // Pre-parked cars
+        const parkedCarColors = [0x0000FF, 0xFFFFFF, 0x808080, 0xFF4500, 0x00CED1];
+        const parkedCars = [];
+        for (let i = 0; i < 5; i++) {
+          const parkedCar = new THREE.Group();
+          const carMain = new THREE.Mesh(
+            new THREE.BoxGeometry(2, 0.8, 4),
+            new THREE.MeshStandardMaterial({ color: parkedCarColors[i], metalness: 0.7, roughness: 0.2 })
+          );
+          carMain.position.y = 0.4;
+          carMain.castShadow = true;
+          parkedCar.add(carMain);
+          const carHood = new THREE.Mesh(
+            new THREE.BoxGeometry(2, 0.2, 1.5),
+            new THREE.MeshStandardMaterial({ color: parkedCarColors[i], metalness: 0.7, roughness: 0.2 })
+          );
+          carHood.position.set(0, 0.7, 1.25);
+          parkedCar.add(carHood);
+          const carWindowMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.1 });
+          const carFrontWindow = new THREE.Mesh(
+            new THREE.BoxGeometry(1.8, 0.3, 0.1),
+            carWindowMat
+          );
+          carFrontWindow.position.set(0, 0.7, 0.5);
+          parkedCar.add(carFrontWindow);
+          const carRearWindow = new THREE.Mesh(
+            new THREE.BoxGeometry(1.8, 0.3, 0.1),
+            carWindowMat
+          );
+          carRearWindow.position.set(0, 0.7, -0.5);
+          parkedCar.add(carRearWindow);
+          for (let j = 0; j < 4; j++) {
+            const wheel = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.3, 0.3, 0.2, 32),
+              new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.5, roughness: 0.5 })
+            );
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(
+              (j % 2 === 0 ? 1 : -1) * 0.8,
+              0.2,
+              (j < 2 ? 1 : -1) * 1.2
+            );
+            parkedCar.add(wheel);
+          }
+          parkedCar.position.set(12, 0.4, -46 + i * 4);
+          parkedCar.rotation.y = Math.PI / 2;
+          scene.add(parkedCar);
+          minimapScene.add(parkedCar.clone());
+          parkedCars.push(parkedCar);
+        }
+
+        // Crowd near parking slot
+        const crowd = [];
+        for (let i = 0; i < 6; i++) {
+          const person = new THREE.Group();
+          const body = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.2, 0.2, 1.5, 16),
+            new THREE.MeshStandardMaterial({ color: 0x555555 })
+          );
+          body.position.y = 0.75;
+          person.add(body);
+          const head = new THREE.Mesh(
+            new THREE.SphereGeometry(0.2, 16, 16),
+            new THREE.MeshStandardMaterial({ color: 0xFFDAB9 })
+          );
+          head.position.y = 1.7;
+          person.add(head);
+          person.position.set(15 + (i % 2) * 2, 0, -50 + (Math.floor(i / 2) - 1) * 2);
+          person.castShadow = true;
+          scene.add(person);
+          minimapScene.add(person.clone());
+          crowd.push(person);
+        }
+
+        // Infinite buildings
+        const buildingTexture = new THREE.TextureLoader().load(
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAAAYElEQVR4nO2TQQqAMAxE36S9i/6vF6QzqYQUzL0E8AOg0M3zSxhD1iYEFs1cF1i0c11g0c51gUXX3BZYdM19gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+        );
+        buildingTexture.wrapS = buildingTexture.wrapT = THREE.RepeatWrapping;
+        buildingTexture.repeat.set(2, 2);
+        const colors = [0xFF4500, 0xFFD700, 0x00CED1, 0xFF69B4];
+        const buildings = [];
+        function createBuilding(z) {
+          const height = 4 + Math.random() * 5;
+          const building = new THREE.Mesh(
+            new THREE.BoxGeometry(6, height, 6),
+            new THREE.MeshPhongMaterial({ map: buildingTexture, color: colors[Math.floor(Math.random() * colors.length)] })
+          );
+          building.position.set(
+            Math.random() < 0.5 ? -10 : 10,
+            height / 2,
+            z
+          );
+          building.castShadow = true;
+          building.receiveShadow = true;
+          const windowGeo = new THREE.PlaneGeometry(1, 1);
+          const windowMat = new THREE.MeshBasicMaterial({ color: 0x87CEEB });
+          for (let j = 0; j < 4; j++) {
+            const windowMesh = new THREE.Mesh(windowGeo, windowMat);
+            windowMesh.position.set(
+              (j % 2 === 0 ? -3.1 : 3.1),
+              height / 2 - j * 1.5,
+              0
+            );
+            building.add(windowMesh);
+          }
+          scene.add(building);
+          minimapScene.add(building.clone());
+          buildings.push(building);
+        }
+        for (let i = -5; i <= 5; i++) {
+          createBuilding(i * 8);
+        }
+
+        // Enhanced car model with interior
+        const carTexture = new THREE.TextureLoader().load(
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAABGklEQVR4nO2VSwqDMBBF3/oV3P4V3L2AC5eI0CKIuOAGvIFb0M3zSxhD1iYEFs1cF1i0c11g0c51gUXX3BZY9M19gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+        );
+        carTexture.wrapS = carTexture.wrapT = THREE.RepeatWrapping;
+        carTexture.repeat.set(2, 2);
+        const carBody = new THREE.Group();
+        const mainBody = new THREE.Mesh(
+          new THREE.BoxGeometry(2, 0.8, 4),
+          new THREE.MeshStandardMaterial({ map: carTexture, color: 0xFF3333, metalness: 0.7, roughness: 0.2 })
+        );
+        mainBody.position.y = 0.4;
+        mainBody.castShadow = true;
+        carBody.add(mainBody);
+        const hood = new THREE.Mesh(
+          new THREE.BoxGeometry(2, 0.2, 1.5),
+          new THREE.MeshStandardMaterial({ map: carTexture, color: 0xFF3333, metalness: 0.7, roughness: 0.2 })
+        );
+        hood.position.set(0, 0.6, 1.25);
+        hood.rotation.x = -0.2;
+        carBody.add(hood);
+        const trunk = new THREE.Mesh(
+          new THREE.BoxGeometry(2, 0.2, 1.5),
+          new THREE.MeshStandardMaterial({ map: carTexture, color: 0xFF3333, metalness: 0.7, roughness: 0.2 })
+        );
+        trunk.position.set(0, 0.6, -1.25);
+        trunk.rotation.x = 0.2;
+        carBody.add(trunk);
+        const windowMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.1, transparent: true, opacity: 0.5 });
+        const frontWindow = new THREE.Mesh(
+          new THREE.BoxGeometry(1.8, 0.3, 0.1),
+          windowMat
+        );
+        frontWindow.position.set(0, 0.7, 0.5);
+        frontWindow.rotation.x = -0.3;
+        carBody.add(frontWindow);
+        const rearWindow = new THREE.Mesh(
+          new THREE.BoxGeometry(1.8, 0.3, 0.1),
+          windowMat
+        );
+        rearWindow.position.set(0, 0.7, -0.5);
+        rearWindow.rotation.x = 0.3;
+        carBody.add(rearWindow);
+        const sideWindow1 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.1, 0.3, 1.5),
+          windowMat
+        );
+        sideWindow1.position.set(-1, 0.7, 0);
+        carBody.add(sideWindow1);
+        const sideWindow2 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.1, 0.3, 1.5),
+          windowMat
+        );
+        sideWindow2.position.set(1, 0.7, 0);
+        carBody.add(sideWindow2);
+        const headlightMat = new THREE.MeshBasicMaterial({ color: 0xFFFFE0 });
+        const headlight1 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.3, 0.2, 0.1),
+          headlightMat
+        );
+        headlight1.position.set(-0.8, 0.5, 2);
+        carBody.add(headlight1);
+        const headlight2 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.3, 0.2, 0.1),
+          headlightMat
+        );
+        headlight2.position.set(0.8, 0.5, 2);
+        carBody.add(headlight2);
+        const taillightMat = new THREE.MeshBasicMaterial({ color: 0xFF0000 });
+        const taillight1 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.3, 0.2, 0.1),
+          taillightMat
+        );
+        taillight1.position.set(-0.8, 0.5, -2);
+        carBody.add(taillight1);
+        const taillight2 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.3, 0.2, 0.1),
+          taillightMat
+        );
+        taillight2.position.set(0.8, 0.5, -2);
+        carBody.add(taillight2);
+        const mirrorMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.3 });
+        const mirror1 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.1, 0.3),
+          mirrorMat
+        );
+        mirror1.position.set(-1.1, 0.7, 0.8);
+        carBody.add(mirror1);
+        const mirror2 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.1, 0.3),
+          mirrorMat
+        );
+        mirror2.position.set(1.1, 0.7, 0.8);
+        carBody.add(mirror2);
+        const wheels = [];
+        for (let i = 0; i < 4; i++) {
+          const wheel = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.3, 0.3, 0.2, 32),
+            new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.5, roughness: 0.5 })
+          );
+          wheel.rotation.z = Math.PI / 2;
+          wheel.position.set(
+            (i % 2 === 0 ? 1 : -1) * 0.8,
+            0.2,
+            (i < 2 ? 1 : -1) * 1.2
+          );
+          carBody.add(wheel);
+          wheels.push(wheel);
+        }
+        // Interior: Steering wheel
+        const steeringWheel = new THREE.Mesh(
+          new THREE.TorusGeometry(0.3, 0.05, 16, 32),
+          new THREE.MeshStandardMaterial({ color: 0x333333 })
+        );
+        steeringWheel.position.set(0, 0.7, 0.7);
+        steeringWheel.rotation.x = Math.PI / 2;
+        carBody.add(steeringWheel);
+        // Interior: Speedometer
+        const speedometerCanvas = document.createElement('canvas');
+        speedometerCanvas.width = 256;
+        speedometerCanvas.height = 128;
+        const speedometerContext = speedometerCanvas.getContext('2d');
+        const speedometerTexture = new THREE.CanvasTexture(speedometerCanvas);
+        const speedometer = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.5, 0.25),
+          new THREE.MeshBasicMaterial({ map: speedometerTexture, transparent: true })
+        );
+        speedometer.position.set(0.3, 0.7, 0.6);
+        speedometer.rotation.y = -Math.PI / 4;
+        carBody.add(speedometer);
+        carBody.position.set(0, 0.4, -20);
+        carBody.rotation.y = Math.PI; // Face headlights toward z = -50
+        scene.add(carBody);
+        const minimapCar = new THREE.Mesh(
+          new THREE.BoxGeometry(2, 0.8, 4),
+          new THREE.MeshBasicMaterial({ color: 0xFF0000 })
+        );
+        minimapScene.add(minimapCar);
+
+        // Camera setup
+        let isInsideView = false;
+        camera.position.set(0, 5, -5); // Default third-person view
+        camera.lookAt(carBody.position);
+        const insideCameraPos = new THREE.Vector3(0, 0.7, 0.5); // Inside car, driver’s seat
+
+        // Toggle camera button
+        const cameraButton = document.getElementById('cameraButton');
+        cameraButton.addEventListener('click', () => {
+          isInsideView = !isInsideView;
+          cameraButton.textContent = isInsideView ? 'Third-Person View' : 'Inside View';
+        });
+
+        // Controls
+        let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, ' ': false };
+        document.addEventListener('keydown', e => keys[e.key] = true);
+        document.addEventListener('keyup', e => keys[e.key] = false);
+
+        // Game state
+        let speed = 0,
+            maxSpeed = 0.3,
+            acceleration = 0.01,
+            rotationSpeed = 0.05,
+            driftFactor = 0.9,
+            score = 0,
+            time = 0,
+            parked = false;
+        const scoreDisplay = document.getElementById('score');
+        const timeDisplay = document.getElementById('time');
+        const messageDisplay = document.getElementById('message');
+        const parkButton = document.getElementById('parkButton');
+
+        // Parking button and slot color logic
+        function checkParking() {
+          const dx = Math.abs(carBody.position.x - parkingSpace.x);
+          const dz = Math.abs(carBody.position.z - parkingSpace.z);
+          const angle = Math.abs(carBody.rotation.y % (2 * Math.PI));
+          if (dx < parkingSpace.width / 2 && dz < parkingSpace.depth / 2 && (angle < 0.1 || Math.abs(angle - Math.PI) < 0.1)) {
+            parkButton.style.display = 'block';
+            luxurySlotMaterial.color.set(0xFFD700); // Gold when correctly parked
+            minimapLuxurySlot.material.color.set(0xFFD700);
+          } else {
+            parkButton.style.display = 'none';
+            luxurySlotMaterial.color.set(0xFF0000); // Red otherwise
+            minimapLuxurySlot.material.color.set(0xFF0000);
+          }
+        }
+        parkButton.addEventListener('click', () => {
+          const dx = Math.abs(carBody.position.x - parkingSpace.x);
+          const dz = Math.abs(carBody.position.z - parkingSpace.z);
+          const angle = Math.abs(carBody.rotation.y % (2 * Math.PI));
+          if (dx < parkingSpace.width / 2 && dz < parkingSpace.depth / 2 && (angle < 0.1 || Math.abs(angle - Math.PI) < 0.1)) {
+            parked = true;
+            score += Math.max(50, 100 - Math.floor(time));
+            scoreDisplay.textContent = score;
+            messageDisplay.style.display = 'block';
+            parkButton.style.display = 'none';
+            setTimeout(() => {
+              messageDisplay.style.display = 'none';
+              carBody.position.set(0, 0.4, -20);
+              carBody.rotation.y = Math.PI;
+              speed = 0;
+              parked = false;
+              time = 0;
+              luxurySlotMaterial.color.set(0xFF0000); // Reset to red
+              minimapLuxurySlot.material.color.set(0xFF0000);
+            }, 2000);
+          }
+        });
+
+        // Update speedometer
+        function updateSpeedometer() {
+          speedometerContext.clearRect(0, 0, 256, 128);
+          speedometerContext.fillStyle = 'rgba(0, 0, 0, 0.7)';
+          speedometerContext.fillRect(0, 0, 256, 128);
+          speedometerContext.fillStyle = 'white';
+          speedometerContext.font = '30px Arial';
+          speedometerContext.textAlign = 'center';
+          speedometerContext.textBaseline = 'middle';
+          const speedKmh = Math.abs(speed / maxSpeed * 120).toFixed(0); // Scale to 0-120 km/h
+          speedometerContext.fillText(`${speedKmh} km/h`, 128, 64);
+          speedometerTexture.needsUpdate = true;
+        }
+
+        // Infinite building generation
+        function updateBuildings() {
+          const z = carBody.position.z;
+          const buildingSpacing = 8;
+          const zMin = Math.floor(z / buildingSpacing) * buildingSpacing - 40;
+          const zMax = zMin + 80;
+          buildings.forEach(b => {
+            if (b.position.z < zMin - 8 || b.position.z > zMax + 8) {
+              scene.remove(b);
+              minimapScene.remove(minimapScene.children.find(c => c.position.equals(b.position)));
+              buildings.splice(buildings.indexOf(b), 1);
+            }
+          });
+          for (let i = Math.floor(zMin / buildingSpacing); i <= Math.ceil(zMax / buildingSpacing); i++) {
+            if (!buildings.some(b => Math.abs(b.position.z - i * buildingSpacing) < 1)) {
+              createBuilding(i * buildingSpacing);
+            }
+          }
+        }
+
+        // Animation loop
+        function animate() {
+          requestAnimationFrame(animate);
+          if (parked) return;
+
+          // Update time
+          time += 1 / 60;
+          timeDisplay.textContent = time.toFixed(1);
+
+          // Movement with drifting
+          const forward = keys.ArrowUp ? 1 : keys.ArrowDown ? -1 : 0;
+          const turn = keys.ArrowLeft ? -1 : keys.ArrowRight ? 1 : 0;
+
+          if (keys[' ']) {
+            speed *= 0.9; // Brake
+          } else {
+            speed += forward * acceleration;
+            speed = Math.max(Math.min(speed, maxSpeed), -maxSpeed * 0.5);
+          }
+
+          // Drifting mechanics
+          carBody.rotation.y -= turn * rotationSpeed * (speed / maxSpeed);
+          const velocityX = speed * Math.sin(carBody.rotation.y) * driftFactor;
+          const velocityZ = speed * Math.cos(carBody.rotation.y) * driftFactor;
+          carBody.position.x += velocityX;
+          carBody.position.z += velocityZ;
+
+          // Wheel and steering wheel animation
+          wheels.forEach(wheel => {
+            wheel.rotation.x += speed * 2;
+            if (wheel.position.x > 0 && wheel.position.z > 0) {
+              wheel.rotation.y = turn * 0.5;
+            }
+          });
+          steeringWheel.rotation.z = turn * 0.5; // Steering wheel rotates with input
+
+          // Update speedometer
+          updateSpeedometer();
+
+          // Update infinite buildings
+          updateBuildings();
+
+          // Collision detection (exclude crowd)
+          for (let b of buildings.concat(parkedCars)) {
+            const dx = carBody.position.x - b.position.x;
+            const dz = carBody.position.z - b.position.z;
+            if (Math.sqrt(dx * dx + dz * dz) < 4) {
+              speed = 0;
+              score = Math.max(0, score - 10);
+              scoreDisplay.textContent = score;
+            }
+          }
+
+          // Check parking for button visibility and slot color
+          checkParking();
+
+          // Camera update
+          if (isInsideView) {
+            camera.position.copy(carBody.position).add(carBody.localToWorld(insideCameraPos.clone()));
+            camera.rotation.copy(carBody.rotation);
+            camera.rotateX(-0.2); // Slight downward tilt
+          } else {
+            camera.position.set(carBody.position.x, carBody.position.y + 4, carBody.position.z + 8);
+            camera.lookAt(carBody.position);
+          }
+
+          // Minimap update
+          minimapCar.position.copy(carBody.position);
+          minimapCar.rotation.copy(carBody.rotation);
+          minimapCamera.position.set(carBody.position.x, 20, carBody.position.z);
+          minimapCamera.lookAt(carBody.position);
+          minimapRenderer.render(minimapScene, minimapCamera);
+
+          renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
+
+ *@

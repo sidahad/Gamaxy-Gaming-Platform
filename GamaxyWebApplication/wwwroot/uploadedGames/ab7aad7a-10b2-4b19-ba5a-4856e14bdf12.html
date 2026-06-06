@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Catch the Box</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #282c34;
+      color: white;
+      text-align: center;
+    }
+
+    canvas {
+      background: #111;
+      display: block;
+      margin: 40px auto;
+      border: 2px solid white;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Catch the Box</h1>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <p>Move with ⬅️ and ➡️. Catch the falling red box!</p>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let player = { x: 180, width: 40, height: 20 };
+    let box = { x: Math.random() * 360, y: 0, size: 20 };
+    let score = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Player
+      ctx.fillStyle = 'white';
+      ctx.fillRect(player.x, 370, player.width, player.height);
+
+      // Box
+      ctx.fillStyle = 'red';
+      ctx.fillRect(box.x, box.y, box.size, box.size);
+
+      // Score
+      ctx.fillStyle = 'lime';
+      ctx.font = '18px sans-serif';
+      ctx.fillText('Score: ' + score, 10, 20);
+    }
+
+    function update() {
+      box.y += 4;
+
+      if (box.y > 370 && box.x + box.size > player.x && box.x < player.x + player.width) {
+        score++;
+        box.y = 0;
+        box.x = Math.random() * 360;
+      }
+
+      if (box.y > 400) {
+        box.y = 0;
+        box.x = Math.random() * 360;
+      }
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' && player.x > 0) player.x -= 20;
+      if (e.key === 'ArrowRight' && player.x < 360) player.x += 20;
+    });
+
+    loop();
+  </script>
+</body>
+</html>

@@ -1,0 +1,811 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "GameName";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Royal Classical Drum Studio Pro</title>
+    <link href="~/css/Drumkit.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="game-page">
+        <div class="header-section">
+            <h1 class="game-title">Royal Classical Drum Studio Pro</h1>
+            <p class="game-subtitle">Create Your Rhythm Masterpiece</p>
+        </div>
+        <div class="game-container-wrapper">
+            <div class="game-container">
+                <div class="royal-container">
+                    <div class="master-control-panel">
+                        <div class="royal-logo">
+                            <span class="crown-icon">👑</span>
+                            Royal Classical Drum Studio Pro
+                        </div>
+                        <div class="master-controls">
+                            <button class="controls-toggle" onclick="toggleControlsPanel()">
+                                <span>🎛️</span>
+                                <span>Studio Controls</span>
+                                <span id="controls-arrow">▼</span>
+                            </button>
+                            <div class="controls-dropdown" id="controlsDropdown">
+                                <div class="studio-section">
+                                    <div class="section-title">🎙️ Recording Studio</div>
+                                    <div class="controls-grid">
+                                        <div class="control-section">
+                                            <div class="control-label">Record</div>
+                                            <button class="royal-btn" onclick="toggleRecording()">● Record</button>
+                                        </div>
+                                        <div class="control-section">
+                                            <div class="control-label">Playback</div>
+                                            <button class="royal-btn" onclick="playRecording()">▶ Play</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="studio-section">
+                                    <div class="section-title">⏱️ Metronome & Timing</div>
+                                    <div class="controls-grid">
+                                        <div class="control-section">
+                                            <div class="control-label">Metronome</div>
+                                            <button class="royal-btn" onclick="toggleMetronome()">⏱ Metro</button>
+                                        </div>
+                                        <div class="control-section">
+                                            <div class="control-label">BPM: <span id="bpmDisplay">120</span></div>
+                                            <input type="range" class="premium-slider" min="60" max="200" value="120" onchange="setBPM(this.value)">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="studio-section">
+                                    <div class="section-title">🎵 Sound Laboratory</div>
+                                    <div class="sound-pack-grid">
+                                        <button class="sound-pack-btn active" onclick="changeSoundPack('classical')">Classical</button>
+                                        <button class="sound-pack-btn" onclick="changeSoundPack('heavy')">Heavy Metal</button>
+                                        <button class="sound-pack-btn" onclick="changeSoundPack('electronic')">Electronic</button>
+                                        <button class="sound-pack-btn" onclick="changeSoundPack('jazz')">Jazz Fusion</button>
+                                        <button class="sound-pack-btn" onclick="changeSoundPack('orchestral')">Orchestral</button>
+                                        <button class="sound-pack-btn" onclick="changeSoundPack('vintage')">Vintage</button>
+                                    </div>
+                                </div>
+                                <div class="studio-section">
+                                    <div class="section-title">🎛️ Audio Effects Studio</div>
+                                    <div class="effect-control">
+                                        <span class="effect-label">Reverb</span>
+                                        <input type="range" class="premium-slider" min="0" max="100" value="30" onchange="setReverb(this.value)">
+                                    </div>
+                                    <div class="effect-control">
+                                        <span class="effect-label">Echo</span>
+                                        <input type="range" class="premium-slider" min="0" max="100" value="20" onchange="setEcho(this.value)">
+                                    </div>
+                                    <div class="effect-control">
+                                        <span class="effect-label">Distortion</span>
+                                        <input type="range" class="premium-slider" min="0" max="100" value="0" onchange="setDistortion(this.value)">
+                                    </div>
+                                    <div class="effect-control">
+                                        <span class="effect-label">Compression</span>
+                                        <input type="range" class="premium-slider" min="0" max="100" value="40" onchange="setCompression(this.value)">
+                                    </div>
+                                </div>
+                                <div class="studio-section">
+                                    <div class="section-title">⌨️ Keyboard Controls</div>
+                                    <div class="keyboard-mappings">
+                                        <div class="key-mapping"><span>Kick Drum</span><span class="key-code">SPACE</span></div>
+                                        <div class="key-mapping"><span>Snare</span><span class="key-code">S</span></div>
+                                        <div class="key-mapping"><span>Hi-Hat</span><span class="key-code">A</span></div>
+                                        <div class="key-mapping"><span>Crash</span><span class="key-code">D</span></div>
+                                        <div class="key-mapping"><span>Hi Tom</span><span class="key-code">Q</span></div>
+                                        <div class="key-mapping"><span>Mid Tom</span><span class="key-code">W</span></div>
+                                        <div class="key-mapping"><span>Floor Tom</span><span class="key-code">E</span></div>
+                                        <div class="key-mapping"><span>Ride</span><span class="key-code">F</span></div>
+                                        <div class="key-mapping"><span>Splash</span><span class="key-code">Z</span></div>
+                                        <div class="key-mapping"><span>China</span><span class="key-code">X</span></div>
+                                        <div class="key-mapping"><span>Rack Tom 1</span><span class="key-code">R</span></div>
+                                        <div class="key-mapping"><span>Rack Tom 2</span><span class="key-code">T</span></div>
+                                        <div class="key-mapping"><span>Cowbell</span><span class="key-code">C</span></div>
+                                        <div class="key-mapping"><span>Wood Block</span><span class="key-code">V</span></div>
+                                    </div>
+                                </div>
+                                <div class="studio-section">
+                                    <div class="section-title">🔊 Master Controls</div>
+                                    <div class="control-section" style="width: 100%;">
+                                        <div class="control-label">Master Volume</div>
+                                        <input type="range" class="premium-slider" min="0" max="100" value="85" onchange="setMasterVolume(this.value)" style="width: 100%;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="concert-hall">
+                        <div class="stage-lighting"></div>
+                        <div class="recording-indicator" id="recordingIndicator">
+                            ● RECORDING IN PROGRESS
+                        </div>
+                        <div class="status-displays">
+                            <div class="status-card" id="metronomeDisplay">
+                                <div class="status-title">♪ METRONOME ACTIVE</div>
+                                <div class="bpm-display" id="bpmValue">120</div>
+                                <div style="text-align: center; margin-top: 10px;">BPM</div>
+                            </div>
+                        </div>
+                        <div class="royal-drum-kit">
+                            <div class="drum-kit-layout">
+                                <div class="drum-piece kick-drum" data-sound="kick" data-key="Space" ontouchstart="playDrum('kick')" onmousedown="playDrum('kick')">
+                                    <div class="drum-label">Kick Drum</div>
+                                    <div class="drum-key">SPACE</div>
+                                </div>
+                                <div class="drum-piece snare-drum" data-sound="snare" data-key="S" ontouchstart="playDrum('snare')" onmousedown="playDrum('snare')">
+                                    <div class="drum-label">Snare</div>
+                                    <div class="drum-key">S</div>
+                                </div>
+                                <div class="drum-piece hi-tom" data-sound="hitom" data-key="Q" ontouchstart="playDrum('hitom')" onmousedown="playDrum('hitom')">
+                                    <div class="drum-label">Hi Tom</div>
+                                    <div class="drum-key">Q</div>
+                                </div>
+                                <div class="drum-piece mid-tom" data-sound="midtom" data-key="W" ontouchstart="playDrum('midtom')" onmousedown="playDrum('midtom')">
+                                    <div class="drum-label">Mid Tom</div>
+                                    <div class="drum-key">W</div>
+                                </div>
+                                <div class="drum-piece floor-tom" data-sound="floortom" data-key="E" ontouchstart="playDrum('floortom')" onmousedown="playDrum('floortom')">
+                                    <div class="drum-label">Floor Tom</div>
+                                    <div class="drum-key">E</div>
+                                </div>
+                                <div class="drum-piece hi-hat" data-sound="hihat" data-key="A" ontouchstart="playDrum('hihat')" onmousedown="playDrum('hihat')">
+                                    <div class="drum-label">Hi-Hat</div>
+                                    <div class="drum-key">A</div>
+                                </div>
+                                <div class="drum-piece crash-cymbal" data-sound="crash" data-key="D" ontouchstart="playDrum('crash')" onmousedown="playDrum('crash')">
+                                    <div class="drum-label">Crash</div>
+                                    <div class="drum-key">D</div>
+                                </div>
+                                <div class="drum-piece ride-cymbal" data-sound="ride" data-key="F" ontouchstart="playDrum('ride')" onmousedown="playDrum('ride')">
+                                    <div class="drum-label">Ride</div>
+                                    <div class="drum-key">F</div>
+                                </div>
+                                <div class="drum-piece splash-cymbal" data-sound="splash" data-key="Z" ontouchstart="playDrum('splash')" onmousedown="playDrum('splash')">
+                                    <div class="drum-label">Splash</div>
+                                    <div class="drum-key">Z</div>
+                                </div>
+                                <div class="drum-piece china-cymbal" data-sound="china" data-key="X" ontouchstart="playDrum('china')" onmousedown="playDrum('china')">
+                                    <div class="drum-label">China</div>
+                                    <div class="drum-key">X</div>
+                                </div>
+                                <div class="drum-piece rack-tom1" data-sound="racktom1" data-key="R" ontouchstart="playDrum('racktom1')" onmousedown="playDrum('racktom1')">
+                                    <div class="drum-label">Rack Tom 1</div>
+                                    <div class="drum-key">R</div>
+                                </div>
+                                <div class="drum-piece rack-tom2" data-sound="racktom2" data-key="T" ontouchstart="playDrum('racktom2')" onmousedown="playDrum('racktom2')">
+                                    <div class="drum-label">Rack Tom 2</div>
+                                    <div class="drum-key">T</div>
+                                </div>
+                                <div class="drum-piece cowbell" data-sound="cowbell" data-key="C" ontouchstart="playDrum('cowbell')" onmousedown="playDrum('cowbell')">
+                                    <div class="drum-label">Cowbell</div>
+                                    <div class="drum-key">C</div>
+                                </div>
+                                <div class="drum-piece wood-block" data-sound="woodblock" data-key="V" ontouchstart="playDrum('woodblock')" onmousedown="playDrum('woodblock')">
+                                    <div class="drum-label">Wood Block</div>
+                                    <div class="drum-key">V</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="controls" style="display: none;">
+            <h3>Controls</h3>
+            <p>Use the following keys to play the drums:</p>
+            <ul>
+                <li><strong>Kick Drum</strong>: SPACE</li>
+                <li><strong>Snare</strong>: S</li>
+                <li><strong>Hi-Hat</strong>: A</li>
+                <li><strong>Crash</strong>: D</li>
+                <li><strong>Hi Tom</strong>: Q</li>
+                <li><strong>Mid Tom</strong>: W</li>
+                <li><strong>Floor Tom</strong>: E</li>
+                <li><strong>Ride</strong>: F</li>
+                <li><strong>Splash</strong>: Z</li>
+                <li><strong>China</strong>: X</li>
+                <li><strong>Rack Tom 1</strong>: R</li>
+                <li><strong>Rack Tom 2</strong>: T</li>
+                <li><strong>Cowbell</strong>: C</li>
+                <li><strong>Wood Block</strong>: V</li>
+            </ul>
+        </div>
+        <div class="mobile-controls" style="display: none;">
+            <button class="mobile-btn" onclick="toggleRecording()">Record</button>
+            <button class="mobile-btn" onclick="playRecording()">Play</button>
+            <button class="mobile-btn" onclick="toggleMetronome()">Metronome</button>
+        </div>
+        <div class="rating-section">
+            <h2 class="rating-title">@Model.GameName</h2>
+            <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+            @if (Model.UserId.HasValue)
+            {
+                <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                <form id="ratingForm" method="post" asp-action="RateGame">
+                    <input type="hidden" name="gameName" value="@Model.GameName" />
+                    <div class="star-rating">
+                        @for (int i = 5; i >= 1; i--)
+                        {
+                            <input type="radio" id="star@(i)" name="rating" value="@(i)" @(Model.ExistingRating == i ? "checked" : "") />
+                            <label for="star@(i)">★</label>
+                        }
+                    </div>
+                    <button type="submit" class="btn btn-rate">Submit Rating</button>
+                </form>
+            }
+            else
+            {
+                <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+            }
+        </div>
+    </div>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971572b9032a909f',t:'MTc1NTU2MjQzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        // Existing JavaScript (unchanged)
+        let audioContext;
+        let masterGainNode;
+        let reverbNode;
+        let echoNode;
+        let distortionNode;
+        let compressorNode;
+
+        let masterVolume = 0.85;
+        let reverbLevel = 0.3;
+        let echoLevel = 0.2;
+        let distortionLevel = 0;
+        let compressionLevel = 0.4;
+        let currentBPM = 120;
+        let currentSoundPack = 'classical';
+
+        let isRecording = false;
+        let recordedBeats = [];
+        let recordingStartTime = 0;
+
+        let metronomeActive = false;
+        let metronomeInterval;
+        let metronomeBeat = 0;
+
+        let effectsPanelActive = false;
+        let keyGuideActive = false;
+        let controlsPanelActive = false;
+        let soundPacksPanelActive = false;
+
+        function initAudioSystem() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                masterGainNode = audioContext.createGain();
+                masterGainNode.gain.value = masterVolume;
+                masterGainNode.connect(audioContext.destination);
+                createReverbNode();
+                createEchoNode();
+                compressorNode = audioContext.createDynamicsCompressor();
+                compressorNode.threshold.value = -24;
+                compressorNode.knee.value = 30;
+                compressorNode.ratio.value = 12;
+                compressorNode.attack.value = 0.003;
+                compressorNode.release.value = 0.25;
+                compressorNode.connect(masterGainNode);
+            }
+        }
+
+        function createReverbNode() {
+            const convolver = audioContext.createConvolver();
+            const reverbTime = 2;
+            const sampleRate = audioContext.sampleRate;
+            const length = sampleRate * reverbTime;
+            const impulse = audioContext.createBuffer(2, length, sampleRate);
+
+            for (let channel = 0; channel < 2; channel++) {
+                const channelData = impulse.getChannelData(channel);
+                for (let i = 0; i < length; i++) {
+                    channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2);
+                }
+            }
+
+            convolver.buffer = impulse;
+            const reverbGain = audioContext.createGain();
+            reverbGain.gain.value = reverbLevel;
+            convolver.connect(reverbGain);
+            reverbNode = { convolver, gain: reverbGain };
+        }
+
+        function createEchoNode() {
+            const delay = audioContext.createDelay(1.0);
+            delay.delayTime.value = 0.3;
+            const feedback = audioContext.createGain();
+            feedback.gain.value = 0.3;
+            const echoGain = audioContext.createGain();
+            echoGain.gain.value = echoLevel;
+            delay.connect(feedback);
+            feedback.connect(delay);
+            delay.connect(echoGain);
+            echoNode = { delay, feedback, gain: echoGain };
+        }
+
+        function createAdvancedDrumSound(type, pack = 'classical') {
+            initAudioSystem();
+            const soundConfigs = {
+                classical: {
+                    kick: { freq: [35, 18], decay: [0.08, 2.5], filterFreq: 60, filterType: 'lowpass', envelope: 'exponential', harmonics: [1, 0.9, 0.7, 0.5, 0.3, 0.2], volume: 3.5, punch: true, subBass: true, ultraDeep: true, studioCompression: true },
+                    snare: { freq: [220, 140], decay: [0.03, 0.8], filterFreq: 3500, filterType: 'bandpass', noise: true, noiseLevel: 2.0, envelope: 'linear', volume: 2.8, crack: true, bodyResonance: true, harmonics: [1, 0.9, 0.6, 0.4, 0.2] },
+                    hitom: { freq: [320, 180], decay: [0.12, 1.2], filterFreq: 1800, filterType: 'lowpass', envelope: 'exponential', volume: 2.2, woodResonance: true, harmonics: [1, 0.8, 0.5, 0.3] },
+                    midtom: { freq: [160, 80], decay: [0.15, 1.5], filterFreq: 1200, filterType: 'lowpass', envelope: 'exponential', volume: 2.4, woodResonance: true, harmonics: [1, 0.9, 0.6, 0.4] },
+                    floortom: { freq: [80, 35], decay: [0.2, 2.0], filterFreq: 800, filterType: 'lowpass', envelope: 'exponential', volume: 2.8, deepResonance: true, harmonics: [1, 0.9, 0.7, 0.5, 0.3] },
+                    hihat: { freq: [15000, 22000], decay: [0.02, 0.4], filterFreq: 25000, filterType: 'highpass', noise: true, noiseLevel: 2.5, envelope: 'exponential', volume: 2.0, metallic: true, crisp: true, studioBrightness: true },
+                    crash: { freq: [5000, 15000], decay: [0.08, 4.0], filterFreq: 18000, filterType: 'highpass', noise: true, noiseLevel: 2.2, envelope: 'exponential', volume: 2.5, shimmer: true, brilliance: true, harmonics: [1, 0.9, 0.8, 0.6, 0.4, 0.3] },
+                    ride: { freq: [3000, 8000], decay: [0.12, 3.0], filterFreq: 15000, filterType: 'bandpass', noise: true, noiseLevel: 1.8, envelope: 'exponential', volume: 2.2, bell: true, warmth: true, harmonics: [1, 0.8, 0.6, 0.4, 0.2] },
+                    splash: { freq: [8000, 15000], decay: [0.02, 0.8], filterFreq: 18000, filterType: 'highpass', noise: true, noiseLevel: 1.3, envelope: 'exponential', volume: 1.2, shimmer: true, harmonics: [1, 0.6, 0.3] },
+                    china: { freq: [3000, 8000], decay: [0.08, 2.0], filterFreq: 10000, filterType: 'bandpass', noise: true, noiseLevel: 1.6, envelope: 'exponential', volume: 1.5, metallic: true, harmonics: [1, 0.9, 0.7, 0.4] },
+                    racktom1: { freq: [350, 250], decay: [0.06, 0.5], filterFreq: 1500, filterType: 'lowpass', envelope: 'exponential', volume: 1.3, harmonics: [1, 0.5, 0.2] },
+                    racktom2: { freq: [200, 140], decay: [0.08, 0.7], filterFreq: 1000, filterType: 'lowpass', envelope: 'exponential', volume: 1.3, harmonics: [1, 0.6, 0.25] },
+                    cowbell: { freq: [800, 600], decay: [0.05, 0.3], filterFreq: 3000, filterType: 'bandpass', envelope: 'exponential', volume: 1.1, metallic: true, harmonics: [1, 0.8, 0.4] },
+                    woodblock: { freq: [1200, 800], decay: [0.01, 0.15], filterFreq: 4000, filterType: 'bandpass', envelope: 'exponential', volume: 1.0, click: true, harmonics: [1, 0.3, 0.1] }
+                },
+                heavy: { kick: { freq: [50, 30], decay: [0.05, 0.8], filterFreq: 80, filterType: 'lowpass', distortion: 0.3 }, snare: { freq: [250, 200], decay: [0.03, 0.2], filterFreq: 1500, filterType: 'bandpass', noise: true, noiseLevel: 0.8, distortion: 0.4 } },
+                electronic: { kick: { freq: [40, 25], decay: [0.05, 0.5], filterFreq: 60, filterType: 'lowpass', waveform: 'sawtooth' }, snare: { freq: [400, 300], decay: [0.02, 0.15], filterFreq: 2000, filterType: 'bandpass', noise: true, noiseLevel: 0.9, waveform: 'square' } },
+                jazz: { kick: { freq: [70, 50], decay: [0.08, 0.4], filterFreq: 120, filterType: 'lowpass', envelope: 'linear' }, snare: { freq: [180, 140], decay: [0.05, 0.3], filterFreq: 900, filterType: 'bandpass', noise: true, noiseLevel: 0.5 } },
+                orchestral: { kick: { freq: [65, 45], decay: [0.1, 0.6], filterFreq: 110, filterType: 'lowpass', harmonics: [1, 0.5, 0.2, 0.1] } },
+                vintage: { kick: { freq: [55, 35], decay: [0.08, 0.5], filterFreq: 90, filterType: 'lowpass', warmth: 0.3 } }
+            };
+
+            const config = soundConfigs[pack]?.[type] || soundConfigs.classical[type];
+            if (!config) return;
+
+            const oscillators = [];
+            const gainNodes = [];
+            const mainOsc = audioContext.createOscillator();
+            const mainGain = audioContext.createGain();
+            mainOsc.frequency.setValueAtTime(config.freq[0] || config.freq, audioContext.currentTime);
+            mainOsc.type = config.waveform || (type === 'kick' ? 'sine' : 'triangle');
+
+            if (['kick', 'hitom', 'midtom', 'floortom', 'racktom1', 'racktom2'].includes(type) && config.freq[1]) {
+                mainOsc.frequency.setValueAtTime(config.freq[0] * 1.5, audioContext.currentTime);
+                mainOsc.frequency.exponentialRampToValueAtTime(config.freq[0], audioContext.currentTime + 0.01);
+                mainOsc.frequency.exponentialRampToValueAtTime(config.freq[1], audioContext.currentTime + (config.decay[0] || 0.1));
+            }
+
+            if (config.subBass && type === 'kick') {
+                const subOsc = audioContext.createOscillator();
+                const subGain = audioContext.createGain();
+                subOsc.frequency.setValueAtTime(config.freq[0] * 0.5, audioContext.currentTime);
+                subOsc.type = 'sine';
+                subGain.gain.setValueAtTime(config.volume * 1.2, audioContext.currentTime);
+                oscillators.push(subOsc);
+                gainNodes.push(subGain);
+
+                if (config.ultraDeep) {
+                    const ultraSubOsc = audioContext.createOscillator();
+                    const ultraSubGain = audioContext.createGain();
+                    ultraSubOsc.frequency.setValueAtTime(config.freq[0] * 0.25, audioContext.currentTime);
+                    ultraSubOsc.type = 'sine';
+                    ultraSubGain.gain.setValueAtTime(config.volume * 0.9, audioContext.currentTime);
+                    ultraSubGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.5);
+                    oscillators.push(ultraSubOsc);
+                    gainNodes.push(ultraSubGain);
+                }
+            }
+
+            if (config.woodResonance && ['hitom', 'midtom', 'floortom', 'racktom1', 'racktom2'].includes(type)) {
+                const woodOsc = audioContext.createOscillator();
+                const woodGain = audioContext.createGain();
+                woodOsc.frequency.setValueAtTime((config.freq[0] || config.freq) * 0.7, audioContext.currentTime);
+                woodOsc.type = 'triangle';
+                woodGain.gain.setValueAtTime(config.volume * 0.6, audioContext.currentTime);
+                woodGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + (config.decay[1] || 0.8));
+                oscillators.push(woodOsc);
+                gainNodes.push(woodGain);
+            }
+
+            if (config.bodyResonance && type === 'snare') {
+                const bodyOsc = audioContext.createOscillator();
+                const bodyGain = audioContext.createGain();
+                bodyOsc.frequency.setValueAtTime(config.freq[0] * 0.4, audioContext.currentTime);
+                bodyOsc.type = 'triangle';
+                bodyGain.gain.setValueAtTime(config.volume * 0.7, audioContext.currentTime);
+                bodyGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+                oscillators.push(bodyOsc);
+                gainNodes.push(bodyGain);
+            }
+
+            if (config.punch || config.crack) {
+                const punchOsc = audioContext.createOscillator();
+                const punchGain = audioContext.createGain();
+                punchOsc.frequency.setValueAtTime((config.freq[0] || config.freq) * 2, audioContext.currentTime);
+                punchOsc.type = 'square';
+                punchGain.gain.setValueAtTime(config.volume * 0.4, audioContext.currentTime);
+                punchGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+                oscillators.push(punchOsc);
+                gainNodes.push(punchGain);
+            }
+
+            oscillators.push(mainOsc);
+            gainNodes.push(mainGain);
+
+            if (config.harmonics) {
+                config.harmonics.forEach((level, index) => {
+                    if (index > 0 && level > 0) {
+                        const harmOsc = audioContext.createOscillator();
+                        const harmGain = audioContext.createGain();
+                        harmOsc.frequency.setValueAtTime((config.freq[0] || config.freq) * (index + 1), audioContext.currentTime);
+                        harmOsc.type = 'sine';
+                        harmGain.gain.setValueAtTime(level * masterVolume, audioContext.currentTime);
+                        oscillators.push(harmOsc);
+                        gainNodes.push(harmGain);
+                    }
+                });
+            }
+
+            let noiseSource, shimmerSource;
+            if (config.noise) {
+                const bufferSize = audioContext.sampleRate * (config.decay[1] || 0.5);
+                const buffer = audioContext.createBuffer(2, bufferSize, audioContext.sampleRate);
+                for (let channel = 0; channel < 2; channel++) {
+                    const data = buffer.getChannelData(channel);
+                    for (let i = 0; i < bufferSize; i++) {
+                        let noise = (Math.random() * 2 - 1);
+                        if (config.metallic) {
+                            noise *= (1 + Math.sin(i * 0.01) * 0.3);
+                        }
+                        const envelope = Math.pow(1 - (i / bufferSize), 2);
+                        data[i] = noise * (config.noiseLevel || 0.5) * envelope;
+                    }
+                }
+                noiseSource = audioContext.createBufferSource();
+                noiseSource.buffer = buffer;
+                if (config.shimmer) {
+                    const shimmerBuffer = audioContext.createBuffer(2, bufferSize, audioContext.sampleRate);
+                    for (let channel = 0; channel < 2; channel++) {
+                        const data = shimmerBuffer.getChannelData(channel);
+                        for (let i = 0; i < bufferSize; i++) {
+                            const shimmer = Math.sin(i * 0.02) * Math.cos(i * 0.005) * 0.3;
+                            const envelope = Math.pow(1 - (i / bufferSize), 1.5);
+                            data[i] = shimmer * envelope;
+                        }
+                    }
+                    shimmerSource = audioContext.createBufferSource();
+                    shimmerSource.buffer = shimmerBuffer;
+                }
+                if (config.bell) {
+                    const bellOsc = audioContext.createOscillator();
+                    const bellGain = audioContext.createGain();
+                    bellOsc.frequency.setValueAtTime(config.freq[0] * 3, audioContext.currentTime);
+                    bellOsc.type = 'sine';
+                    bellGain.gain.setValueAtTime(config.volume * 0.2, audioContext.currentTime);
+                    bellGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + config.decay[1]);
+                    oscillators.push(bellOsc);
+                    gainNodes.push(bellGain);
+                }
+            }
+
+            const filter = audioContext.createBiquadFilter();
+            filter.type = config.filterType || 'lowpass';
+            filter.frequency.setValueAtTime(config.filterFreq, audioContext.currentTime);
+            filter.Q.setValueAtTime(1, audioContext.currentTime);
+            const finalGain = audioContext.createGain();
+            oscillators.forEach((osc, index) => {
+                osc.connect(gainNodes[index]);
+                gainNodes[index].connect(filter);
+            });
+            if (noiseSource) {
+                noiseSource.connect(filter);
+            }
+            filter.connect(finalGain);
+            finalGain.connect(compressorNode);
+            if (reverbLevel > 0) {
+                const reverbSend = audioContext.createGain();
+                reverbSend.gain.value = reverbLevel;
+                finalGain.connect(reverbSend);
+                reverbSend.connect(reverbNode.convolver);
+                reverbNode.gain.connect(compressorNode);
+            }
+            if (echoLevel > 0) {
+                const echoSend = audioContext.createGain();
+                echoSend.gain.value = echoLevel;
+                finalGain.connect(echoSend);
+                echoSend.connect(echoNode.delay);
+                echoNode.gain.connect(compressorNode);
+            }
+            const attackTime = 0.001;
+            const decayTime = config.decay[1] || config.decay;
+            const peakVolume = masterVolume * (config.volume || 1.0) * 1.5;
+            finalGain.gain.setValueAtTime(0, audioContext.currentTime);
+            finalGain.gain.linearRampToValueAtTime(peakVolume * 1.2, audioContext.currentTime + attackTime);
+            finalGain.gain.linearRampToValueAtTime(peakVolume, audioContext.currentTime + attackTime * 2);
+            if (config.envelope === 'linear') {
+                finalGain.gain.linearRampToValueAtTime(peakVolume * 0.3, audioContext.currentTime + decayTime * 0.3);
+                finalGain.gain.linearRampToValueAtTime(0.001, audioContext.currentTime + decayTime);
+            } else {
+                finalGain.gain.exponentialRampToValueAtTime(peakVolume * 0.1, audioContext.currentTime + decayTime * 0.4);
+                finalGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + decayTime);
+            }
+            if (shimmerSource) {
+                const shimmerGain = audioContext.createGain();
+                shimmerGain.gain.setValueAtTime(peakVolume * 0.3, audioContext.currentTime);
+                shimmerGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + decayTime);
+                shimmerSource.connect(shimmerGain);
+                shimmerGain.connect(filter);
+            }
+            oscillators.forEach(osc => {
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + decayTime + 0.1);
+            });
+            if (noiseSource) {
+                noiseSource.start(audioContext.currentTime);
+                noiseSource.stop(audioContext.currentTime + decayTime + 0.1);
+            }
+            if (shimmerSource) {
+                shimmerSource.start(audioContext.currentTime);
+                shimmerSource.stop(audioContext.currentTime + decayTime + 0.1);
+            }
+        }
+
+        function playDrum(drumType) {
+            if (event) event.preventDefault();
+            createAdvancedDrumSound(drumType, currentSoundPack);
+            const drumElement = document.querySelector(`[data-sound="${drumType}"]`);
+            drumElement.classList.add('hit');
+            setTimeout(() => drumElement.classList.remove('hit'), 500);
+            if (isRecording) {
+                recordedBeats.push({
+                    drum: drumType,
+                    time: Date.now() - recordingStartTime,
+                    velocity: Math.random() * 0.3 + 0.7
+                });
+            }
+        }
+
+        function toggleRecording() {
+            const btn = document.querySelector('[onclick="toggleRecording()"]');
+            const indicator = document.getElementById('recordingIndicator');
+            if (!isRecording) {
+                isRecording = true;
+                recordedBeats = [];
+                recordingStartTime = Date.now();
+                indicator.style.display = 'block';
+                btn.textContent = '⏹ Stop';
+                btn.classList.add('active');
+            } else {
+                isRecording = false;
+                indicator.style.display = 'none';
+                btn.textContent = '● Record';
+                btn.classList.remove('active');
+            }
+        }
+
+        function playRecording() {
+            if (recordedBeats.length === 0) {
+                alert('No recording found! Record some beats first.');
+                return;
+            }
+            const btn = document.querySelector('[onclick="playRecording()"]');
+            btn.classList.add('active');
+            recordedBeats.forEach(beat => {
+                setTimeout(() => {
+                    playDrum(beat.drum);
+                }, beat.time);
+            });
+            const maxTime = Math.max(...recordedBeats.map(b => b.time));
+            setTimeout(() => {
+                btn.classList.remove('active');
+            }, maxTime + 1000);
+        }
+
+        function toggleMetronome() {
+            const btn = document.querySelector('[onclick="toggleMetronome()"]');
+            const display = document.getElementById('metronomeDisplay');
+            if (!metronomeActive) {
+                metronomeActive = true;
+                display.classList.add('active');
+                btn.classList.add('active');
+                btn.textContent = '⏹ Metro';
+                startAdvancedMetronome();
+            } else {
+                metronomeActive = false;
+                display.classList.remove('active');
+                btn.classList.remove('active');
+                btn.textContent = '⏱ Metro';
+                clearInterval(metronomeInterval);
+            }
+        }
+
+        function startAdvancedMetronome() {
+            const interval = 60000 / currentBPM;
+            metronomeBeat = 0;
+            metronomeInterval = setInterval(() => {
+                if (metronomeActive) {
+                    metronomeBeat = (metronomeBeat + 1) % 4;
+                    initAudioSystem();
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(masterGainNode);
+                    osc.frequency.setValueAtTime(metronomeBeat === 0 ? 1200 : 800, audioContext.currentTime);
+                    osc.type = 'square';
+                    gain.gain.setValueAtTime(masterVolume * 0.3, audioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+                    osc.start();
+                    osc.stop(audioContext.currentTime + 0.1);
+                    const bpmDisplay = document.getElementById('bpmValue');
+                    bpmDisplay.style.color = metronomeBeat === 0 ? '#e74c3c' : '#3498db';
+                    bpmDisplay.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        bpmDisplay.style.transform = 'scale(1)';
+                    }, 100);
+                }
+            }, interval);
+        }
+
+        function setMasterVolume(value) {
+            masterVolume = value / 100;
+            if (masterGainNode) {
+                masterGainNode.gain.setValueAtTime(masterVolume, audioContext.currentTime);
+            }
+        }
+
+        function setBPM(value) {
+            currentBPM = parseInt(value);
+            const bpmDisplay = document.getElementById('bpmDisplay');
+            if (bpmDisplay) {
+                bpmDisplay.textContent = currentBPM;
+            }
+            const bpmValue = document.getElementById('bpmValue');
+            if (bpmValue) {
+                bpmValue.textContent = currentBPM;
+            }
+            if (metronomeActive) {
+                clearInterval(metronomeInterval);
+                startAdvancedMetronome();
+            }
+        }
+
+        function toggleControlsPanel() {
+            const dropdown = document.getElementById('controlsDropdown');
+            const toggle = document.querySelector('.controls-toggle');
+            const arrow = document.getElementById('controls-arrow');
+            controlsPanelActive = !controlsPanelActive;
+            if (controlsPanelActive) {
+                dropdown.classList.add('active');
+                toggle.classList.add('active');
+                arrow.textContent = '▲';
+            } else {
+                dropdown.classList.remove('active');
+                toggle.classList.remove('active');
+                arrow.textContent = '▼';
+            }
+        }
+
+        function setReverb(value) {
+            reverbLevel = value / 100;
+            if (reverbNode) {
+                reverbNode.gain.gain.setValueAtTime(reverbLevel, audioContext.currentTime);
+            }
+        }
+
+        function setEcho(value) {
+            echoLevel = value / 100;
+            if (echoNode) {
+                echoNode.gain.gain.setValueAtTime(echoLevel, audioContext.currentTime);
+            }
+        }
+
+        function setDistortion(value) {
+            distortionLevel = value / 100;
+        }
+
+        function setCompression(value) {
+            compressionLevel = value / 100;
+            if (compressorNode) {
+                compressorNode.ratio.setValueAtTime(1 + compressionLevel * 19, audioContext.currentTime);
+            }
+        }
+
+        function changeSoundPack(pack) {
+            currentSoundPack = pack;
+            document.querySelectorAll('.sound-pack-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            const drums = document.querySelectorAll('.drum-piece');
+            drums.forEach(drum => {
+                drum.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    drum.style.transform = 'scale(1)';
+                }, 200);
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const keyMap = {
+                'Space': 'kick',
+                ' ': 'kick',
+                'KeyS': 'snare',
+                'KeyA': 'hihat',
+                'KeyD': 'crash',
+                'KeyQ': 'hitom',
+                'KeyW': 'midtom',
+                'KeyE': 'floortom',
+                'KeyF': 'ride',
+                'KeyZ': 'splash',
+                'KeyX': 'china',
+                'KeyR': 'racktom1',
+                'KeyT': 'racktom2',
+                'KeyC': 'cowbell',
+                'KeyV': 'woodblock'
+            };
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault();
+                playDrum('kick');
+                const drumElement = document.querySelector(`[data-sound="kick"]`);
+                drumElement.style.borderColor = '#ffd700';
+                setTimeout(() => {
+                    drumElement.style.borderColor = '';
+                }, 200);
+                return;
+            }
+            if (keyMap[e.code]) {
+                e.preventDefault();
+                playDrum(keyMap[e.code]);
+                const drumElement = document.querySelector(`[data-sound="${keyMap[e.code]}"]`);
+                drumElement.style.borderColor = '#ffd700';
+                setTimeout(() => {
+                    drumElement.style.borderColor = '';
+                }, 200);
+            }
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.classList.contains('drum-piece')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('click', initAudioSystem, { once: true });
+        document.addEventListener('touchstart', initAudioSystem, { once: true });
+
+        document.addEventListener('contextmenu', (e) => {
+            if (e.target.classList.contains('drum-piece')) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && metronomeActive) {
+                clearInterval(metronomeInterval);
+            } else if (!document.hidden && metronomeActive) {
+                startAdvancedMetronome();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1159 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Angry Birds";
+    Layout = "_layout3";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Angry Birds Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="~/css/AngryBird.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="~/asseted/ui/favicon.png" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+</head>
+<body style="background-color: #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">ANGRY BIRDS</h1>
+                <div class="game-subtitle">CLASSIC SLINGSHOT ADVENTURE</div>
+            </div>
+
+            <div class="game-container">
+                <div id="levelMenu">
+                    <img src="~/asseted/ui/level_banner.png" class="banner" alt="Level Banner" />
+                    <h1>Angry Birds</h1>
+                    <div id="levelButtons"></div>
+                </div>
+
+                <canvas id="gameCanvas"></canvas>
+
+                <button id="restartBtn" class="ui-button"></button>
+                <button id="nextLevelBtn" class="ui-button"></button>
+                <button id="soundToggleBtn" class="ui-button">🔊</button>
+                <button id="backToMenuBtn" class="ui-button">🏠</button>
+
+                <div id="gameOverPopup">
+                    <h2>Game Over</h2>
+                    <div id="starRating"></div>
+                    <div id="scoreDisplay"></div>
+                    <button onclick="restartGame()">Restart</button>
+                </div>
+            </div>
+
+            <!-- Rating Section -->
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Load Assets
+        const bg = new Image();
+        bg.src = "/asseted/images/background_day.png";
+        const slingshotImg = new Image();
+        slingshotImg.src = "/asseted/images/slingshot.png";
+        const pigImg = new Image();
+        pigImg.src = "/asseted/images/pig_basic.png";
+        const blockImages = {
+            wood: "/asseted/images/wood_block.png",
+            stone: "/asseted/images/stone_block.png",
+            glass: "/asseted/images/glass_block.png"
+        };
+
+        const birdImages = {
+            red: "/asseted/images/bird_red.png",
+            yellow: "/asseted/images/bird_yellow.png",
+            black: "/asseted/images/bird_black.png",
+            blue: "/asseted/images/bird_blue.png",
+            green: "/asseted/images/bird_green.png",
+            white: "/asseted/images/bird_white.png"
+        };
+
+        // Audio
+        const bgMusic = new Audio("/asseted/sounds/bg_music.mp3");
+        bgMusic.loop = true;
+        bgMusic.volume = 0.5;
+
+        const launchSound = new Audio("/asseted/sounds/bird_launch.wav");
+        const hitSound = new Audio("/asseted/sounds/pig_hit.wav");
+        const winSound = new Audio("/asseted/sounds/win_sound.mp3");
+        const loseSound = new Audio("/asseted/sounds/lose_sound.wav");
+        const clickSound = new Audio("/asseted/sounds/button_click.mp3");
+
+        // UI Buttons
+        const restartBtn = document.getElementById("restartBtn");
+        const nextLevelBtn = document.getElementById("nextLevelBtn");
+        const soundToggleBtn = document.getElementById("soundToggleBtn");
+        const backToMenuBtn = document.getElementById("backToMenuBtn");
+
+        let isMuted = false;
+
+        soundToggleBtn.addEventListener("click", () => {
+            isMuted = !isMuted;
+            bgMusic.muted = isMuted;
+            launchSound.muted = isMuted;
+            hitSound.muted = isMuted;
+            winSound.muted = isMuted;
+            loseSound.muted = isMuted;
+            clickSound.muted = isMuted;
+            soundToggleBtn.textContent = isMuted ? "🔇" : "🔊";
+        });
+
+        backToMenuBtn.addEventListener("click", () => {
+            clickSound.play();
+            showLevelMenu();
+            canvas.style.display = "block";
+            restartBtn.style.display = "none";
+            nextLevelBtn.style.display = "none";
+            document.getElementById("gameOverPopup").style.display = "none";
+        });
+
+        let level = 0;
+        let unlockedLevel = 0;
+        let pigs = [], birds = [], blocks = [];
+        let birdIndex = 0;
+        let score = 0;
+        let gameOver = false;
+        let stars = 0;
+        let levelStars = JSON.parse(localStorage.getItem("levelStars")) || Array(10).fill(0);
+
+        const slingX = 200;
+        let slingY = 0; // Will be set in handleResize
+        const gravity = 0.5;
+        const BONUS_PER_BIRD = 1000;
+
+        const levels = [
+            { pigs: [{ x: 900, y: 0 }], birds: ["red"], blocks: [{ x: 880, y: 0, type: "wood" }] },
+            { pigs: [ { x: 950, y: 0 }, { x: 1000, y: 0 } ], birds: ["red", "yellow"], blocks: [ { x: 930, y: 0, type: "glass" }, { x: 1020, y: 0, type: "wood" } ] },
+            { pigs: [ { x: 900, y: 0 }, { x: 950, y: 0 }, { x: 1000, y: 0 } ], birds: ["red", "yellow", "black"], blocks: [ { x: 900, y: 0, type: "stone" }, { x: 950, y: 0, type: "wood" }, { x: 1000, y: 0, type: "glass" } ] },
+            { pigs: [{ x: 1000, y: 0 }], birds: ["yellow", "red"], blocks: [ { x: 980, y: 0, type: "glass" }, { x: 1020, y: 0, type: "glass" } ] },
+            { pigs: [ { x: 950, y: 0 }, { x: 1050, y: 0 } ], birds: ["red", "black"], blocks: [ { x: 950, y: 0, type: "wood" }, { x: 1000, y: 0, type: "stone" }, { x: 1050, y: 0, type: "wood" } ] },
+            { pigs: [ { x: 900, y: 0 }, { x: 950, y: 0 }, { x: 1000, y: 0 }, { x: 1050, y: 0 } ], birds: ["red", "yellow", "black", "red"], blocks: [ { x: 920, y: 0, type: "glass" }, { x: 970, y: 0, type: "wood" }, { x: 1020, y: 0, type: "stone" }, { x: 1070, y: 0, type: "glass" } ] },
+            { pigs: [ { x: 950, y: 0 }, { x: 980, y: 0 }, { x: 1010, y: 0 } ], birds: ["red", "yellow", "black"], blocks: [ { x: 950, y: 0, type: "glass" }, { x: 980, y: 0, type: "stone" }, { x: 1010, y: 0, type: "wood" } ] },
+            { pigs: [ { x: 1000, y: 0 }, { x: 1030, y: 0 }, { x: 1060, y: 0 } ], birds: ["black", "yellow", "red", "blue"], blocks: [ { x: 1000, y: 0, type: "stone" }, { x: 1030, y: 0, type: "wood" }, { x: 1060, y: 0, type: "glass" } ] },
+            { pigs: [ { x: 950, y: 0 }, { x: 980, y: 0 }, { x: 1010, y: 0 }, { x: 1040, y: 0 } ], birds: ["red", "green", "white", "yellow"], blocks: [ { x: 950, y: 0, type: "stone" }, { x: 980, y: 0, type: "stone" }, { x: 1010, y: 0, type: "glass" }, { x: 1040, y: 0, type: "wood" } ] },
+            { pigs: [ { x: 960, y: 0 }, { x: 1000, y: 0 }, { x: 1040, y: 0 } ], birds: ["yellow", "blue", "green", "red"], blocks: [ { x: 960, y: 0, type: "wood" }, { x: 1000, y: 0, type: "stone" }, { x: 1040, y: 0, type: "glass" } ] }
+        ];
+
+        function createBird(type) {
+            const img = new Image();
+            img.src = birdImages[type];
+            return {
+                x: slingX,
+                y: slingY,
+                radius: 25,
+                vx: 0,
+                vy: 0,
+                isDragging: false,
+                isLaunched: false,
+                type,
+                img
+            };
+        }
+
+        function loadLevel(n) {
+            level = n;
+            pigs = levels[n].pigs.map(p => ({ ...p, y: canvas.height - 100, radius: 30, hit: false }));
+            birds = levels[n].birds.map(t => createBird(t));
+            blocks = levels[n].blocks.map(b => ({ ...b, y: canvas.height - 140, width: 60, height: 60, hit: false, img: new Image() }));
+            blocks.forEach(b => b.img.src = blockImages[b.type]);
+            birdIndex = 0;
+            score = 0;
+            stars = 0;
+            gameOver = false;
+            resetBird();
+            restartBtn.style.display = "none";
+            nextLevelBtn.style.display = "none";
+            document.getElementById("gameOverPopup").style.display = "none";
+        }
+
+        function checkWinCondition() {
+            const allPigsHit = pigs.every(p => p.hit);
+            if (allPigsHit && !gameOver) {
+                gameOver = true;
+                const popup = document.getElementById("gameOverPopup");
+                const starRating = document.getElementById("starRating");
+                const scoreDisplay = document.getElementById("scoreDisplay");
+
+                const unusedBirds = birds.length - birdIndex;
+                score += unusedBirds * BONUS_PER_BIRD;
+
+                const birdsUsed = birdIndex;
+                if (birdsUsed <= Math.ceil(birds.length / 3)) {
+                    stars = 3;
+                } else if (birdsUsed <= Math.ceil(birds.length * 2 / 3)) {
+                    stars = 2;
+                } else {
+                    stars = 1;
+                }
+
+                levelStars[level] = Math.max(levelStars[level] || 0, stars);
+                localStorage.setItem("levelStars", JSON.stringify(levelStars));
+
+                winSound.play();
+                nextLevelBtn.style.display = "block";
+                popup.style.display = "block";
+                starRating.textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+                scoreDisplay.textContent = `Score: ${score}`;
+                unlockedLevel = Math.max(unlockedLevel, level + 1);
+            }
+        }
+
+        function resetBird() {
+            if (birdIndex >= birds.length && !pigs.every(p => p.hit)) {
+                gameOver = true;
+                const popup = document.getElementById("gameOverPopup");
+                const starRating = document.getElementById("starRating");
+                const scoreDisplay = document.getElementById("scoreDisplay");
+                loseSound.play();
+                popup.style.display = "block";
+                starRating.textContent = "☆☆☆";
+                scoreDisplay.textContent = `Score: ${score}`;
+                restartBtn.style.display = "block";
+                return;
+            }
+            if (birds[birdIndex]) {
+                const b = birds[birdIndex];
+                Object.assign(b, { x: slingX, y: slingY, vx: 0, vy: 0, isDragging: false, isLaunched: false });
+            }
+        }
+
+        function calculateTrajectory(bird) {
+            const points = [];
+            const maxPoints = 100;
+            const timeStep = 0.1;
+            const maxTime = 8;
+
+            let vx = (slingX - bird.x) / 10;
+            let vy = (slingY - bird.y) / 10;
+            if (bird.type === "yellow") {
+                vx *= 2;
+                vy *= 2;
+            }
+
+            for (let t = 0; t <= maxTime; t += timeStep) {
+                const x = bird.x + vx * t;
+                const y = bird.y + vy * t + 0.5 * gravity * t * t;
+                points.push({ x, y });
+                if (y + bird.radius > canvas.height) {
+                    break;
+                }
+            }
+            return points;
+        }
+
+        function drawTrajectory(points) {
+            ctx.beginPath();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            points.forEach((point, index) => {
+                if (index === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            });
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawBackground() {
+            ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(slingshotImg, slingX - 50, slingY - 80, 100, 150);
+        }
+
+        function drawBird(b) {
+            ctx.drawImage(b.img, b.x - b.radius, b.y - b.radius, b.radius * 2, b.radius * 2);
+        }
+
+        function drawPigs() {
+            pigs.forEach(p => {
+                if (!p.hit) ctx.drawImage(pigImg, p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
+            });
+        }
+
+        function drawBlocks() {
+            blocks.forEach(b => {
+                if (!b.hit) ctx.drawImage(b.img, b.x - b.width / 2, b.y - b.height / 2, b.width, b.height);
+            });
+        }
+
+        function updateBird(bird) {
+            if (bird.isLaunched) {
+                bird.vy += gravity;
+                bird.x += bird.vx;
+                bird.y += bird.vy;
+
+                if (bird.y + bird.radius > canvas.height) {
+                    bird.y = canvas.height - bird.radius;
+                    bird.vx = 0;
+                    bird.vy = 0;
+                    birdIndex++;
+                    setTimeout(() => {
+                        resetBird();
+                        checkWinCondition();
+                    }, 800);
+                    return;
+                }
+
+                pigs.forEach(p => {
+                    if (!p.hit) {
+                        const dx = bird.x - p.x;
+                        const dy = bird.y - p.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < bird.radius + p.radius) {
+                            p.hit = true;
+                            score += 100;
+                            hitSound.play();
+                            checkWinCondition();
+                        }
+                    }
+                });
+
+                blocks.forEach(b => {
+                    if (!b.hit) {
+                        const dx = bird.x - b.x;
+                        const dy = bird.y - b.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < bird.radius + 30) {
+                            if (
+                                (b.type === "glass") ||
+                                (b.type === "wood" && Math.abs(bird.vx) > 2) ||
+                                (b.type === "stone" && Math.abs(bird.vx) > 4)
+                            ) {
+                                b.hit = true;
+                                score += 50;
+                                hitSound.play();
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function gameLoop() {
+            if (gameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            drawPigs();
+            drawBlocks();
+
+            const bird = birds[birdIndex];
+            if (bird) {
+                drawBird(bird);
+                updateBird(bird);
+                if (bird.isDragging && !bird.isLaunched) {
+                    const trajectoryPoints = calculateTrajectory(bird);
+                    drawTrajectory(trajectoryPoints);
+                }
+            }
+
+            ctx.fillStyle = "#222";
+            ctx.font = "24px Fredoka";
+            ctx.fillText(`Score: ${score}`, 20, 30);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function showLevelMenu() {
+            const menu = document.getElementById("levelMenu");
+            const buttonsContainer = document.getElementById("levelButtons");
+            buttonsContainer.innerHTML = "";
+
+            levels.forEach((_, i) => {
+                const btnContainer = document.createElement("div");
+                const btn = document.createElement("button");
+                btn.innerText = `Level ${i + 1}`;
+                btn.classList.add("levelBtn");
+
+                if (i > unlockedLevel) {
+                    btn.classList.add("locked");
+                    btn.disabled = true;
+                }
+
+                btn.addEventListener("click", () => {
+                    clickSound.play();
+                    menu.style.display = "none";
+                    loadLevel(i);
+                    gameLoop();
+                });
+
+                const starDisplay = document.createElement("div");
+                starDisplay.classList.add("starDisplay");
+                starDisplay.textContent = levelStars[i] ? "★".repeat(levelStars[i]) + "☆".repeat(3 - levelStars[i]) : "☆☆☆";
+
+                btnContainer.appendChild(btn);
+                btnContainer.appendChild(starDisplay);
+                buttonsContainer.appendChild(btnContainer);
+            });
+
+            menu.style.display = "flex";
+        }
+
+        canvas.addEventListener("mousedown", e => {
+            if (!bgMusic.paused) return;
+            bgMusic.play();
+        });
+
+        canvas.addEventListener("mousedown", e => {
+            const b = birds[birdIndex];
+            if (!b || b.isLaunched || gameOver) return;
+            const dx = e.offsetX - b.x;
+            const dy = e.offsetY - b.y;
+            if (Math.sqrt(dx * dx + dy * dy) < b.radius) b.isDragging = true;
+        });
+
+        canvas.addEventListener("mousemove", e => {
+            const b = birds[birdIndex];
+            if (b?.isDragging && !b.isLaunched && !gameOver) {
+                b.x = e.offsetX;
+                b.y = e.offsetY;
+            }
+        });
+
+        canvas.addEventListener("mouseup", e => {
+            const b = birds[birdIndex];
+            if (b?.isDragging && !b.isLaunched && !gameOver) {
+                b.isDragging = false;
+                b.isLaunched = true;
+                b.vx = (slingX - b.x) / 10;
+                b.vy = (slingY - b.y) / 10;
+                if (b.type === "yellow") {
+                    b.vx *= 2;
+                    b.vy *= 2;
+                }
+                launchSound.play();
+            }
+        });
+
+        function restartGame() {
+            document.getElementById("gameOverPopup").style.display = "none";
+            showLevelMenu();
+        }
+
+        restartBtn.addEventListener("click", () => {
+            clickSound.play();
+            showLevelMenu();
+        });
+
+        nextLevelBtn.addEventListener("click", () => {
+            clickSound.play();
+            document.getElementById("gameOverPopup").style.display = "none";
+            level++;
+            if (level >= levels.length) {
+                alert("🎉 All levels completed!");
+                unlockedLevel = levels.length - 1;
+                showLevelMenu();
+            } else {
+                loadLevel(level);
+                gameLoop();
+            }
+        });
+
+        // Handle resize
+        function handleResize() {
+            const container = document.querySelector('.game-container');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+            slingY = canvas.height - 200;
+            // Update positions for current level only
+            if (pigs.length > 0) {
+                pigs.forEach(p => p.y = canvas.height - 100);
+                blocks.forEach(b => b.y = canvas.height - 140);
+                if (birds[birdIndex]) {
+                    birds[birdIndex].y = slingY;
+                }
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
+        handleResize();
+
+        showLevelMenu();
+    </script>
+</body>
+</html>
+
+@* @model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Angry Bird";
+    Layout = "_layout3";
+}
+
+<script type="text/javascript">
+    var gk_isXlsx = false;
+    var gk_xlsxFileLookup = {};
+    var gk_fileData = {};
+    function filledCell(cell) {
+      return cell !== '' && cell != null;
+    }
+    function loadFileData(filename) {
+    if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+        try {
+            var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+            var firstSheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert sheet to JSON to filter blank rows
+            var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+            // Filter out blank rows (rows where all cells are empty, null, or undefined)
+            var filteredData = jsonData.filter(row => row.some(filledCell));
+
+            // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+            var headerRowIndex = filteredData.findIndex((row, index) =>
+              row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+            );
+            // Fallback
+            if (headerRowIndex === -1 || headerRowIndex > 25) {
+              headerRowIndex = 0;
+            }
+
+            // Convert filtered JSON back to CSV
+            var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+            csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+            return csv;
+        } catch (e) {
+            console.error(e);
+            return "";
+        }
+    }
+    return gk_fileData[filename] || "";
+    }
+</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Angry Birds Game</title>
+    <link href="~/css/AngryBird.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="~//asseted/ui/favicon.png" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+        <div id="levelMenu">
+            <img src="~/asseted/ui/level_banner.png" class="banner" alt="Level Banner" />
+            <h1>Angry Birds</h1>
+            <div id="levelButtons"></div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <button id="restartBtn" class="ui-button"></button>
+        <button id="nextLevelBtn" class="ui-button"></button>
+        <button id="soundToggleBtn" class="ui-button">🔊</button>
+        <button id="backToMenuBtn" class="ui-button">🏠</button>
+
+        <div id="gameOverPopup">
+            <h2>Game Over</h2>
+            <div id="starRating"></div>
+            <div id="scoreDisplay"></div>
+            <button onclick="restartGame()">Restart</button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+          if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+              var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+              var firstSheetName = workbook.SheetNames[0];
+              var worksheet = workbook.Sheets[firstSheetName];
+
+              // Convert sheet to JSON to filter blank rows
+              var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+              // Filter out blank rows (rows where all cells are empty, null, or undefined)
+              var filteredData = jsonData.filter(row => row.some(filledCell));
+
+              // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+              var headerRowIndex = filteredData.findIndex((row, index) =>
+                row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+              );
+              // Fallback
+              if (headerRowIndex === -1 || headerRowIndex > 25) {
+                headerRowIndex = 0;
+              }
+
+              // Convert filtered JSON back to CSV
+              var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+              csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+              return csv;
+            } catch (e) {
+              console.error(e);
+              return "";
+            }
+          }
+          return gk_fileData[filename] || "";
+        }
+
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Load Assets
+        const bg = new Image();
+        bg.src = "/asseted/images/background_day.png";
+        const slingshotImg = new Image();
+        slingshotImg.src = "/asseted/images/slingshot.png";
+        const pigImg = new Image();
+        pigImg.src = "/asseted/images/pig_basic.png";
+        const blockImages = {
+          wood: "/asseted/images/wood_block.png",
+          stone: "/asseted/images/stone_block.png",
+          glass: "/asseted/images/glass_block.png"
+        };
+
+        const birdImages = {
+          red: "/asseted/images/bird_red.png",
+          yellow: "/asseted/images/bird_yellow.png",
+          black: "/asseted/images/bird_black.png",
+          blue: "/asseted/images/bird_blue.png",
+          green: "/asseted/images/bird_green.png",
+          white: "/asseted/images/bird_white.png"
+        };
+
+        // Audio
+        const bgMusic = new Audio("/asseted/sounds/bg_music.mp3");
+        bgMusic.loop = true;
+        bgMusic.volume = 0.5;
+
+        const launchSound = new Audio("/asseted/sounds/bird_launch.wav");
+        const hitSound = new Audio("/asseted/sounds/pig_hit.wav");
+        const winSound = new Audio("/asseted/sounds/win_sound.mp3");
+        const loseSound = new Audio("/asseted/sounds/lose_sound.wav");
+        const clickSound = new Audio("/asseted/sounds/button_click.mp3");
+
+        // UI Buttons
+        const restartBtn = document.getElementById("restartBtn");
+        const nextLevelBtn = document.getElementById("nextLevelBtn");
+        const soundToggleBtn = document.getElementById("soundToggleBtn");
+        const backToMenuBtn = document.getElementById("backToMenuBtn");
+
+        let isMuted = false;
+
+        soundToggleBtn.addEventListener("click", () => {
+          isMuted = !isMuted;
+          bgMusic.muted = isMuted;
+          launchSound.muted = isMuted;
+          hitSound.muted = isMuted;
+          winSound.muted = isMuted;
+          loseSound.muted = isMuted;
+          clickSound.muted = isMuted;
+          soundToggleBtn.textContent = isMuted ? "🔇" : "🔊";
+        });
+
+        backToMenuBtn.addEventListener("click", () => {
+          showLevelMenu();
+          canvas.style.display = "block";
+          restartBtn.style.display = "none";
+          nextLevelBtn.style.display = "none";
+          document.getElementById("gameOverPopup").style.display = "none";
+        });
+
+        let level = 0;
+        let unlockedLevel = 0;
+        let pigs = [], birds = [], blocks = [];
+        let birdIndex = 0;
+        let score = 0;
+        let gameOver = false;
+        let stars = 0;
+        let levelStars = JSON.parse(localStorage.getItem("levelStars")) || Array(10).fill(0);
+
+        const slingX = 200;
+        const slingY = canvas.height - 200;
+        const gravity = 0.5;
+        const BONUS_PER_BIRD = 1000;
+
+        const levels = [
+          { pigs: [{ x: 900, y: canvas.height - 100 }], birds: ["red"], blocks: [{ x: 880, y: canvas.height - 140, type: "wood" }] },
+          { pigs: [ { x: 950, y: canvas.height - 100 }, { x: 1000, y: canvas.height - 100 } ], birds: ["red", "yellow"], blocks: [ { x: 930, y: canvas.height - 140, type: "glass" }, { x: 1020, y: canvas.height - 140, type: "wood" } ] },
+          { pigs: [ { x: 900, y: canvas.height - 100 }, { x: 950, y: canvas.height - 100 }, { x: 1000, y: canvas.height - 100 } ], birds: ["red", "yellow", "black"], blocks: [ { x: 900, y: canvas.height - 140, type: "stone" }, { x: 950, y: canvas.height - 140, type: "wood" }, { x: 1000, y: canvas.height - 140, type: "glass" } ] },
+          { pigs: [{ x: 1000, y: canvas.height - 100 }], birds: ["yellow", "red"], blocks: [ { x: 980, y: canvas.height - 140, type: "glass" }, { x: 1020, y: canvas.height - 140, type: "glass" } ] },
+          { pigs: [ { x: 950, y: canvas.height - 100 }, { x: 1050, y: canvas.height - 100 } ], birds: ["red", "black"], blocks: [ { x: 950, y: canvas.height - 140, type: "wood" }, { x: 1000, y: canvas.height - 140, type: "stone" }, { x: 1050, y: canvas.height - 140, type: "wood" } ] },
+          { pigs: [ { x: 900, y: canvas.height - 100 }, { x: 950, y: canvas.height - 100 }, { x: 1000, y: canvas.height - 100 }, { x: 1050, y: canvas.height - 100 } ], birds: ["red", "yellow", "black", "red"], blocks: [ { x: 920, y: canvas.height - 140, type: "glass" }, { x: 970, y: canvas.height - 140, type: "wood" }, { x: 1020, y: canvas.height - 140, type: "stone" }, { x: 1070, y: canvas.height - 140, type: "glass" } ] },
+          { pigs: [ { x: 950, y: canvas.height - 100 }, { x: 980, y: canvas.height - 100 }, { x: 1010, y: canvas.height - 100 } ], birds: ["red", "yellow", "black"], blocks: [ { x: 950, y: canvas.height - 140, type: "glass" }, { x: 980, y: canvas.height - 140, type: "stone" }, { x: 1010, y: canvas.height - 140, type: "wood" } ] },
+          { pigs: [ { x: 1000, y: canvas.height - 100 }, { x: 1030, y: canvas.height - 100 }, { x: 1060, y: canvas.height - 100 } ], birds: ["black", "yellow", "red", "blue"], blocks: [ { x: 1000, y: canvas.height - 140, type: "stone" }, { x: 1030, y: canvas.height - 140, type: "wood" }, { x: 1060, y: canvas.height - 140, type: "glass" } ] },
+          { pigs: [ { x: 950, y: canvas.height - 100 }, { x: 980, y: canvas.height - 100 }, { x: 1010, y: canvas.height - 100 }, { x: 1040, y: canvas.height - 100 } ], birds: ["red", "green", "white", "yellow"], blocks: [ { x: 950, y: canvas.height - 140, type: "stone" }, { x: 980, y: canvas.height - 140, type: "stone" }, { x: 1010, y: canvas.height - 140, type: "glass" }, { x: 1040, y: canvas.height - 140, type: "wood" } ] },
+          { pigs: [ { x: 960, y: canvas.height - 100 }, { x: 1000, y: canvas.height - 100 }, { x: 1040, y: canvas.height - 100 } ], birds: ["yellow", "blue", "green", "red"], blocks: [ { x: 960, y: canvas.height - 140, type: "wood" }, { x: 1000, y: canvas.height - 140, type: "stone" }, { x: 1040, y: canvas.height - 140, type: "glass" } ] }
+        ];
+
+        function createBird(type) {
+          const img = new Image();
+          img.src = birdImages[type];
+          return {
+            x: slingX,
+            y: slingY,
+            radius: 25,
+            vx: 0,
+            vy: 0,
+            isDragging: false,
+            isLaunched: false,
+            type,
+            img
+          };
+        }
+
+        function loadLevel(n) {
+          level = n;
+          pigs = levels[n].pigs.map(p => ({ ...p, radius: 30, hit: false }));
+          birds = levels[n].birds.map(t => createBird(t));
+          blocks = levels[n].blocks.map(b => ({ ...b, width: 60, height: 60, hit: false, img: new Image() }));
+          blocks.forEach(b => b.img.src = blockImages[b.type]);
+          birdIndex = 0;
+          score = 0;
+          stars = 0;
+          gameOver = false;
+          resetBird();
+          restartBtn.style.display = "none";
+          nextLevelBtn.style.display = "none";
+          document.getElementById("gameOverPopup").style.display = "none";
+        }
+
+        function checkWinCondition() {
+          const allPigsHit = pigs.every(p => p.hit);
+          if (allPigsHit && !gameOver) {
+            gameOver = true;
+            const popup = document.getElementById("gameOverPopup");
+            const starRating = document.getElementById("starRating");
+            const scoreDisplay = document.getElementById("scoreDisplay");
+
+            // Calculate bonus for unused birds
+            const unusedBirds = birds.length - birdIndex;
+            score += unusedBirds * BONUS_PER_BIRD;
+
+            // Determine stars based on birds used
+            const birdsUsed = birdIndex;
+            if (birdsUsed <= Math.ceil(birds.length / 3)) {
+              stars = 3;
+            } else if (birdsUsed <= Math.ceil(birds.length * 2 / 3)) {
+              stars = 2;
+            } else {
+              stars = 1;
+            }
+
+            // Update levelStars with the maximum stars earned
+            levelStars[level] = Math.max(levelStars[level] || 0, stars);
+            localStorage.setItem("levelStars", JSON.stringify(levelStars));
+
+            winSound.play();
+            nextLevelBtn.style.display = "block";
+            popup.style.display = "block";
+            starRating.textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+            scoreDisplay.textContent = `Score: ${score}`;
+            unlockedLevel = Math.max(unlockedLevel, level + 1);
+          }
+        }
+
+        function resetBird() {
+          if (birdIndex >= birds.length && !pigs.every(p => p.hit)) {
+            gameOver = true;
+            const popup = document.getElementById("gameOverPopup");
+            const starRating = document.getElementById("starRating");
+            const scoreDisplay = document.getElementById("scoreDisplay");
+            loseSound.play();
+            popup.style.display = "block";
+            starRating.textContent = "☆☆☆";
+            scoreDisplay.textContent = `Score: ${score}`;
+            restartBtn.style.display = "block";
+            return;
+          }
+          if (birds[birdIndex]) {
+            const b = birds[birdIndex];
+            Object.assign(b, { x: slingX, y: slingY, vx: 0, vy: 0, isDragging: false, isLaunched: false });
+          }
+        }
+
+        function calculateTrajectory(bird) {
+          const points = [];
+          const maxPoints = 100; // Increased for smoother trajectory
+          const timeStep = 0.1; // Time increment for simulation
+          const maxTime = 8; // Increased to make the aimer much longer
+
+          // Calculate initial velocity based on slingshot displacement
+          let vx = (slingX - bird.x) / 10;
+          let vy = (slingY - bird.y) / 10;
+          if (bird.type === "yellow") {
+            vx *= 2;
+            vy *= 2;
+          }
+
+          // Simulate trajectory
+          for (let t = 0; t <= maxTime; t += timeStep) {
+            const x = bird.x + vx * t;
+            const y = bird.y + vy * t + 0.5 * gravity * t * t; // y = y0 + v0*t + (1/2)*g*t^2
+            points.push({ x, y });
+
+            // Stop if the trajectory hits the ground
+            if (y + bird.radius > canvas.height) {
+              break;
+            }
+          }
+
+          return points;
+        }
+
+        function drawTrajectory(points) {
+          ctx.beginPath();
+          ctx.strokeStyle = "#ffffff"; // White trajectory line
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]); // Dashed line for the trajectory
+
+          points.forEach((point, index) => {
+            if (index === 0) {
+              ctx.moveTo(point.x, point.y);
+            } else {
+              ctx.lineTo(point.x, point.y);
+            }
+          });
+
+          ctx.stroke();
+          ctx.setLineDash([]); // Reset to solid line for other drawings
+        }
+
+        function drawBackground() {
+          ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+          ctx.drawImage(slingshotImg, slingX - 50, slingY - 80, 100, 150);
+        }
+
+        function drawBird(b) {
+          ctx.drawImage(b.img, b.x - b.radius, b.y - b.radius, b.radius * 2, b.radius * 2);
+        }
+
+        function drawPigs() {
+          pigs.forEach(p => {
+            if (!p.hit) ctx.drawImage(pigImg, p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
+          });
+        }
+
+        function drawBlocks() {
+          blocks.forEach(b => {
+            if (!b.hit) ctx.drawImage(b.img, b.x - b.width / 2, b.y - b.height / 2, b.width, b.height);
+          });
+        }
+
+        function updateBird(bird) {
+          if (bird.isLaunched) {
+            bird.vy += gravity;
+            bird.x += bird.vx;
+            bird.y += bird.vy;
+
+            // Hit ground
+            if (bird.y + bird.radius > canvas.height) {
+              bird.y = canvas.height - bird.radius;
+              bird.vx = 0;
+              bird.vy = 0;
+              birdIndex++;
+              setTimeout(() => {
+                resetBird();
+                checkWinCondition();
+              }, 800);
+              return;
+            }
+
+            // Hit pigs
+            pigs.forEach(p => {
+              if (!p.hit) {
+                const dx = bird.x - p.x;
+                const dy = bird.y - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < bird.radius + p.radius) {
+                  p.hit = true;
+                  score += 100;
+                  hitSound.play();
+                  checkWinCondition();
+                }
+              }
+            });
+
+            // Hit blocks
+            blocks.forEach(b => {
+              if (!b.hit) {
+                const dx = bird.x - b.x;
+                const dy = bird.y - b.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < bird.radius + 30) {
+                  if (
+                    (b.type === "glass") ||
+                    (b.type === "wood" && Math.abs(bird.vx) > 2) ||
+                    (b.type === "stone" && Math.abs(bird.vx) > 4)
+                  ) {
+                    b.hit = true;
+                    score += 50;
+                    hitSound.play();
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        function gameLoop() {
+          if (gameOver) return;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          drawBackground();
+          drawPigs();
+          drawBlocks();
+
+          const bird = birds[birdIndex];
+          if (bird) {
+            drawBird(bird);
+            updateBird(bird);
+            // Draw trajectory when dragging
+            if (bird.isDragging && !bird.isLaunched) {
+              const trajectoryPoints = calculateTrajectory(bird);
+              drawTrajectory(trajectoryPoints);
+            }
+          }
+
+          // Display current score
+          ctx.fillStyle = "#222";
+          ctx.font = "24px Fredoka";
+          ctx.fillText(`Score: ${score}`, 20, 30);
+
+          requestAnimationFrame(gameLoop);
+        }
+
+        function showLevelMenu() {
+          const menu = document.getElementById("levelMenu");
+          const buttonsContainer = document.getElementById("levelButtons");
+          buttonsContainer.innerHTML = "";
+
+          levels.forEach((_, i) => {
+            const btnContainer = document.createElement("div");
+            const btn = document.createElement("button");
+            btn.innerText = `Level ${i + 1}`;
+            btn.classList.add("levelBtn");
+
+            if (i > unlockedLevel) {
+              btn.classList.add("locked");
+              btn.disabled = true;
+            }
+
+            btn.addEventListener("click", () => {
+              clickSound.play();
+              menu.style.display = "none";
+              loadLevel(i);
+              gameLoop();
+            });
+
+            const starDisplay = document.createElement("div");
+            starDisplay.classList.add("starDisplay");
+            starDisplay.textContent = levelStars[i] ? "★".repeat(levelStars[i]) + "☆".repeat(3 - levelStars[i]) : "☆☆☆";
+
+            btnContainer.appendChild(btn);
+            btnContainer.appendChild(starDisplay);
+            buttonsContainer.appendChild(btnContainer);
+          });
+
+          menu.style.display = "flex";
+        }
+
+        canvas.addEventListener("mousedown", e => {
+          if (!bgMusic.paused) return;
+          bgMusic.play();
+        });
+
+        canvas.addEventListener("mousedown", e => {
+          const b = birds[birdIndex];
+          if (!b || b.isLaunched || gameOver) return;
+          const dx = e.offsetX - b.x;
+          const dy = e.offsetY - b.y;
+          if (Math.sqrt(dx * dx + dy * dy) < b.radius) b.isDragging = true;
+        });
+
+        canvas.addEventListener("mousemove", e => {
+          const b = birds[birdIndex];
+          if (b?.isDragging && !b.isLaunched && !gameOver) {
+            b.x = e.offsetX;
+            b.y = e.offsetY;
+          }
+        });
+
+        canvas.addEventListener("mouseup", e => {
+          const b = birds[birdIndex];
+          if (b?.isDragging && !b.isLaunched && !gameOver) {
+            b.isDragging = false;
+            b.isLaunched = true;
+            b.vx = (slingX - b.x) / 10;
+            b.vy = (slingY - b.y) / 10;
+            if (b.type === "yellow") {
+              b.vx *= 2;
+              b.vy *= 2;
+            }
+            launchSound.play();
+          }
+        });
+
+        function restartGame() {
+          document.getElementById("gameOverPopup").style.display = "none";
+          showLevelMenu();
+        }
+
+        restartBtn.addEventListener("click", () => {
+          showLevelMenu();
+        });
+
+        nextLevelBtn.addEventListener("click", () => {
+          document.getElementById("gameOverPopup").style.display = "none";
+          level++;
+          if (level >= levels.length) {
+            alert("🎉 All levels completed!");
+            unlockedLevel = levels.length - 1;
+            showLevelMenu();
+          } else {
+            loadLevel(level);
+            gameLoop();
+          }
+        });
+
+        showLevelMenu();
+    </script>
+</body>
+</html> *@

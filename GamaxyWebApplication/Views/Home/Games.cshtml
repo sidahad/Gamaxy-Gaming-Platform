@@ -1,0 +1,1181 @@
+﻿@{
+	ViewData["Title"] = "Game Page";
+	Layout = "_layout2";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<style>
+		.toggle-btn {
+			position: fixed;
+			top: 15px;
+			left: 5px;
+			z-index: 1100;
+			font-size: 24px;
+			background-color: #5d2bf4;
+			color: white;
+			border: none;
+			border-radius: 6px;
+			padding: 8px 12px;
+			cursor: pointer;
+		}
+
+		.sidebar {
+			background-color: #1a1a25;
+			color: #fff;
+			position: fixed;
+			height: 100%;
+			width: 60px;
+			left: 0;
+			top: 0;
+			padding: 15px 0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			overflow-y: auto;
+			border-right: 1px solid #2c2c3a;
+			transition: width 0.3s ease, transform 0.3s ease;
+			z-index: 1000;
+		}
+
+			.sidebar:hover {
+				width: 200px;
+				align-items: flex-start;
+				padding-left: 20px;
+			}
+
+		.sidebar-icons {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+			width: 100%;
+		}
+
+		.sidebar-item {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+			cursor: pointer;
+			padding: 8px 10px;
+			border-radius: 8px;
+		}
+
+			.sidebar-item:hover {
+				background-color: #2c2c3a;
+			}
+
+			.sidebar-item img {
+				width: 30px;
+				height: 30px;
+			}
+
+			.sidebar-item span {
+				white-space: nowrap;
+				font-size: 14px;
+				opacity: 0;
+				transition: opacity 0.3s ease;
+			}
+
+		.sidebar:hover .sidebar-item span {
+			opacity: 1;
+		}
+
+		.sidebar.hidden {
+			transform: translateX(-100%);
+		}
+
+		body.sidebar-hidden .main-content {
+			margin-left: 0;
+		}
+
+		.label {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			background: red;
+			padding: 5px;
+			border-radius: 5px;
+			font-size: 12px;
+			font-weight: bold;
+		}
+
+		.new .label {
+			background: blue;
+		}
+
+		.hot .label {
+			background: orangered;
+		}
+
+		.game-section {
+			margin-top: 30px;
+		}
+
+		.slider {
+			position: relative;
+			overflow: hidden;
+			border-radius: 10px;
+			margin-bottom: 30px;
+		}
+
+		.slide-track {
+			display: flex;
+			transition: transform 0.5s ease;
+			gap: 15px;
+		}
+
+		.slider img {
+			width: 300px;
+			height: 170px;
+			object-fit: cover;
+			border-radius: 10px;
+			transition: transform 0.3s;
+		}
+
+			.slider img:hover {
+				transform: scale(1.05);
+			}
+
+		.slide-btn {
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			background-color: rgba(0,0,0,0.5);
+			color: #fff;
+			font-size: 22px;
+			padding: 8px 12px;
+			border: none;
+			cursor: pointer;
+			z-index: 1;
+		}
+
+			.slide-btn.left {
+				left: 5px;
+			}
+
+			.slide-btn.right {
+				right: 5px;
+			}
+		/* Section Titles */
+		.games-section h2 {
+			font-size: 24px;
+			margin-bottom: 10px;
+		}
+
+		/* Featured Slider (not affected by .game-grid styling) */
+		.featured-slider {
+			width: 100%;
+			max-height: 400px;
+			overflow: hidden;
+			border-radius: 10px;
+			margin-bottom: 30px;
+		}
+
+			.featured-slider img {
+				width: 100%;
+				height: auto;
+				display: block;
+				border-radius: 10px;
+			}
+
+		/* Game Image Sliders */
+		.game-grid {
+			display: flex;
+			overflow-x: auto;
+			gap: 10px;
+			padding-bottom: 20px;
+			/* Hide scrollbar */
+			scrollbar-width: none; /* Firefox */
+			-ms-overflow-style: none; /* Internet Explorer 10+ */
+		}
+
+			.game-grid::-webkit-scrollbar {
+				display: none; /* Chrome, Safari, Opera */
+			}
+
+
+			.game-grid img {
+				width: 200px;
+				height: 140px;
+				flex-shrink: 0;
+				object-fit: cover;
+				border-radius: 8px;
+				transition: transform 0.3s;
+			}
+
+				.game-grid img:hover {
+					transform: scale(1.05);
+				}
+
+
+		.slider-section {
+			margin-bottom: 40px;
+		}
+
+        .service-box-3 .title:after {
+            content: "\f004"; /* heart icon */
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            position: absolute;
+            right: 6px;
+            color: #e91e63; /* pink/red heart */
+            text-align: center;
+            top: 50%;
+            transform: translateY(-50%);
+            line-height: 40px;
+            font-family: "Font Awesome 5 Free"; /* or 6 Free */
+            font-weight: 900; /* required for solid style */
+        }
+
+        /* Heart Button */
+.favorite-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 50%;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+.favorite-btn i {
+    font-size: 16px;
+    color: #e91e63;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+.favorite-btn:hover {
+    background: #fff;
+    transform: scale(1.1);
+}
+.favorite-btn:hover i {
+    color: #ff1744;
+    transform: scale(1.2);
+}
+
+/* Rating Badge */
+.rating-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+            background: linear-gradient(90deg, #D400FF,#008dff);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    z-index: 10;
+}
+
+	</style>
+</head>
+<body>
+        <!-- Carousel section start here -->
+        <div class="carousel">
+            <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item body">
+                        <picture>
+                            <img src="~/web/assets/images/bg6.jpg" class="image-fluid d-block w-100" alt="Destination event" height="600px">
+                        </picture>
+                        <div class="carousel-caption" style="padding-bottom:140px;">
+                            <div id="caroheading" style="background-color: rgba(0, 0, 0, 0.759); margin-bottom: 10px;">
+                                <a href="aboutus.html" style="text-decoration: none; color: white;">
+                                    <h2 class="animated fadeInLeft pt-3" style="font-size: 60px; font-family: Concert One, sans-serif; color: #ffffff;">
+                                        Explore the World of Gamaxy!
+                                    </h2>
+                                    <div class="headline pt-2 pb-3">
+                                        <span style="color: #ffffff; font-family: Manrope, sans-serif;" class="text-change"></span>
+                                    </div>
+                                </a>
+                                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+                                <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+                                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-localScroll/1.4.0/jquery.localScroll.js"></script>
+                                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.2/jquery.scrollTo.js"></script>
+                                <script>
+                                    $(document).ready(function () {
+                                        // Carousel text animation
+                                        var str = [" From Action to Adventure — All in One Place* ", " Play Smart. Play Fast. Play Gamaxy * ", " Your Ultimate Gaming Destination * "];
+                                        var pos = 0, a = 0;
+                                        var html = "";
+                                        $(".headline h1").css("letterSpacing", "1px");
+                                        function displayText() {
+                                            if (pos > 2) pos = 0;
+                                            console.log(pos);
+                                            console.log(str[pos].length);
+                                            if (a < str[pos].length) {
+                                                html += str[pos].charAt(a);
+                                                $(".text-change").html(html);
+                                                a++;
+                                            }
+                                            else {
+                                                a = 0;
+                                                pos++;
+                                                html = "";
+                                            }
+                                        }
+                                        setTimeout(setInterval(displayText, 150), 100);
+                                        $(".describe").hover(function () {
+                                            $(this).addClass("hover");
+                                        }, function () {
+                                            $(this).removeClass("hover");
+                                        });
+                                        $("#nav").localScroll({ duration: 800 });
+
+                                        // Add to Favorite functionality
+                                        $('.add-to-favorite').click(function () {
+                                            var button = $(this);
+                                            var gameName = button.data('game-name');
+                                            var gameAction = button.data('game-action');
+
+                                            $.ajax({
+                                                url: '/Home/AddToFavorites',
+                                                type: 'POST',
+                                                data: {
+                                                    gameName: gameName,
+                                                    gameAction: gameAction
+                                                },
+                                                success: function (response) {
+                                                    if (response.success) {
+                                                        alert(gameName + ' has been added to your favorites!');
+                                                        button.text('Added').prop('disabled', true).removeClass('btn-primary').addClass('btn-success');
+                                                    } else if (response.message === 'Already favorited') {
+                                                        alert(gameName + ' is already in your favorites.');
+                                                    } else {
+                                                        alert('Error: ' + response.message);
+                                                    }
+                                                },
+                                                error: function () {
+                                                    alert('An error occurred while adding to favorites. Please try again.');
+                                                }
+                                            });
+                                        });
+                                    });
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container py-5">
+            <!-- CATEGORY SLIDER -->
+            <section class="game-category-section mb-4" style="background-color: rgb(0, 0, 0);">
+                <div class="swiper category-slider">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide active" data-filter="">
+                            <div class="game-category text-center" style="border-top-left-radius:250px;border-top-right-radius:250px;">
+                                <i class="fa-solid fa-shapes"></i><span>All</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide" data-filter="action">
+                            <div class="game-category text-center" style="border-bottom-left-radius:250px;border-bottom-right-radius:250px;">
+                                <i class="fa-solid fa-gun"></i><span>Action</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide" data-filter="adventure">
+                            <div class="game-category text-center" style="border-bottom-left-radius:250px;border-bottom-right-radius:250px;">
+                                <i class="fa-solid fa-map"></i><span>Adventure</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide" data-filter="puzzle">
+                            <div class="game-category text-center" style="border-top-left-radius:250px;border-top-right-radius:250px;">
+                                <i class="fa-solid fa-puzzle-piece"></i><span>Puzzle</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide" data-filter="sports">
+                            <div class="game-category text-center" style="border-bottom-left-radius:250px;border-bottom-right-radius:250px;">
+                                <i class="fa-solid fa-car"></i><span>Sports</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide" data-filter="multiplayer">
+                            <div class="game-category text-center" style="border-top-left-radius:250px;border-top-right-radius:250px;">
+                                <i class="fa-solid fa-network-wired"></i><span>Multiplayer</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide" data-filter="mystery">
+                            <div class="game-category text-center" style="border-bottom-left-radius:250px;border-bottom-right-radius:250px;">
+                                <i class="fa-solid fa-ghost"></i><span>Mystery</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide" data-filter="platformer">
+                            <div class="game-category text-center" style="border-top-left-radius:250px;border-top-right-radius:250px;">
+                                <i class="fa-solid fa-person-running"></i><span>Platformer</span>
+                            </div>
+                        </div>
+                        <div class="swiper-slide" data-filter="battleroyale">
+                            <div class="game-category text-center" style="border-bottom-left-radius:250px;border-bottom-right-radius:250px;">
+                                <i class="fa-solid fa-crosshairs"></i><span>Battle Royale</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GAME CARDS -->
+            <ul id="masonry8" class="row list-unstyled">
+                <div class="content-block">
+                    <div class="section-full content-inner bg-white">
+                        <div class="container">
+                            <div class="row">
+
+                                <!-- Action Game -->
+                              <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown action" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="AlienDefense"><img src="~/assets/images/alienssapcewar.png" style="height: 180px;" alt="action"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="AlienDefense">Alien Defense</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Alien Defense">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Alien Defense") ? ViewBag.AverageRatings["Alien Defense"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Alien Defense" data-game-action="AlienDefense">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <div class="col-lg-3 col-md-6 col-sm-12 mb-4 wow fadeInDown action" data-wow-duration="2s" data-wow-delay="0.6s">
+                                <div class="dlab-box service-box-3 position-relative">
+
+                                    <!-- Game Image -->
+                                    <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect position-relative">
+                                        <a asp-controller="Home" asp-action="AngryBird">
+                                            <img src="~/assets/images/angrybird.jpg" class="img-fluid w-100" style="height: 200px; object-fit: cover;" alt="Angry Bird">
+                                        </a>
+
+                                        <!-- Heart Button -->
+                                        <button class="favorite-btn add-to-favorite"
+                                                data-game-name="Angry Bird"
+                                                data-game-action="AngryBird">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+
+                                        <!-- Rating Badge -->
+                                        <div class="rating-badge">
+ 
+                                            <span class="average-rating" data-game-name="Angry Bird">
+                                                @(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Angry Bird")
+                                                    ? ViewBag.AverageRatings["Angry Bird"].ToString("F1")
+                                                    : "0.0")
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Game Info -->
+                                    <div class="dlab-info text-center p-2">
+                                        <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%);">
+                                            <a asp-controller="Home" asp-action="AngryBird">Angry Bird</a>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Games -->
+                            <div class="col-lg-3 col-md-6 col-sm-12 mb-4 wow fadeInRight action" data-wow-duration="2s" data-wow-delay="0.3s">
+                                <div class="dlab-box service-box-3 position-relative">
+
+                                    <!-- Game Image -->
+                                    <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect position-relative">
+                                        <a asp-controller="Home" asp-action="Ballon">
+                                            <img src="~/assets/images/ballshooter.png" class="img-fluid w-100" style="height: 200px; object-fit: cover;" alt="Ballon">
+                                        </a>
+
+                                        <!-- Heart Button -->
+                                        <button class="favorite-btn add-to-favorite" data-game-name="Ballon" data-game-action="Ballon">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+
+                                        <!-- Rating Badge -->
+                                        <div class="rating-badge">
+ 
+                                            <span class="average-rating" data-game-name="Ballon">
+                                                @(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Ballon")
+                                                    ? ViewBag.AverageRatings["Ballon"].ToString("F1")
+                                                    : "0.0")
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Game Info -->
+                                    <div class="dlab-info text-center p-2">
+                                        <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%);">
+                                            <a asp-controller="Home" asp-action="Ballon">Ballon</a>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6 col-sm-12 mb-4 wow fadeInLeft action" data-wow-duration="2s" data-wow-delay="0.3s">
+                                <div class="dlab-box service-box-3 position-relative">
+
+                                    <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect position-relative">
+                                        <a asp-controller="Home" asp-action="bubbleshooter">
+                                            <img src="~/assets/images/bubbleshooter.jpg" class="img-fluid w-100" style="height: 200px; object-fit: cover;" alt="Bubble Shooter">
+                                        </a>
+
+                                        <button class="favorite-btn add-to-favorite" data-game-name="Bubble Shooter" data-game-action="bubbleshooter">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+
+                                        <div class="rating-badge">
+ 
+                                            <span class="average-rating" data-game-name="Bubble Shooter">
+                                                @(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Bubble Shooter")
+                                                    ? ViewBag.AverageRatings["Bubble Shooter"].ToString("F1")
+                                                    : "0.0")
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="dlab-info text-center p-2">
+                                        <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%);">
+                                            <a asp-controller="Home" asp-action="bubbleshooter">Bubble Shooter</a>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Adventure Game -->
+                             <!-- Adventure Games -->
+<div class="col-lg-3 col-md-6 col-sm-12 mb-4 wow fadeInDown adventure" data-wow-duration="2s" data-wow-delay="0.6s">
+    <div class="dlab-box service-box-3 position-relative">
+        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect position-relative">
+            <a asp-controller="Home" asp-action="burger">
+                <img src="~/assets/images/burger.png" class="img-fluid w-100" style="height:200px;object-fit:cover;" alt="Burger">
+            </a>
+            <button class="favorite-btn add-to-favorite" data-game-name="Burger" data-game-action="burger">
+                <i class="fas fa-heart"></i>
+            </button>
+            <div class="rating-badge">
+               <span class="average-rating" data-game-name="Burger">
+                    @(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Burger") ? ViewBag.AverageRatings["Burger"].ToString("F1") : "0.0")
+                </span>
+            </div>
+        </div>
+        <div class="dlab-info text-center p-2">
+            <h4 class="title" style="background-image:linear-gradient(to right,#008dff 0%,#D400FF 50%,#008dff 100%);">
+                <a asp-controller="Home" asp-action="burger">Burger</a>
+            </h4>
+        </div>
+    </div>
+</div>
+
+<div class="col-lg-3 col-md-6 col-sm-12 mb-4 wow fadeInRight adventure" data-wow-duration="2s" data-wow-delay="0.3s">
+    <div class="dlab-box service-box-3 position-relative">
+        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect position-relative">
+            <a asp-controller="Home" asp-action="CandyCrushGame">
+                <img src="~/assets/images/CandyCrushGame.jpg" class="img-fluid w-100" style="height:200px;object-fit:cover;" alt="Candy Crush">
+            </a>
+            <button class="favorite-btn add-to-favorite" data-game-name="Candy Crush" data-game-action="CandyCrushGame">
+                <i class="fas fa-heart"></i>
+            </button>
+            <div class="rating-badge">
+               <span class="average-rating" data-game-name="Candy Crush">
+                    @(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Candy Crush") ? ViewBag.AverageRatings["Candy Crush"].ToString("F1") : "0.0")
+                </span>
+            </div>
+        </div>
+        <div class="dlab-info text-center p-2">
+            <h4 class="title" style="background-image:linear-gradient(to right,#008dff 0%,#D400FF 50%,#008dff 100%);">
+                <a asp-controller="Home" asp-action="CandyCrushGame">Candy Crush</a>
+            </h4>
+        </div>
+    </div>
+</div>
+
+<div class="col-lg-3 col-md-6 col-sm-12 mb-4 wow fadeInLeft adventure" data-wow-duration="2s" data-wow-delay="0.3s">
+    <div class="dlab-box service-box-3 position-relative">
+        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect position-relative">
+            <a asp-controller="Home" asp-action="CarEscape">
+                <img src="~/assets/images/CarEscape.jpg" class="img-fluid w-100" style="height:200px;object-fit:cover;" alt="Car Escape">
+            </a>
+            <button class="favorite-btn add-to-favorite" data-game-name="Car Escape" data-game-action="CarEscape">
+                <i class="fas fa-heart"></i>
+            </button>
+            <div class="rating-badge">
+               <span class="average-rating" data-game-name="Car Escape">
+                    @(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Car Escape") ? ViewBag.AverageRatings["Car Escape"].ToString("F1") : "0.0")
+                </span>
+            </div>
+        </div>
+        <div class="dlab-info text-center p-2">
+            <h4 class="title" style="background-image:linear-gradient(to right,#008dff 0%,#D400FF 50%,#008dff 100%);">
+                <a asp-controller="Home" asp-action="CarEscape">Car Escape</a>
+            </h4>
+        </div>
+    </div>
+</div>
+
+<div class="col-lg-3 col-md-6 col-sm-12 mb-4 wow fadeInDown adventure" data-wow-duration="2s" data-wow-delay="0.6s">
+    <div class="dlab-box service-box-3 position-relative">
+        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect position-relative">
+            <a asp-controller="Home" asp-action="CarParker">
+                <img src="~/assets/images/CarParker.jpeg" class="img-fluid w-100" style="height:200px;object-fit:cover;" alt="Car Parker">
+            </a>
+            <button class="favorite-btn add-to-favorite" data-game-name="Car Parker" data-game-action="CarParker">
+                <i class="fas fa-heart"></i>
+            </button>
+            <div class="rating-badge">
+               <span class="average-rating" data-game-name="Car Parker">
+                    @(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Car Parker") ? ViewBag.AverageRatings["Car Parker"].ToString("F1") : "0.0")
+                </span>
+            </div>
+        </div>
+        <div class="dlab-info text-center p-2">
+            <h4 class="title" style="background-image:linear-gradient(to right,#008dff 0%,#D400FF 50%,#008dff 100%);">
+                <a asp-controller="Home" asp-action="CarParker">Car Parker</a>
+            </h4>
+        </div>
+    </div>
+</div>
+
+<!-- Puzzle Games -->
+<div class="col-lg-3 col-md-6 col-sm-12 mb-4 wow fadeInLeft puzzle" data-wow-duration="2s" data-wow-delay="0.3s">
+    <div class="dlab-box service-box-3 position-relative">
+        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect position-relative">
+            <a asp-controller="Home" asp-action="chess">
+                <img src="~/assets/images/chess.png" class="img-fluid w-100" style="height:200px;object-fit:cover;" alt="Chess">
+            </a>
+            <button class="favorite-btn add-to-favorite" data-game-name="Chess" data-game-action="chess">
+                <i class="fas fa-heart"></i>
+            </button>
+            <div class="rating-badge">
+               <span class="average-rating" data-game-name="Chess">
+                    @(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Chess") ? ViewBag.AverageRatings["Chess"].ToString("F1") : "0.0")
+                </span>
+            </div>
+        </div>
+        <div class="dlab-info text-center p-2">
+            <h4 class="title" style="background-image:linear-gradient(to right,#008dff 0%,#D400FF 50%,#008dff 100%);">
+                <a asp-controller="Home" asp-action="chess">Chess</a>
+            </h4>
+        </div>
+    </div>
+</div>
+
+                                <div class="col-lg-3 col-md-6 col-sm-12 mb-4 wow fadeInDown puzzle" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3 position-relative">
+
+                                        <!-- Game Image -->
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect position-relative">
+                                            <a asp-controller="Home" asp-action="ChronoRunner">
+                                                <img src="~/assets/images/ChronoRunner.jpg"
+                                                     class="img-fluid w-100"
+                                                     style="height: 200px; object-fit: cover;"
+                                                     alt="Chrono Runner">
+                                            </a>
+
+                                            <!-- Heart Button -->
+                                            <button class="favorite-btn add-to-favorite"
+                                                    data-game-name="Chrono Runner"
+                                                    data-game-action="ChronoRunner">
+                                                <i class="fas fa-heart"></i>
+                                            </button>
+
+                                            <!-- Rating Badge -->
+                                            <div class="rating-badge">
+     
+                                                <span class="average-rating" data-game-name="Chrono Runner">
+                                                    @(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Chrono Runner")
+                                                        ? ViewBag.AverageRatings["Chrono Runner"].ToString("F1")
+                                                        : "0.0")
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Game Info -->
+                                        <div class="dlab-info text-center p-2">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%);">
+                                                <a asp-controller="Home" asp-action="ChronoRunner">Chrono Runner</a>
+                                            </h4>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInRight puzzle" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="cosmicdefender"><img src="~/assets/images/cosmicdefender.jpg" style="height: 180px;" alt="puzzle"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="cosmicdefender">Cosmic Defender</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Cosmic Defender">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Cosmic Defender") ? ViewBag.AverageRatings["Cosmic Defender"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Cosmic Defender" data-game-action="cosmicdefender">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft puzzle" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="CrazyCarRun"><img src="~/assets/images/CrazyCarRun.jpg" style="height: 180px;" alt="puzzle"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="CrazyCarRun">Crazy Car Run</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Crazy Car Run">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Crazy Car Run") ? ViewBag.AverageRatings["Crazy Car Run"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Crazy Car Run" data-game-action="CrazyCarRun">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown puzzle" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="CrossyRoadGame"><img src="~/assets/images/CrossyRoadGame.jpg" style="height: 180px;" alt="puzzle"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="CrossyRoadGame">CrossyRoad Game</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="CrossyRoad Game">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("CrossyRoad Game") ? ViewBag.AverageRatings["CrossyRoad Game"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="CrossyRoad Game" data-game-action="CrossyRoadGame">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInRight puzzle" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="CutTheRope"><img src="~/assets/images/Cuttherope.png" style="height: 180px;" alt="puzzle"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="CutTheRope">Cut The Rope</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Cut The Rope">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Cut The Rope") ? ViewBag.AverageRatings["Cut The Rope"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Cut The Rope" data-game-action="CutTheRope">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft puzzle" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="delivery"><img src="~/assets/images/delivery.jpg" style="height: 180px;" alt="puzzle"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="delivery">Delivery</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Delivery">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Delivery") ? ViewBag.AverageRatings["Delivery"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Delivery" data-game-action="delivery">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown puzzle" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="DropEscape"><img src="~/assets/images/DropEscape.jpg" style="height: 180px;" alt="puzzle"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="DropEscape">Drop Escape</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Drop Escape">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Drop Escape") ? ViewBag.AverageRatings["Drop Escape"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Drop Escape" data-game-action="DropEscape">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Sports Game -->
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft sports" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="Drumkit"><img src="~/assets/images/Drumkit.jpg" style="height: 180px;" alt="sports"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="Drumkit">Drumkit</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Drumkit">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Drumkit") ? ViewBag.AverageRatings["Drumkit"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Drumkit" data-game-action="Drumkit">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown sports" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="fightinggame"><img src="/gamer/img/fightinggame.jpg" style="height: 180px;" alt="sports"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="fightinggame">Fighting Game</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Fighting Game">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Fighting Game") ? ViewBag.AverageRatings["Fighting Game"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Fighting Game" data-game-action="fightinggame">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInRight sports" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="FireBoyandWaterGirl"><img src="~/assets/images/FireBoyandWaterGirl.png" style="height: 180px;" alt="sports"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="FireBoyandWaterGirl">Fire & Water</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Fire & Water">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Fire & Water") ? ViewBag.AverageRatings["Fire & Water"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Fire & Water" data-game-action="FireBoyandWaterGirl">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft sports" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="fish"><img src="~/assets/images/fish.jpg" style="height: 180px;" alt="sports"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="fish">Fish</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Fish">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Fish") ? ViewBag.AverageRatings["Fish"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Fish" data-game-action="fish">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown sports" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="FlappyBird"><img src="~/assets/images/Flappybird.png" style="height: 180px;" alt="sports"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="FlappyBird">Flappy Bird</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Flappy Bird">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Flappy Bird") ? ViewBag.AverageRatings["Flappy Bird"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Flappy Bird" data-game-action="FlappyBird">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Multiplayer Game -->
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft multiplayer" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="Flipcard"><img src="~/assets/images/Flipcard.jpg" style="height: 180px;" alt="multiplayer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="Flipcard">Flip Card</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Flip Card">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Flip Card") ? ViewBag.AverageRatings["Flip Card"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Flip Card" data-game-action="Flipcard">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown multiplayer" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="FruitNinja"><img src="~/assets/images/FruitNinja.png" style="height: 180px;" alt="multiplayer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="FruitNinja">Fruit Ninja</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Fruit Ninja">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Fruit Ninja") ? ViewBag.AverageRatings["Fruit Ninja"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Fruit Ninja" data-game-action="FruitNinja">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInRight multiplayer" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="Hangmen"><img src="~/assets/images/hangmen.png" style="height: 180px;" alt="multiplayer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="Hangmen">Hangmen</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Hangmen">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Hangmen") ? ViewBag.AverageRatings["Hangmen"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Hangmen" data-game-action="Hangmen">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft multiplayer" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="helicopter"><img src="~/assets/images/helicopter.png" style="height: 180px;" alt="multiplayer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="helicopter">Helicopter</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Helicopter">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Helicopter") ? ViewBag.AverageRatings["Helicopter"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Helicopter" data-game-action="helicopter">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown multiplayer" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="matchthecolumn"><img src="~/assets/images/matchthecolumn.png" style="height: 180px;" alt="multiplayer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="matchthecolumn">Match the Column</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Match the Column">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Match the Column") ? ViewBag.AverageRatings["Match the Column"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Match the Column" data-game-action="matchthecolumn">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Mystery Game -->
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft mystery" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="Memorygame"><img src="~/assets/images/Memorygame.png" style="height: 180px;" alt="mystery"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="Memorygame">Memory Game</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Memory Game">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Memory Game") ? ViewBag.AverageRatings["Memory Game"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Memory Game" data-game-action="Memorygame">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown mystery" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="NeonRacer"><img src="~/assets/images/NeonRacer.jpg" style="height: 180px;" alt="mystery"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="NeonRacer">Neon Racer</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Neon Racer">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Neon Racer") ? ViewBag.AverageRatings["Neon Racer"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Neon Racer" data-game-action="NeonRacer">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInRight mystery" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="Pacman"><img src="~/assets/images/pacman.jpg" style="height: 180px;" alt="mystery"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="Pacman">Pacman</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Pacman">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Pacman") ? ViewBag.AverageRatings["Pacman"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Pacman" data-game-action="Pacman">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft mystery" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="PongBall"><img src="~/assets/images/pong.png" style="height: 180px;" alt="mystery"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="PongBall">Pong Ball</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Pong Ball">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Pong Ball") ? ViewBag.AverageRatings["Pong Ball"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Pong Ball" data-game-action="PongBall">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown mystery" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="RockPaperScissor2"><img src="~/assets/images/RockPaperScissor.jpg" style="height: 180px;" alt="mystery"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="RockPaperScissor2">Rock Paper Scissor 2</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Rock Paper Scissor 2">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Rock Paper Scissor 2") ? ViewBag.AverageRatings["Rock Paper Scissor 2"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Rock Paper Scissor 2" data-game-action="RockPaperScissor2">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInRight mystery" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="RockPaperScissors"><img src="~/assets/images/RockPaperScissor2.png" style="height: 180px;" alt="mystery"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="RockPaperScissors">Rock Paper Scissors</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Rock Paper Scissors">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Rock Paper Scissors") ? ViewBag.AverageRatings["Rock Paper Scissors"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Rock Paper Scissors" data-game-action="RockPaperScissors">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Platformer Game -->
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft platformer" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="Runningman"><img src="~/assets/images/Runningman.jpg" style="height: 180px;" alt="platformer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="Runningman">Running Man</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Running Man">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Running Man") ? ViewBag.AverageRatings["Running Man"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Running Man" data-game-action="Runningman">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown platformer" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="SimonSaysGame"><img src="~/assets/images/SimonSaysGame.jpg" style="height: 180px;" alt="platformer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="SimonSaysGame">Simon Says Game</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Simon Says Game">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Simon Says Game") ? ViewBag.AverageRatings["Simon Says Game"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Simon Says Game" data-game-action="SimonSaysGame">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInRight platformer" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="snake"><img src="~/assets/images/snake.jpg" style="height: 180px;" alt="platformer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="snake">Snake</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Snake">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Snake") ? ViewBag.AverageRatings["Snake"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Snake" data-game-action="snake">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown platformer" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="TankShooter"><img src="~/assets/images/tankshooter.png" style="height: 180px;" alt="platformer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="TankShooter">Tank Shooter</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Tank Shooter">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Tank Shooter") ? ViewBag.AverageRatings["Tank Shooter"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Tank Shooter" data-game-action="TankShooter">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInRight platformer" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="Thinking"><img src="~/assets/images/Thinking.jpg" style="height: 180px;" alt="platformer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="Thinking">Thinking</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Thinking">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Thinking") ? ViewBag.AverageRatings["Thinking"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Thinking" data-game-action="Thinking">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft platformer" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="tetris"><img src="~/assets/images/tetris.png" style="height: 180px;" alt="platformer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="tetris">Tetris</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Tetris">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Tetris") ? ViewBag.AverageRatings["Tetris"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Tetris" data-game-action="tetris">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown platformer" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="TicTacToe"><img src="~/assets/images/tictactoe.png" style="height: 180px;" alt="platformer"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="TicTacToe">Tic Tac Toe</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Tic Tac Toe">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Tic Tac Toe") ? ViewBag.AverageRatings["Tic Tac Toe"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Tic Tac Toe" data-game-action="TicTacToe">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Battle Royale Game -->
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft battleroyale" data-wow-duration="2s" data-wow-delay="0.3s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="TowerBlocks"><img src="~/assets/images/BrickBreaker.jpg" style="height: 180px;" alt="battleroyale"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="TowerBlocks">Tower Blocks</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Tower Blocks">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Tower Blocks") ? ViewBag.AverageRatings["Tower Blocks"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Tower Blocks" data-game-action="TowerBlocks">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown battleroyale" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="UltimateBrickBreaker"><img src="~/assets/images/brickbreaker.png" style="height: 180px;" alt="battleroyale"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="UltimateBrickBreaker">Ultimate Brick Breaker</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Ultimate Brick Breaker">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Ultimate Brick Breaker") ? ViewBag.AverageRatings["Ultimate Brick Breaker"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Ultimate Brick Breaker" data-game-action="UltimateBrickBreaker">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown battleroyale" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                        <a asp-controller="Home" asp-action="waterflow"><img src="~/assets/images/waterflow.jpg" style="height: 180px;" alt="battleroyale"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="waterflow">water flow</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="water flow">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("water flow") ? ViewBag.AverageRatings["water flow"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="water flow" data-game-action="waterflow">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInDown battleroyale" data-wow-duration="2s" data-wow-delay="0.6s">
+                                    <div class="dlab-box service-box-3">
+                                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                                            <a asp-controller="Home" asp-action="WhackAMole"><img src="~/assets/images/whackamole.jpg" style="height: 180px;" alt="battleroyale"></a>
+                                        </div>
+                                        <div class="dlab-info">
+                                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="WhackAMole">WhackAMole</a></h4>
+                                            <p>Average Rating: <span class="average-rating" data-game-name="Whack A Mole">@(ViewBag.AverageRatings != null && ViewBag.AverageRatings.ContainsKey("Whack A Mole") ? ViewBag.AverageRatings["Whack A Mole"].ToString("F1") : "0.0")</span></p>
+                                            <button class="btn btn-primary add-to-favorite" data-game-name="Whack Whack A Mole" data-game-action="WhackAMole">Add to Favorite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ul>
+        </div>
+        <!-- JS Scripts -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+        <script>
+                    $(document).ready(function () {
+                $('.add-to-favorite').click(function () {
+                    var button = $(this);
+                    var gameName = button.data('game-name');
+                    var gameAction = button.data('game-action');
+
+                    $.ajax({
+                        url: '/Home/AddToFavorites',
+                        type: 'POST',
+                        data: {
+                            gameName: gameName,
+                            gameAction: gameAction
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                alert(gameName + ' has been added to your favorites!');
+                                button.text('Added').prop('disabled', true).removeClass('btn-primary').addClass('btn-success');
+                            } else if (response.message === 'Already favorited') {
+                                alert(gameName + ' is already in your favorites.');
+                            } else {
+                                alert('Error: ' + response.message);
+                            }
+                        },
+                        error: function () {
+                            alert('An error occurred while adding to favorites. Please try again.');
+                        }
+                    });
+                });
+            });
+
+                    // Swiper Init
+            const swiper = new Swiper('.category-slider', {
+                slidesPerView: 5,
+                spaceBetween: 10,
+                grabCursor: true,
+                breakpoints: {
+                    0: { slidesPerView: 2 },
+                    768: { slidesPerView: 4 },
+                    992: { slidesPerView: 5 }
+                }
+            });
+
+                    document.addEventListener("DOMContentLoaded", function () {
+                    const categorySlides = document.querySelectorAll(".swiper-slide");
+                    const gameCards = document.querySelectorAll("#masonry8 .col-lg-3"); // ✅ updated selector
+
+                    categorySlides.forEach(slide => {
+                        slide.addEventListener("click", () => {
+                            const filterValue = slide.getAttribute("data-filter");
+
+                            // Update active class
+                            categorySlides.forEach(s => s.classList.remove("active"));
+                            slide.classList.add("active");
+
+                            // Show/hide cards
+                            gameCards.forEach(card => {
+                                if (!filterValue || card.classList.contains(filterValue)) {
+                                    card.style.display = "block";
+                                } else {
+                                    card.style.display = "none";
+                                }
+                            });
+                        });
+                    });
+                });
+
+
+        </script>
+    </body>
+</html>

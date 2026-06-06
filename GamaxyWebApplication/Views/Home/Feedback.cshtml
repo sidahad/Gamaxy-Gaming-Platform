@@ -1,0 +1,193 @@
+﻿@model List<Feedback>
+@{
+    ViewData["Title"] = "Feedback Page";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" />
+
+<style>
+
+    .feedback-wrapper {
+        width: 100%;
+        max-width: 500px;
+        padding: 30px;
+        border-radius: 20px;
+        border: 3px solid transparent;
+        background: linear-gradient(#0d0d0d, #0d0d0d) padding-box, linear-gradient(to right, #008dff, #D400FF, #008dff) border-box;
+        box-shadow: 0 0 35px rgba(0, 141, 255, 0.25);
+        text-align: center;
+        margin-bottom: 60px;
+        margin-top: 60px;
+    }
+
+        .feedback-wrapper h1 {
+            font-size: 26px;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #008dff, #D400FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+    .form-control {
+        border-radius: 8px;
+        border: none;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        background: #fff;
+        color: black;
+        transition: 0.3s;
+    }
+
+        .form-control:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 141, 255, 0.6);
+        }
+
+    .site-button {
+        background: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%);
+        background-size: 200% auto;
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        padding: 12px 25px;
+        border-radius: 8px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: all 0.4s ease-in-out;
+        box-shadow: 0 0 20px rgba(0, 141, 255, 0.4);
+        width: 100%;
+    }
+
+        .site-button:hover {
+            background-position: right center;
+            box-shadow: 0 0 25px rgba(212, 0, 255, 0.6);
+        }
+
+    .testimonial-13 {
+        border: 2px solid transparent;
+        border-radius: 15px;
+        background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)) padding-box, linear-gradient(to right, #008dff, #D400FF, #008dff) border-box;
+        box-shadow: 0 0 25px rgba(0, 141, 255, 0.3);
+        padding: 25px;
+        margin: 15px;
+        text-align: center;
+    }
+
+        .testimonial-13 h5 {
+            margin-top: 10px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+    .star-rating i {
+        color: #ffcc00;
+        text-shadow: 0 0 10px rgba(255, 204, 0, 0.9), 0 0 20px rgba(0, 141, 255, 0.5);
+    }
+
+    .owl-dots .owl-dot span {
+        background: #008dff !important;
+        transition: 0.3s;
+    }
+
+    .owl-dots .owl-dot.active span {
+        background: #D400FF !important;
+        width: 18px;
+    }
+
+    .section1 {
+        position: relative;
+        letter-spacing: 1px;
+        color: #ffffff;
+        min-height: 100vh;
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center; 
+        background-image: url('@Url.Content("~/web/assets/images/bg1.jpg")');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding: 40px 20px;
+    }
+
+
+</style>
+<section class="body pt-4 section1">
+
+    <div class="feedback-wrapper">
+        <h1>Feedback Form</h1>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form asp-action="Submit" method="post">
+            <input type="text" name="Name" class="form-control" placeholder="Your Name" required />
+            <input type="email" name="Email" class="form-control" placeholder="Your Email" required />
+            <select name="Rating" class="form-control"  required>
+                <option value="">Select Rating</option>
+                <option>5</option>
+                <option>4</option>
+                <option>3</option>
+                <option>2</option>
+                <option>1</option>
+            </select>
+            <textarea name="Comment" class="form-control" style="margin-top: 15px;" rows="3" placeholder="Your feedback..." required></textarea>
+            <button type="submit" class="site-button">Submit Feedback</button>
+        </form>
+    </div>
+
+    <div class="container text-center">
+        <h1 class="mb-4" style="color:white;">Ratings & Reviews</h1>
+        <div class="owl-carousel owl-theme">
+            @foreach (var item in Model)
+            {
+                <div class="testimonial-13">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= item.Rating)
+                        {
+                            <i class="fa-solid fa-star"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-regular fa-star"></i>
+                        }
+                    }
+                    <p class="mt-3">@item.Comment</p>
+                    <h5>@item.Name</h5>
+                    <span class="text-muted">@item.DateSubmitted.ToString("MMM dd, yyyy hh:mm tt")</span>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $(".owl-carousel").owlCarousel({
+            loop: true,
+            margin: 20,
+            nav: false,
+            dots: true,
+            autoplay: true,
+            autoplayTimeout: 4000,
+            smartSpeed: 800,
+            responsive: {
+                0: { items: 1 },
+                768: { items: 2 }
+            }
+        });
+    });
+</script>

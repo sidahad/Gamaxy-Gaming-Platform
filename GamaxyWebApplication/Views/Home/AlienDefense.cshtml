@@ -1,0 +1,1029 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Alien Defense";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Alien Defense – Planet Siege</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link href="~/css/AlienDefense.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">ALIEN DEFENSE</h1>
+                <div class="game-subtitle">PLANET SIEGE</div>
+            </div>
+
+            <div class="game-container">
+                <div id="alien-defense-container">
+                    <div id="ui">Health: <span id="health">100</span> | Score: <span id="score">0</span> | Power: <span id="power">None</span></div>
+                    <div id="highScoreDisplay">High Score: <span id="highscore">0</span></div>
+                    <div id="instructions">Move: WASD | Aim/Shoot: Mouse | ESC: Menu | ENTER: Restart | P: Power-Up</div>
+                    <div id="menuBtn" onclick="toggleMenu()">Menu</div>
+                    <div id="menuPopup">
+                        <button onclick="togglePause()">Resume</button>
+                        <button onclick="restartGame()">Restart</button>
+                    </div>
+                    <div id="gameOverScreen">
+                        <div class="title">GAME OVER!</div>
+                        <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+                        <div class="name-input-container">
+                            <input type="text" id="playerNameInput" placeholder="Enter your name" />
+                            <button id="submitScoreBtn">Submit Score</button>
+                        </div>
+                        <table class="leaderboard">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody"></tbody>
+                        </table>
+                        <button onclick="restartGame()">Play Again</button>
+                    </div>
+                    <div id="powerUpMessage"></div>
+                    <canvas id="game" width="1280" height="720"></canvas>
+                </div>
+            </div>
+
+            <!-- Rating Section -->
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Three.js with enhanced settings
+        const canvas = document.getElementById('game');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setSize(canvas.width, canvas.height);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        camera.position.z = 500;
+
+        // UI Elements
+        const healthEl = document.getElementById('health');
+        const scoreEl = document.getElementById('score');
+        const powerEl = document.getElementById('power');
+        const finalScoreEl = document.getElementById('finalScore');
+        const highScoreEl = document.getElementById('highscore');
+        const menuPopup = document.getElementById('menuPopup');
+        const powerUpMessage = document.getElementById('powerUpMessage');
+
+        // Enhanced Sound Effects
+        const sounds = {
+            shoot: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2022/03/15/audio_6d7a1ba02d.mp3?filename=laser-gun-shot-14798.mp3'],
+                volume: 0.5
+            }),
+            explosion: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2022/10/28/audio_d4137a2ae1.mp3?filename=explosion-7130.mp3'],
+                volume: 0.7
+            }),
+            powerUp: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2022/03/15/audio_9b7dfd7e48.mp3?filename=power-up-14849.mp3'],
+                volume: 0.5
+            }),
+            hit: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2022/03/15/audio_cfdc2f85d7.mp3?filename=impact-14850.mp3'],
+                volume: 0.5
+            }),
+            background: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2023/02/28/audio_040eb31f95.mp3?filename=galactic-sci-fi-ambient-loop-142008.mp3'],
+                volume: 0.4,
+                loop: true
+            })
+        };
+
+        // Load Textures with improved quality
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.setCrossOrigin('');
+        const playerTexture = textureLoader.load('/asseted/AlienDefenseassets/Player.png', undefined, undefined, () => console.error('Player texture failed to load'));
+        const alienTexture = textureLoader.load('/asseted/AlienDefenseassets/Alien.png', undefined, undefined, () => console.error('Alien texture failed to load'));
+        const bulletTexture = textureLoader.load('/asseted/AlienDefenseassets/Bullet.png', undefined, undefined, () => console.error('Bullet texture failed to load'));
+        const bgTexture = textureLoader.load('/asseted/AlienDefenseassets/Background2.png', undefined, undefined, () => console.error('Background texture failed to load'));
+        const powerUpTexture = textureLoader.load('/asseted/AlienDefenseassets/power-up.png', undefined, undefined, () => console.error('Power-up texture failed to load'));
+
+        // Advanced Particle System for Explosions
+        const particleGeometry = new THREE.BufferGeometry();
+        const particleCount = 200;
+        const posArray = new Float32Array(particleCount * 3);
+        const colorArray = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            posArray[i * 3] = (Math.random() - 0.5) * 50;
+            posArray[i * 3 + 1] = (Math.random() - 0.5) * 50;
+            posArray[i * 3 + 2] = 0;
+            colorArray[i * 3] = Math.random();
+            colorArray[i * 3 + 1] = Math.random();
+            colorArray[i * 3 + 2] = 0;
+        }
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particleGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 3,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending
+        });
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+
+        // Game Objects with Enhanced Graphics
+        const player = {
+            mesh: new THREE.Mesh(
+                new THREE.PlaneGeometry(60, 60),
+                new THREE.MeshStandardMaterial({ map: playerTexture, transparent: true, roughness: 0.5, metalness: 0.8 })
+            ),
+            x: 0,
+            y: 0,
+            angle: 0,
+            speed: 5,
+            health: 100,
+            power: null,
+            powerTimer: 0
+        };
+        player.mesh.castShadow = true;
+        scene.add(player.mesh);
+
+        const bgMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(canvas.width, canvas.height),
+            new THREE.MeshStandardMaterial({ map: bgTexture, depthTest: false })
+        );
+        bgMesh.position.z = -10;
+        scene.add(bgMesh);
+
+        let bullets = [], aliens = [], powerUps = [], particlesList = [], score = 0;
+        let keys = {}, mouseX = 0, mouseY = 0;
+        let gameOver = false, paused = false;
+        let highScore = localStorage.getItem('alienHighScore') || 0;
+        highScoreEl.textContent = highScore;
+
+        // Lighting for Better Graphics
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        const directionalLight = new THREE.DirectionalLight(0x00ff00, 0.5);
+        directionalLight.position.set(0, 0, 500);
+        scene.add(ambientLight, directionalLight);
+
+        // Event Listeners
+        document.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if (e.key === 'Escape') toggleMenu();
+            if (gameOver && e.key === 'Enter') restartGame();
+            if (e.key === 'p' && player.power) activatePowerUp();
+        });
+        document.addEventListener('keyup', e => keys[e.key] = false);
+
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = ((e.clientX - rect.left) / canvas.width) * 2 - 1;
+            mouseY = -((e.clientY - rect.top) / canvas.height) * 2 + 1;
+        });
+        canvas.addEventListener('click', () => {
+            if (gameOver || paused) return;
+            shootBullet();
+        });
+
+        function shootBullet() {
+            const bullet = new THREE.Mesh(
+                new THREE.PlaneGeometry(15, 15),
+                new THREE.MeshStandardMaterial({ map: bulletTexture, transparent: true, emissive: 0x00ffff, emissiveIntensity: 0.5 })
+            );
+            bullet.position.set(player.x, player.y, 0);
+            const angle = player.angle;
+            bullets.push({ mesh: bullet, dx: Math.cos(angle) * 15, dy: Math.sin(angle) * 15 });
+            scene.add(bullet);
+            sounds.shoot.play();
+        }
+
+        function spawnAlien() {
+            const edge = Math.floor(Math.random() * 4);
+            let x, y;
+            if (edge === 0) { x = -canvas.width / 2; y = (Math.random() - 0.5) * canvas.height; }
+            else if (edge === 1) { x = canvas.width / 2; y = (Math.random() - 0.5) * canvas.height; }
+            else if (edge === 2) { x = (Math.random() - 0.5) * canvas.width; y = canvas.height / 2; }
+            else { x = (Math.random() - 0.5) * canvas.width; y = -canvas.height / 2; }
+            const alien = new THREE.Mesh(
+                new THREE.PlaneGeometry(50, 50),
+                new THREE.MeshStandardMaterial({ map: alienTexture, transparent: true, roughness: 0.3, metalness: 0.6 })
+            );
+            alien.position.set(x, y, 0);
+            aliens.push(alien);
+            scene.add(alien);
+        }
+
+        function spawnPowerUp() {
+            const x = (Math.random() - 0.5) * canvas.width;
+            const y = (Math.random() - 0.5) * canvas.height;
+            const powerUp = new THREE.Mesh(
+                new THREE.PlaneGeometry(40, 40),
+                new THREE.MeshStandardMaterial({ map: powerUpTexture, transparent: true, emissive: 0xffd700, emissiveIntensity: 0.3 })
+            );
+            powerUp.position.set(x, y, 0);
+            powerUp.powerType = Math.random() < 0.5 ? 'speed' : 'multiShot';
+            powerUps.push(powerUp);
+            scene.add(powerUp);
+        }
+
+        function createExplosion(x, y) {
+            const explosion = new THREE.Points(particleGeometry.clone(), particleMaterial.clone());
+            explosion.position.set(x, y, 0);
+            explosion.lifetime = 1.0;
+            particlesList.push(explosion);
+            scene.add(explosion);
+            sounds.explosion.play();
+        }
+
+        function activatePowerUp() {
+            if (!player.power) return;
+            if (player.power === 'speed') {
+                player.speed = 10;
+                player.powerTimer = 10;
+            } else if (player.power === 'multiShot') {
+                for (let i = -1; i <= 1; i += 0.5) {
+                    const bullet = new THREE.Mesh(
+                        new THREE.PlaneGeometry(15, 15),
+                        new THREE.MeshStandardMaterial({ map: bulletTexture, transparent: true, emissive: 0x00ffff, emissiveIntensity: 0.5 })
+                    );
+                    bullet.position.set(player.x, player.y, 0);
+                    const angle = player.angle + i * 0.2;
+                    bullets.push({ mesh: bullet, dx: Math.cos(angle) * 15, dy: Math.sin(angle) * 15 });
+                    scene.add(bullet);
+                }
+                sounds.shoot.play();
+            }
+            player.power = null;
+            powerEl.textContent = 'None';
+        }
+
+        function update() {
+            if (gameOver || paused) return;
+
+            // Player Movement with Smoothing
+            let dx = 0, dy = 0;
+            if (keys['w']) dy += player.speed;
+            if (keys['s']) dy -= player.speed;
+            if (keys['a']) dx -= player.speed;
+            if (keys['d']) dx += player.speed;
+            const speed = Math.sqrt(dx * dx + dy * dy) || 1;
+            player.x += (dx / speed) * Math.min(player.speed, speed);
+            player.y += (dy / speed) * Math.min(player.speed, speed);
+            player.x = Math.max(-canvas.width / 2 + 30, Math.min(canvas.width / 2 - 30, player.x));
+            player.y = Math.max(-canvas.height / 2 + 30, Math.min(canvas.height / 2 - 30, player.y));
+            player.angle = Math.atan2(mouseY * canvas.height / 2, mouseX * canvas.width / 2);
+            player.mesh.position.set(player.x, player.y, 0);
+            player.mesh.rotation.z = player.angle + Math.PI / 2;
+
+            // Update Bullets with Trail Effect
+            bullets.forEach((b, i) => {
+                b.mesh.position.x += b.dx;
+                b.mesh.position.y += b.dy;
+                if (Math.abs(b.mesh.position.x) > canvas.width / 2 || Math.abs(b.mesh.position.y) > canvas.height / 2) {
+                    scene.remove(b.mesh);
+                    bullets.splice(i, 1);
+                }
+            });
+
+            // Update Aliens with Better AI
+            aliens.forEach((a, ai) => {
+                const dx = player.x - a.position.x;
+                const dy = player.y - a.position.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                a.position.x += (dx / dist) * 2.5;
+                a.position.y += (dy / dist) * 2.5;
+                a.rotation.z = Math.atan2(dy, dx) + Math.PI / 2;
+
+                bullets.forEach((b, bi) => {
+                    if (Math.abs(a.position.x - b.mesh.position.x) < 25 && Math.abs(a.position.y - b.mesh.position.y) < 25) {
+                        createExplosion(a.position.x, a.position.y);
+                        scene.remove(a);
+                        scene.remove(b.mesh);
+                        aliens.splice(ai, 1);
+                        bullets.splice(bi, 1);
+                        score += 15;
+                        scoreEl.textContent = score;
+                        if (score > highScore) {
+                            highScore = score;
+                            highScoreEl.textContent = highScore;
+                            localStorage.setItem('alienHighScore', highScore);
+                        }
+                    }
+                });
+
+                if (Math.abs(a.position.x - player.x) < 30 && Math.abs(a.position.y - player.y) < 30) {
+                    scene.remove(a);
+                    aliens.splice(ai, 1);
+                    player.health -= 15;
+                    healthEl.textContent = player.health;
+                    sounds.hit.play();
+                    if (player.health <= 0) endGame();
+                }
+            });
+
+            // Update Power-Ups with Animation
+            powerUps.forEach((p, pi) => {
+                p.rotation.z += 0.05;
+                if (Math.abs(p.position.x - player.x) < 30 && Math.abs(p.position.y - player.y) < 30) {
+                    player.power = p.powerType;
+                    powerEl.textContent = p.powerType;
+                    powerUpMessage.textContent = `Power-Up: ${p.powerType === 'speed' ? 'Speed Boost' : 'Multi-Shot'} (Press P)`;
+                    powerUpMessage.style.display = 'block';
+                    setTimeout(() => powerUpMessage.style.display = 'none', 2000);
+                    scene.remove(p);
+                    powerUps.splice(pi, 1);
+                    sounds.powerUp.play();
+                }
+            });
+
+            // Update Particles with Fade
+            particlesList.forEach((p, i) => {
+                p.lifetime -= 1 / 60;
+                p.material.opacity -= 0.015;
+                if (p.lifetime <= 0) {
+                    scene.remove(p);
+                    particlesList.splice(i, 1);
+                }
+            });
+
+            // Update Power-Up Timer
+            if (player.powerTimer > 0) {
+                player.powerTimer -= 1 / 60;
+                if (player.powerTimer <= 0) {
+                    player.speed = 5;
+                    player.power = null;
+                    powerEl.textContent = 'None';
+                }
+            }
+        }
+
+        function gameLoop() {
+            update();
+            renderer.render(scene, camera);
+            if (!gameOver) requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            gameOver = true;
+            finalScoreEl.textContent = score;
+            document.getElementById('gameOverScreen').classList.add('show');
+            displayLeaderboard();
+            document.getElementById('submitScoreBtn').onclick = () => submitScore();
+            sounds.background.stop();
+        }
+
+        function restartGame() {
+            player.x = 0;
+            player.y = 0;
+            player.health = 100;
+            player.speed = 5;
+            player.power = null;
+            player.powerTimer = 0;
+            bullets.forEach(b => scene.remove(b.mesh));
+            aliens.forEach(a => scene.remove(a));
+            powerUps.forEach(p => scene.remove(p));
+            particlesList.forEach(p => scene.remove(p));
+            bullets = [];
+            aliens = [];
+            powerUps = [];
+            particlesList = [];
+            score = 0;
+            healthEl.textContent = 100;
+            scoreEl.textContent = 0;
+            powerEl.textContent = 'None';
+            document.getElementById('gameOverScreen').classList.remove('show');
+            gameOver = false;
+            paused = false;
+            sounds.background.play();
+            gameLoop();
+        }
+
+        function toggleMenu() {
+            paused = !paused;
+            menuPopup.style.display = paused ? 'block' : 'none';
+            sounds.background[paused ? 'pause' : 'play']();
+        }
+
+        function togglePause() {
+            toggleMenu();
+        }
+
+        function submitScore() {
+            const nameInput = document.getElementById('playerNameInput');
+            const playerName = nameInput.value.trim() || "Anonymous";
+            saveScore(playerName, score);
+            nameInput.value = "";
+            displayLeaderboard();
+        }
+
+        function saveScore(playerName, score) {
+            let leaderboard = JSON.parse(localStorage.getItem('alienDefenseLeaderboard') || '[]');
+            leaderboard.push({ name: playerName, score: score });
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 10);
+            localStorage.setItem('alienDefenseLeaderboard', JSON.stringify(leaderboard));
+        }
+
+        function displayLeaderboard() {
+            const leaderboardBody = document.getElementById('leaderboardBody');
+            leaderboardBody.innerHTML = '';
+            const leaderboard = JSON.parse(localStorage.getItem('alienDefenseLeaderboard') || '[]');
+            leaderboard.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${entry.name}</td>
+                    <td>${entry.score}</td>
+                `;
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        // Preload leaderboard
+        displayLeaderboard();
+
+        // Start background music and game loop
+        sounds.background.play();
+        setInterval(spawnAlien, 800);
+        setInterval(spawnPowerUp, 12000);
+        gameLoop();
+
+        // Rating form submission
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        // Handle resize
+        function handleResize() {
+            const container = document.querySelector('.game-container');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+            camera.aspect = canvas.width / canvas.height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.width, canvas.height);
+            bgMesh.geometry = new THREE.PlaneGeometry(canvas.width, canvas.height);
+            player.x = 0;
+            player.y = 0;
+        }
+
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
+        handleResize();
+    </script>
+</body>
+</html>
+
+
+@* @model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "AlienDefense";
+    Layout = "_layout2";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Alien Defense – Planet Siege</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link href="~/css/AlienDefense.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+
+        <div id="alien-defense-container">
+            <div id="ui">Health: <span id="health">100</span> | Score: <span id="score">0</span> | Power: <span id="power">None</span></div>
+            <div id="highScoreDisplay">High Score: <span id="highscore">0</span></div>
+            <div id="instructions">Move: WASD | Aim/Shoot: Mouse | ESC: Menu | ENTER: Restart | P: Power-Up</div>
+            <div id="menuBtn" onclick="toggleMenu()">Menu</div>
+            <div id="menuPopup">
+                <button onclick="togglePause()">Resume</button>
+                <button onclick="restartGame()">Restart</button>
+            </div>
+            <div id="gameOverScreen">
+                <div class="title">GAME OVER!</div>
+                <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+                <div class="name-input-container">
+                    <input type="text" id="playerNameInput" placeholder="Enter your name" />
+                    <button id="submitScoreBtn">Submit Score</button>
+                </div>
+                <table class="leaderboard">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody"></tbody>
+                </table>
+                <button onclick="restartGame()">Play Again</button>
+            </div>
+            <div id="powerUpMessage"></div>
+            <canvas id="game" width="1280" height="720"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Three.js with enhanced settings
+        const canvas = document.getElementById('game');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setSize(canvas.width, canvas.height);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        camera.position.z = 500;
+
+        // UI Elements
+        const healthEl = document.getElementById('health');
+        const scoreEl = document.getElementById('score');
+        const powerEl = document.getElementById('power');
+        const finalScoreEl = document.getElementById('finalScore');
+        const highScoreEl = document.getElementById('highscore');
+        const menuPopup = document.getElementById('menuPopup');
+        const powerUpMessage = document.getElementById('powerUpMessage');
+
+        // Enhanced Sound Effects
+        const sounds = {
+            shoot: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2022/03/15/audio_6d7a1ba02d.mp3?filename=laser-gun-shot-14798.mp3'],
+                volume: 0.5
+            }),
+            explosion: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2022/10/28/audio_d4137a2ae1.mp3?filename=explosion-7130.mp3'],
+                volume: 0.7
+            }),
+            powerUp: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2022/03/15/audio_9b7dfd7e48.mp3?filename=power-up-14849.mp3'],
+                volume: 0.5
+            }),
+            hit: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2022/03/15/audio_cfdc2f85d7.mp3?filename=impact-14850.mp3'],
+                volume: 0.5
+            }),
+            background: new Howl({
+                src: ['https://cdn.pixabay.com/download/audio/2023/02/28/audio_040eb31f95.mp3?filename=galactic-sci-fi-ambient-loop-142008.mp3'],
+                volume: 0.4,
+                loop: true
+            })
+        };
+
+        // Load Textures with improved quality
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.setCrossOrigin('');
+        const playerTexture = textureLoader.load('/asseted/AlienDefenseassets/Player.png', undefined, undefined, () => console.error('Player texture failed to load'));
+        const alienTexture = textureLoader.load('/asseted/AlienDefenseassets/Alien.png', undefined, undefined, () => console.error('Alien texture failed to load'));
+        const bulletTexture = textureLoader.load('/asseted/AlienDefenseassets/Bullet.png', undefined, undefined, () => console.error('Bullet texture failed to load'));
+        const bgTexture = textureLoader.load('/asseted/AlienDefenseassets/Background2.png', undefined, undefined, () => console.error('Background texture failed to load'));
+        const powerUpTexture = textureLoader.load('/asseted/AlienDefenseassets/power-up.png', undefined, undefined, () => console.error('Power-up texture failed to load'));
+
+        // Advanced Particle System for Explosions
+        const particleGeometry = new THREE.BufferGeometry();
+        const particleCount = 200;
+        const posArray = new Float32Array(particleCount * 3);
+        const colorArray = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            posArray[i * 3] = (Math.random() - 0.5) * 50;
+            posArray[i * 3 + 1] = (Math.random() - 0.5) * 50;
+            posArray[i * 3 + 2] = 0;
+            colorArray[i * 3] = Math.random();
+            colorArray[i * 3 + 1] = Math.random();
+            colorArray[i * 3 + 2] = 0;
+        }
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particleGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 3,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending
+        });
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+
+        // Game Objects with Enhanced Graphics
+        const player = {
+            mesh: new THREE.Mesh(
+                new THREE.PlaneGeometry(60, 60),
+                new THREE.MeshStandardMaterial({ map: playerTexture, transparent: true, roughness: 0.5, metalness: 0.8 })
+            ),
+            x: 0,
+            y: 0,
+            angle: 0,
+            speed: 5,
+            health: 100,
+            power: null,
+            powerTimer: 0
+        };
+        player.mesh.castShadow = true;
+        scene.add(player.mesh);
+
+        const bgMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(canvas.width, canvas.height),
+            new THREE.MeshStandardMaterial({ map: bgTexture, depthTest: false })
+        );
+        bgMesh.position.z = -10;
+        scene.add(bgMesh);
+
+        let bullets = [], aliens = [], powerUps = [], particlesList = [], score = 0;
+        let keys = {}, mouseX = 0, mouseY = 0;
+        let gameOver = false, paused = false;
+        let highScore = localStorage.getItem('alienHighScore') || 0;
+        highScoreEl.textContent = highScore;
+
+        // Lighting for Better Graphics
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        const directionalLight = new THREE.DirectionalLight(0x00ff00, 0.5);
+        directionalLight.position.set(0, 0, 500);
+        scene.add(ambientLight, directionalLight);
+
+        // Event Listeners
+        document.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if (e.key === 'Escape') toggleMenu();
+            if (gameOver && e.key === 'Enter') restartGame();
+            if (e.key === 'p' && player.power) activatePowerUp();
+        });
+        document.addEventListener('keyup', e => keys[e.key] = false);
+
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = ((e.clientX - rect.left) / canvas.width) * 2 - 1;
+            mouseY = -((e.clientY - rect.top) / canvas.height) * 2 + 1;
+        });
+        canvas.addEventListener('click', () => {
+            if (gameOver || paused) return;
+            shootBullet();
+        });
+
+        function shootBullet() {
+            const bullet = new THREE.Mesh(
+                new THREE.PlaneGeometry(15, 15),
+                new THREE.MeshStandardMaterial({ map: bulletTexture, transparent: true, emissive: 0x00ffff, emissiveIntensity: 0.5 })
+            );
+            bullet.position.set(player.x, player.y, 0);
+            const angle = player.angle;
+            bullets.push({ mesh: bullet, dx: Math.cos(angle) * 15, dy: Math.sin(angle) * 15 });
+            scene.add(bullet);
+            sounds.shoot.play();
+        }
+
+        function spawnAlien() {
+            const edge = Math.floor(Math.random() * 4);
+            let x, y;
+            if (edge === 0) { x = -canvas.width / 2; y = (Math.random() - 0.5) * canvas.height; }
+            else if (edge === 1) { x = canvas.width / 2; y = (Math.random() - 0.5) * canvas.height; }
+            else if (edge === 2) { x = (Math.random() - 0.5) * canvas.width; y = canvas.height / 2; }
+            else { x = (Math.random() - 0.5) * canvas.width; y = -canvas.height / 2; }
+            const alien = new THREE.Mesh(
+                new THREE.PlaneGeometry(50, 50),
+                new THREE.MeshStandardMaterial({ map: alienTexture, transparent: true, roughness: 0.3, metalness: 0.6 })
+            );
+            alien.position.set(x, y, 0);
+            aliens.push(alien);
+            scene.add(alien);
+        }
+
+        function spawnPowerUp() {
+            const x = (Math.random() - 0.5) * canvas.width;
+            const y = (Math.random() - 0.5) * canvas.height;
+            const powerUp = new THREE.Mesh(
+                new THREE.PlaneGeometry(40, 40),
+                new THREE.MeshStandardMaterial({ map: powerUpTexture, transparent: true, emissive: 0xffd700, emissiveIntensity: 0.3 })
+            );
+            powerUp.position.set(x, y, 0);
+            powerUp.powerType = Math.random() < 0.5 ? 'speed' : 'multiShot';
+            powerUps.push(powerUp);
+            scene.add(powerUp);
+        }
+
+        function createExplosion(x, y) {
+            const explosion = new THREE.Points(particleGeometry.clone(), particleMaterial.clone());
+            explosion.position.set(x, y, 0);
+            explosion.lifetime = 1.0;
+            particlesList.push(explosion);
+            scene.add(explosion);
+            sounds.explosion.play();
+        }
+
+        function activatePowerUp() {
+            if (!player.power) return;
+            if (player.power === 'speed') {
+                player.speed = 10;
+                player.powerTimer = 10;
+            } else if (player.power === 'multiShot') {
+                for (let i = -1; i <= 1; i += 0.5) {
+                    const bullet = new THREE.Mesh(
+                        new THREE.PlaneGeometry(15, 15),
+                        new THREE.MeshStandardMaterial({ map: bulletTexture, transparent: true, emissive: 0x00ffff, emissiveIntensity: 0.5 })
+                    );
+                    bullet.position.set(player.x, player.y, 0);
+                    const angle = player.angle + i * 0.2;
+                    bullets.push({ mesh: bullet, dx: Math.cos(angle) * 15, dy: Math.sin(angle) * 15 });
+                    scene.add(bullet);
+                }
+                sounds.shoot.play();
+            }
+            player.power = null;
+            powerEl.textContent = 'None';
+        }
+
+        function update() {
+            if (gameOver || paused) return;
+
+            // Player Movement with Smoothing
+            let dx = 0, dy = 0;
+            if (keys['w']) dy += player.speed;
+            if (keys['s']) dy -= player.speed;
+            if (keys['a']) dx -= player.speed;
+            if (keys['d']) dx += player.speed;
+            const speed = Math.sqrt(dx * dx + dy * dy) || 1;
+            player.x += (dx / speed) * Math.min(player.speed, speed);
+            player.y += (dy / speed) * Math.min(player.speed, speed);
+            player.x = Math.max(-canvas.width / 2 + 30, Math.min(canvas.width / 2 - 30, player.x));
+            player.y = Math.max(-canvas.height / 2 + 30, Math.min(canvas.height / 2 - 30, player.y));
+            player.angle = Math.atan2(mouseY * canvas.height / 2, mouseX * canvas.width / 2);
+            player.mesh.position.set(player.x, player.y, 0);
+            player.mesh.rotation.z = player.angle + Math.PI / 2;
+
+            // Update Bullets with Trail Effect
+            bullets.forEach((b, i) => {
+                b.mesh.position.x += b.dx;
+                b.mesh.position.y += b.dy;
+                if (Math.abs(b.mesh.position.x) > canvas.width / 2 || Math.abs(b.mesh.position.y) > canvas.height / 2) {
+                    scene.remove(b.mesh);
+                    bullets.splice(i, 1);
+                }
+            });
+
+            // Update Aliens with Better AI
+            aliens.forEach((a, ai) => {
+                const dx = player.x - a.position.x;
+                const dy = player.y - a.position.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                a.position.x += (dx / dist) * 2.5;
+                a.position.y += (dy / dist) * 2.5;
+                a.rotation.z = Math.atan2(dy, dx) + Math.PI / 2;
+
+                bullets.forEach((b, bi) => {
+                    if (Math.abs(a.position.x - b.mesh.position.x) < 25 && Math.abs(a.position.y - b.mesh.position.y) < 25) {
+                        createExplosion(a.position.x, a.position.y);
+                        scene.remove(a);
+                        scene.remove(b.mesh);
+                        aliens.splice(ai, 1);
+                        bullets.splice(bi, 1);
+                        score += 15;
+                        scoreEl.textContent = score;
+                        if (score > highScore) {
+                            highScore = score;
+                            highScoreEl.textContent = highScore;
+                            localStorage.setItem('alienHighScore', highScore);
+                        }
+                    }
+                });
+
+                if (Math.abs(a.position.x - player.x) < 30 && Math.abs(a.position.y - player.y) < 30) {
+                    scene.remove(a);
+                    aliens.splice(ai, 1);
+                    player.health -= 15;
+                    healthEl.textContent = player.health;
+                    sounds.hit.play();
+                    if (player.health <= 0) endGame();
+                }
+            });
+
+            // Update Power-Ups with Animation
+            powerUps.forEach((p, pi) => {
+                p.rotation.z += 0.05;
+                if (Math.abs(p.position.x - player.x) < 30 && Math.abs(p.position.y - player.y) < 30) {
+                    player.power = p.powerType;
+                    powerEl.textContent = p.powerType;
+                    powerUpMessage.textContent = `Power-Up: ${p.powerType === 'speed' ? 'Speed Boost' : 'Multi-Shot'} (Press P)`;
+                    powerUpMessage.style.display = 'block';
+                    setTimeout(() => powerUpMessage.style.display = 'none', 2000);
+                    scene.remove(p);
+                    powerUps.splice(pi, 1);
+                    sounds.powerUp.play();
+                }
+            });
+
+            // Update Particles with Fade
+            particlesList.forEach((p, i) => {
+                p.lifetime -= 1 / 60;
+                p.material.opacity -= 0.015;
+                if (p.lifetime <= 0) {
+                    scene.remove(p);
+                    particlesList.splice(i, 1);
+                }
+            });
+
+            // Update Power-Up Timer
+            if (player.powerTimer > 0) {
+                player.powerTimer -= 1 / 60;
+                if (player.powerTimer <= 0) {
+                    player.speed = 5;
+                    player.power = null;
+                    powerEl.textContent = 'None';
+                }
+            }
+        }
+
+        function gameLoop() {
+            update();
+            renderer.render(scene, camera);
+            if (!gameOver) requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            gameOver = true;
+            finalScoreEl.textContent = score;
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            displayLeaderboard();
+            document.getElementById('submitScoreBtn').onclick = () => submitScore();
+            sounds.background.stop();
+        }
+
+        function restartGame() {
+            player.x = 0;
+            player.y = 0;
+            player.health = 100;
+            player.speed = 5;
+            player.power = null;
+            player.powerTimer = 0;
+            bullets.forEach(b => scene.remove(b.mesh));
+            aliens.forEach(a => scene.remove(a));
+            powerUps.forEach(p => scene.remove(p));
+            particlesList.forEach(p => scene.remove(p));
+            bullets = [];
+            aliens = [];
+            powerUps = [];
+            particlesList = [];
+            score = 0;
+            healthEl.textContent = 100;
+            scoreEl.textContent = 0;
+            powerEl.textContent = 'None';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            gameOver = false;
+            paused = false;
+            sounds.background.play();
+            gameLoop();
+        }
+
+        function toggleMenu() {
+            paused = !paused;
+            menuPopup.style.display = paused ? 'block' : 'none';
+            sounds.background[paused ? 'pause' : 'play']();
+        }
+
+        function togglePause() {
+            toggleMenu();
+        }
+
+        function submitScore() {
+            const nameInput = document.getElementById('playerNameInput');
+            const playerName = nameInput.value.trim() || "Anonymous";
+            saveScore(playerName, score);
+            nameInput.value = "";
+            displayLeaderboard();
+        }
+
+        function saveScore(playerName, score) {
+            let leaderboard = JSON.parse(localStorage.getItem('alienDefenseLeaderboard') || '[]');
+            leaderboard.push({ name: playerName, score: score });
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 10);
+            localStorage.setItem('alienDefenseLeaderboard', JSON.stringify(leaderboard));
+        }
+
+        function displayLeaderboard() {
+            const leaderboardBody = document.getElementById('leaderboardBody');
+            leaderboardBody.innerHTML = '';
+            const leaderboard = JSON.parse(localStorage.getItem('alienDefenseLeaderboard') || '[]');
+            leaderboard.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${entry.name}</td>
+                    <td>${entry.score}</td>
+                `;
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        // Preload leaderboard
+        displayLeaderboard();
+
+        // Start background music and game loop
+        sounds.background.play();
+        setInterval(spawnAlien, 800);
+        setInterval(spawnPowerUp, 12000);
+        gameLoop();
+
+        // Rating form submission
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> *@

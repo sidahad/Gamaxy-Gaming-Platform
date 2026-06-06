@@ -1,0 +1,122 @@
+<!-- @{
+    ViewData["Title"] = "Game Page";
+    Layout = "_layout3";
+} -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rock Paper Scissors</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .choices {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .choice {
+            font-size: 3rem;
+            padding: 1rem;
+            border: none;
+            background-color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+            .choice:hover {
+                transform: scale(1.2);
+            }
+
+        #result {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rock Paper Scissors</h1>
+
+    <div class="scoreboard">
+        <div> You: <span id="user-score">0</span></div>
+        <div> AI: <span id="comp-score">0</span></div>
+    </div>
+
+    <div class="choices">
+        <button class="choice" data-choice="rock">✊</button>
+        <button class="choice" data-choice="paper">✋</button>
+        <button class="choice" data-choice="scissors">✌</button>
+    </div>
+
+    <p id="result">Make your move!</p>
+
+    <script>
+         const choices = document.querySelectorAll(".choice");
+        const result = document.getElementById("result");
+        const userScoreElem = document.getElementById("user-score");
+        const compScoreElem = document.getElementById("comp-score");
+
+        let userScore = 0;
+        let compScore = 0;
+
+        const getComputerChoice = () => {
+          const choices = ["rock", "paper", "scissors"];
+          return choices[Math.floor(Math.random() * choices.length)];
+        };
+
+        const getWinner = (user, comp) => {
+          if (user === comp) return "draw";
+          if (
+            (user === "rock" && comp === "scissors") ||
+            (user === "paper" && comp === "rock") ||
+            (user === "scissors" && comp === "paper")
+          ) return "user";
+          return "comp";
+        };
+
+        choices.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const userChoice = btn.dataset.choice;
+            const compChoice = getComputerChoice();
+            const winner = getWinner(userChoice, compChoice);
+
+            if (winner === "user") {
+              result.innerText = ` You Win! ${userChoice} beats ${compChoice}`;
+              userScore++;
+            } else if (winner === "comp") {
+              result.innerText = ` You Lose! ${compChoice} beats ${userChoice}`;
+              compScore++;
+            } else {
+              result.innerText = ` It's a Draw! You both chose ${userChoice}`;
+            }
+
+            userScoreElem.innerText = userScore;
+            compScoreElem.innerText = compScore;
+          });
+        });
+    </script>
+</body>
+</html>

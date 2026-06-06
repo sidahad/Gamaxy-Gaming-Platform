@@ -1,0 +1,1352 @@
+﻿@{
+    Layout = "_Layout";
+}
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+    /** {
+        scroll-behavior: smooth;
+    }*/
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .gv-ultimate-bg-x9z {
+        background: radial-gradient(ellipse at top left, #1a0033 0%, #000000 40%), radial-gradient(ellipse at top right, #001133 0%, #000000 40%), radial-gradient(ellipse at bottom, D400FF 0%, #000000 50%), linear-gradient(135deg, #000000 0%, #1a0033 25%, #001133 50%, #2d1b69 75%, #000000 100%);
+        background-attachment: fixed;
+        background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+    }
+
+    .gv-ultimate-gradient-k7m {
+        background: linear-gradient(135deg, #008dff 0%, #008dff 25%, #D400FF 50%, #D400FF 75%, #008dff 100%);
+        background-size: 400% 400%;
+        animation: gv-ultimate-flow-a3n 8s ease infinite;
+    }
+
+    @@keyframes gv-ultimate-flow-a3n {
+        0%, 100%
+
+    {
+        background-position: 0% 50%;
+    }
+
+    25% {
+        background-position: 100% 50%;
+    }
+
+    50% {
+        background-position: 100% 100%;
+    }
+
+    75% {
+        background-position: 0% 100%;
+    }
+
+    }
+
+    .gv-ultimate-glow-p8q {
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.8), 0 0 60px rgba(59, 130, 246, 0.6), 0 0 90px #D400FF, 0 0 120px rgba(139, 92, 246, 0.2), inset 0 0 30px rgba(99, 102, 241, 0.1);
+    }
+
+    .gv-ultimate-card-w5r {
+        background: linear-gradient(145deg, rgba(30, 30, 30, 0.95), rgba(0, 0, 0, 0.98)), radial-gradient(circle at top right, rgba(139, 92, 246, 0.15), transparent 70%), radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.12), transparent 70%), radial-gradient(circle at center, #D400FF, transparent 80%);
+        border: 3px solid transparent;
+        background-clip: padding-box;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: all 0.8s cubic-bezier(0.23, 1, 0.320, 1);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(139, 92, 246, 0.2);
+    }
+
+        .gv-ultimate-card-w5r::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 3px;
+            background: linear-gradient(45deg, #D400FF, #008dff, #008dff, #D400FF, #D400FF);
+            background-size: 400% 400%;
+            border-radius: inherit;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            animation: gv-ultimate-flow-a3n 6s ease infinite;
+            z-index: -1;
+        }
+
+        .gv-ultimate-card-w5r:hover {
+            transform: translateY(-20px) scale(1.08) rotateX(10deg) rotateY(5deg);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.9), 0 0 60px rgba(139, 92, 246, 0.6), 0 0 120px rgba(59, 130, 246, 0.4), 0 0 180px #D400FF;
+        }
+
+    .gv-ultimate-text-l2s {
+        background: linear-gradient(45deg, #D400FF, #008dff, #008dff, #D400FF, #D400FF);
+        background-size: 400% 400%;
+        animation: gv-ultimate-flame-t6u 4s ease infinite;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 40px rgba(139, 92, 246, 0.8);
+    }
+
+    @@keyframes gv-ultimate-flame-t6u {
+        0%, 100%
+
+    {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    }
+
+    .gv-ultimate-bg-h4v {
+        background: radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%), radial-gradient(circle at 40% 40%, rgba(255, 107, 53, 0.12) 0%, transparent 50%), radial-gradient(circle at 60% 10%, rgba(99, 102, 241, 0.18) 0%, transparent 50%);
+        animation: gv-ultimate-drift-j9x 20s ease infinite;
+    }
+
+    @@keyframes gv-ultimate-drift-j9x {
+        0%, 100%
+
+    {
+        transform: rotate(0deg) scale(1);
+    }
+
+    33% {
+        transform: rotate(120deg) scale(1.2);
+    }
+
+    66% {
+        transform: rotate(240deg) scale(0.8);
+    }
+
+    }
+
+    .gv-ultimate-float-n1c {
+        animation: gv-ultimate-float-b8d 6s ease-in-out infinite;
+    }
+
+    @@keyframes gv-ultimate-float-b8d {
+        0%, 100%
+
+    {
+        transform: translateY(0px) translateX(0px) rotate(0deg);
+    }
+
+    25% {
+        transform: translateY(-40px) translateX(20px) rotate(5deg);
+    }
+
+    50% {
+        transform: translateY(-20px) translateX(-20px) rotate(-5deg);
+    }
+
+    75% {
+        transform: translateY(-60px) translateX(10px) rotate(3deg);
+    }
+
+    }
+
+    .gv-ultimate-effect-m7y {
+        background: linear-gradient(45deg, #D400FF, #008dff, #008dff, #D400FF);
+        background-size: 400% 400%;
+        animation: gv-ultimate-dance-q5z 3s ease infinite;
+        border-radius: 50%;
+    }
+
+    @@keyframes gv-ultimate-dance-q5z {
+        0%, 100%
+
+    {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    }
+
+    .gv-ultimate-glitch-r3f {
+        animation: gv-ultimate-glitch-e4g 4s infinite;
+        position: relative;
+    }
+
+        .gv-ultimate-glitch-r3f::before,
+        .gv-ultimate-glitch-r3f::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .gv-ultimate-glitch-r3f::before {
+            animation: gv-glitch-purple-i8h 3s infinite;
+            color: #D400FF;
+            z-index: -1;
+        }
+
+        .gv-ultimate-glitch-r3f::after {
+            animation: gv-glitch-blue-o6j 3s infinite;
+            color: #008dff;
+            z-index: -2;
+        }
+
+    @@keyframes gv-glitch-purple-i8h {
+        0%, 100%
+
+    {
+        transform: translate(0);
+    }
+
+    20% {
+        transform: translate(-3px, 3px);
+    }
+
+    40% {
+        transform: translate(-3px, -3px);
+    }
+
+    60% {
+        transform: translate(3px, 3px);
+    }
+
+    80% {
+        transform: translate(3px, -3px);
+    }
+
+    }
+
+    @@keyframes gv-glitch-blue-o6j {
+        0%, 100%
+
+    {
+        transform: translate(0);
+    }
+
+    20% {
+        transform: translate(3px, -3px);
+    }
+
+    40% {
+        transform: translate(3px, 3px);
+    }
+
+    60% {
+        transform: translate(-3px, -3px);
+    }
+
+    80% {
+        transform: translate(-3px, 3px);
+    }
+
+    }
+
+    .gv-ultimate-pulse-s2k {
+        animation: gv-ultimate-pulse-d9l 3s ease-in-out infinite;
+    }
+
+    @@keyframes gv-ultimate-pulse-d9l {
+        0%, 100%
+
+    {
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 80px rgba(59, 130, 246, 1);
+        transform: scale(1.05);
+    }
+
+    }
+
+    .gv-ultimate-particles-u7p {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .gv-ultimate-particle-v4w {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: radial-gradient(circle, #D400FF 0%, #008dff 30%, #008dff 60%, #D400FF 80%, transparent 100%);
+        border-radius: 50%;
+        box-shadow: 0 0 15px rgba(139, 92, 246, 0.9), 0 0 30px rgba(59, 130, 246, 0.7), 0 0 45px rgba(181, 53, 255, 0.5);
+        animation: gv-ultimate-rise-x1a 18s linear infinite;
+    }
+
+        .gv-ultimate-particle-v4w::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            border-radius: 50%;
+            animation: gv-ultimate-particle-pulse-z2w 2.5s ease-in-out infinite;
+        }
+
+    @@keyframes gv-ultimate-particle-pulse-z2w {
+        0%, 100%
+
+    {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(2);
+        opacity: 0.3;
+    }
+
+    }
+
+    @@keyframes gv-ultimate-rise-x1a {
+        0%
+
+    {
+        transform: translateY(100vh) translateX(0) scale(0);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-100px) translateX(200px) scale(0);
+        opacity: 0;
+    }
+
+    }
+
+    .gv-ultimate-matrix-z8b {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.15;
+    }
+
+    .gv-ultimate-matrix-column-c5n {
+        position: absolute;
+        top: -100%;
+        color: #D400FF;
+        font-family: 'Orbitron', monospace;
+        font-size: 16px;
+        line-height: 16px;
+        animation: gv-ultimate-matrix-fall-f2m 15s linear infinite;
+        text-shadow: 0 0 8px #D400FF;
+    }
+
+    @@keyframes gv-ultimate-matrix-fall-f2m {
+        0%
+
+    {
+        top: -100%;
+        opacity: 1;
+        color: #D400FF;
+    }
+
+    25% {
+        color: #008dff;
+    }
+
+    50% {
+        color: #008dff;
+    }
+
+    75% {
+        color: #D400FF;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0;
+        color: #D400FF;
+    }
+
+    }
+
+    .gv-ultimate-holographic-g9t {
+        background: linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.15) 50%, transparent 70%);
+        background-size: 200% 200%;
+        animation: gv-ultimate-holographic-scan-y3r 4s ease-in-out infinite;
+        position: relative;
+    }
+
+        .gv-ultimate-holographic-g9t::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+            animation: gv-ultimate-holographic-sweep-k6e 3s ease-in-out infinite;
+        }
+
+    @@keyframes gv-ultimate-holographic-scan-y3r {
+        0%, 100%
+
+    {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    }
+
+    @@keyframes gv-ultimate-holographic-sweep-k6e {
+        0%
+
+    {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
+    }
+
+    }
+
+    .gv-ultimate-neon-glow-i4q {
+        text-shadow: 0 0 8px currentColor, 0 0 16px currentColor, 0 0 24px currentColor, 0 0 32px #D400FF, 0 0 48px #008dff, 0 0 64px #008dff;
+        animation: gv-ultimate-neon-flicker-l7s 3s ease-in-out infinite alternate;
+    }
+
+    @@keyframes gv-ultimate-neon-flicker-l7s {
+        0%, 18%, 22%, 25%, 53%, 57%, 100%
+
+    {
+        text-shadow: 0 0 8px currentColor, 0 0 16px currentColor, 0 0 24px currentColor, 0 0 32px #D400FF, 0 0 48px #008dff, 0 0 64px #008dff;
+    }
+
+    20%, 24%, 55% {
+        text-shadow: none;
+    }
+
+    }
+
+    .gv-ultimate-lightning-bg-p1u {
+        background: linear-gradient(45deg, rgba(139, 92, 246, 0.15) 0%, transparent 25%, rgba(59, 130, 246, 0.12) 50%, transparent 75%, #D400FF 100%), radial-gradient(ellipse at top, rgba(99, 102, 241, 0.2) 0%, transparent 60%), radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.18) 0%, transparent 60%);
+        background-size: 200% 200%, 150% 150%, 150% 150%;
+        animation: gv-ultimate-lightning-flash-h8v 8s ease-in-out infinite;
+    }
+
+    @@keyframes gv-ultimate-lightning-flash-h8v {
+        0%, 90%, 100%
+
+    {
+        opacity: 1;
+    }
+
+    95% {
+        opacity: 0.2;
+    }
+
+    }
+
+    .gv-ultimate-cyber-grid-a9w {
+        background-image: radial-gradient(3px 3px at 25px 35px, #D400FF, transparent), radial-gradient(3px 3px at 50px 80px, rgba(59, 130, 246, 0.9), transparent), radial-gradient(2px 2px at 100px 50px, #D400FF, transparent), radial-gradient(2px 2px at 150px 90px, rgba(99, 102, 241, 0.7), transparent), radial-gradient(3px 3px at 180px 40px, rgba(139, 92, 246, 0.9), transparent), linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+        background-repeat: repeat;
+        background-size: 250px 120px, 250px 120px, 250px 120px, 250px 120px, 250px 120px, 60px 60px, 60px 60px;
+        animation: gv-ultimate-cyber-grid-move-n2x 40s linear infinite;
+    }
+
+    @@keyframes gv-ultimate-cyber-grid-move-n2x {
+        0%
+
+    {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 60px 60px;
+    }
+
+    }
+
+    .gv-ultimate-energy-orb-t5y {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.9) 0%, rgba(59, 130, 246, 0.7) 20%, #D400FF 40%, rgba(99, 102, 241, 0.3) 60%, rgba(107, 114, 128, 0.2) 80%, transparent 100%);
+        box-shadow: 0 0 40px rgba(139, 92, 246, 0.8), 0 0 80px rgba(59, 130, 246, 0.6), 0 0 120px #D400FF;
+        animation: gv-ultimate-energy-pulse-r8z 5s ease-in-out infinite;
+    }
+
+    @@keyframes gv-ultimate-energy-pulse-r8z {
+        0%, 100%
+
+    {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.8) rotate(180deg);
+        opacity: 1;
+    }
+
+    }
+
+    .gv-ultimate-quantum-shift-b3c {
+        animation: gv-ultimate-quantum-shift-m6d 7s ease-in-out infinite;
+    }
+
+    @@keyframes gv-ultimate-quantum-shift-m6d {
+        0%, 100%
+
+    {
+        transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+        filter: hue-rotate(0deg);
+    }
+
+    25% {
+        transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+        filter: hue-rotate(90deg);
+    }
+
+    50% {
+        transform: perspective(1000px) rotateX(0deg) rotateY(10deg);
+        filter: hue-rotate(180deg);
+    }
+
+    75% {
+        transform: perspective(1000px) rotateX(-5deg) rotateY(5deg);
+        filter: hue-rotate(270deg);
+    }
+
+    }
+
+    .gv-ultimate-plasma-bg-j4e {
+        background: radial-gradient(ellipse at 20% 80%, rgba(139, 92, 246, 0.4) 0%, rgba(59, 130, 246, 0.15) 30%, transparent 70%), radial-gradient(ellipse at 80% 20%, rgba(181, 53, 255, 0.5);
+        0%, rgba(99, 102, 241, 0.12) 40%, transparent 70%), radial-gradient(ellipse at 40% 40%, rgba(59, 130, 246, 0.25) 0%, rgba(139, 92, 246, 0.1) 35%, transparent 65%), radial-gradient(ellipse at 60% 60%, rgba(107, 114, 128, 0.2) 0%, #D400FF 45%, transparent 75%);
+        background-size: 350% 350%, 450% 450%, 400% 400%, 320% 320%;
+        animation: gv-ultimate-plasma-flow-q7f 25s ease infinite;
+    }
+
+    @@keyframes gv-ultimate-plasma-flow-q7f {
+        0%, 100%
+
+    {
+        background-position: 0% 50%, 0% 50%, 0% 50%, 0% 50%;
+    }
+
+    25% {
+        background-position: 100% 50%, 0% 100%, 100% 0%, 50% 100%;
+    }
+
+    50% {
+        background-position: 100% 100%, 100% 0%, 0% 100%, 100% 50%;
+    }
+
+    75% {
+        background-position: 0% 100%, 100% 100%, 50% 50%, 0% 0%;
+    }
+
+    }
+
+    .gv-ultimate-warp-lines-s8g {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .gv-ultimate-warp-line-u1h {
+        position: absolute;
+        height: 3px;
+        background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.9) 50%, transparent 100%);
+        animation: gv-ultimate-warp-speed-v9i 4s linear infinite;
+    }
+
+    @@keyframes gv-ultimate-warp-speed-v9i {
+        0%
+
+    {
+        left: -100%;
+        width: 0%;
+    }
+
+    50% {
+        width: 100%;
+    }
+
+    100% {
+        left: 100%;
+        width: 0%;
+    }
+
+    }
+
+    .gv-ultimate-border-x2j {
+        position: relative;
+        border: 3px solid transparent;
+        background: linear-gradient(45deg, rgba(30, 30, 30, 0.95), rgba(0, 0, 0, 0.98));
+    }
+
+        .gv-ultimate-border-x2j::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            background: linear-gradient(45deg, #D400FF, transparent, #008dff, transparent, #008dff);
+            background-size: 400% 400%;
+            border-radius: inherit;
+            animation: gv-ultimate-scan-y5k 4s linear infinite;
+            z-index: -1;
+        }
+
+    @@keyframes gv-ultimate-scan-y5k {
+        0%, 100%
+
+    {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    }
+
+    .gv-ultimate-network-z6l {
+        background-image: radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.08) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.06) 0%, transparent 50%), linear-gradient(45deg, transparent 40%, #D400FF 50%, transparent 60%);
+        background-size: 140px 140px, 200px 200px, 280px 280px;
+        animation: gv-ultimate-pulse-a8m 10s ease infinite;
+    }
+
+    @@keyframes gv-ultimate-pulse-a8m {
+        0%, 100%
+
+    {
+        background-position: 0% 0%, 0% 0%, 0% 0%;
+    }
+
+    50% {
+        background-position: 100% 100%, -100% -100%, 50% 50%;
+    }
+
+    }
+
+    .gv-ultimate-dimension-c3n {
+        transform-style: preserve-3d;
+        animation: gv-ultimate-dimension-d7o 8s ease-in-out infinite;
+    }
+
+    @@keyframes gv-ultimate-dimension-d7o {
+        0%, 100%
+
+    {
+        transform: perspective(1200px) rotateX(0deg) rotateY(0deg);
+    }
+
+    25% {
+        transform: perspective(1200px) rotateX(4deg) rotateY(4deg);
+    }
+
+    50% {
+        transform: perspective(1200px) rotateX(0deg) rotateY(8deg);
+    }
+
+    75% {
+        transform: perspective(1200px) rotateX(-4deg) rotateY(4deg);
+    }
+
+    }
+
+    .gv-ultimate-text-e4p {
+        font-family: 'Exo 2', sans-serif;
+        font-weight: 800;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+    }
+
+    .gv-ultimate-counter-f9q {
+        font-family: 'Orbitron', monospace;
+        font-weight: 900;
+        text-shadow: 0 0 30px currentColor;
+    }
+
+    .gv-ultimate-section-g1r {
+        background: linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(0, 0, 0, 0.95) 30%, rgba(26, 0, 51, 0.9) 70%, rgba(0, 0, 0, 0.95) 100%), radial-gradient(ellipse at center, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+        position: relative;
+    }
+
+        .gv-ultimate-section-g1r::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.12) 0%, transparent 50%), radial-gradient(circle at 75% 75%, #D400FF 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .gv-ultimate-card-w5r:hover
+
+    {
+        transform: translateY(-15px) scale(1.05);
+    }
+
+    .gv-ultimate-float-n1c {
+        animation-duration: 10s;
+    }
+
+    .gv-ultimate-text-l2s {
+        font-size: clamp(2rem, 8vw, 4rem);
+    }
+
+    }
+
+    @@media (max-width: 640px) {
+        .gv-ultimate-card-w5r
+
+    {
+        margin: 0 1rem;
+    }
+
+    .gv-ultimate-particle-v4w {
+        width: 4px;
+        height: 4px;
+    }
+
+    }
+    /* ===== NAVBAR FIXES ===== */
+    /* Ensure navbar is visible and on top of effects */
+    .site-header {
+        position: relative;
+        z-index: 1000 !important; /* Override other z-index values */
+    }
+
+    .header-nav ul.navbar-nav {
+        display: flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    /* Fix for dropdown menus */
+    .sub-menu, .mega-menu {
+        display: none;
+        position: absolute;
+        border: 2px solid #008dff;
+        border-radius: 8px;
+        padding: 10px;
+        z-index: 1001;
+    }
+
+    .navbar-nav li:hover .sub-menu,
+    .navbar-nav li:hover .mega-menu {
+        display: block;
+    }
+
+    /* Mobile menu toggle fix */
+    .navbar-toggler.collapsed + .header-nav {
+        display: none;
+    }
+
+    .navbar-toggler:not(.collapsed) + .header-nav {
+        display: block;
+    }
+
+    body {
+        overflow-x: hidden;
+        background: #000;
+        color: #fff;
+        font-family: 'Exo 2', sans-serif;
+    }
+
+    /* ===== BACKGROUND ===== */
+    .gv-ultimate-bg-x9z {
+        background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%);
+        background-attachment: fixed;
+        background-size: cover;
+    }
+
+    /* Flowing Gradient */
+    .gv-ultimate-gradient-k7m {
+        background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%);
+        background-size: 400% 400%;
+        animation: gv-ultimate-flow-a3n 8s ease infinite;
+    }
+
+    @@keyframes gv-ultimate-flow-a3n {
+        0%, 100% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+    }
+
+    /* ===== NEON GLOW ===== */
+    .gv-ultimate-glow-p8q {
+        box-shadow: 0 0 30px rgba(0, 141, 255, 0.8), 0 0 60px rgba(212, 0, 255, 0.6), 0 0 90px rgba(0, 141, 255, 0.4), 0 0 120px rgba(212, 0, 255, 0.2), inset 0 0 30px rgba(212, 0, 255, 0.2);
+    }
+
+    /* ===== CARD ===== */
+    .gv-ultimate-card-w5r {
+        background: linear-gradient(145deg, rgba(30,30,30,0.95), rgba(0,0,0,0.98)), radial-gradient(circle at top right, rgba(0,141,255,0.15), transparent 70%), radial-gradient(circle at bottom left, rgba(212,0,255,0.12), transparent 70%);
+        border: 3px solid transparent;
+        background-clip: padding-box;
+        position: relative;
+        transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 15px 50px rgba(0,0,0,0.9);
+    }
+
+        .gv-ultimate-card-w5r::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 3px;
+            background-image: linear-gradient(to right, #008dff, #D400FF, #008dff);
+            background-size: 400% 400%;
+            border-radius: inherit;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            animation: gv-ultimate-flow-a3n 6s ease infinite;
+            z-index: -1;
+        }
+
+        .gv-ultimate-card-w5r:hover {
+            transform: translateY(-20px) scale(1.08) rotateX(10deg) rotateY(5deg);
+            box-shadow: 0 35px 70px rgba(0,0,0,0.9), 0 0 60px rgba(0,141,255,0.6), 0 0 120px rgba(212,0,255,0.4);
+        }
+
+    /* ===== TEXT ===== */
+    .gv-ultimate-text-l2s {
+        background-image: linear-gradient(to right, #008dff, #D400FF, #008dff);
+        background-size: 400% 400%;
+        animation: gv-ultimate-flame-t6u 4s ease infinite;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 40px rgba(212, 0, 255, 0.8);
+    }
+
+    @@keyframes gv-ultimate-flame-t6u {
+        0%, 100% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+    }
+
+    /* Neon Flicker */
+    .gv-ultimate-neon-glow-i4q {
+        text-shadow: 0 0 8px #008dff, 0 0 16px #D400FF, 0 0 24px #008dff, 0 0 32px #D400FF, 0 0 48px #008dff, 0 0 64px #D400FF;
+        animation: gv-ultimate-neon-flicker-l7s 3s ease-in-out infinite alternate;
+    }
+
+    @@keyframes gv-ultimate-neon-flicker-l7s {
+        0%, 18%, 22%, 25%, 53%, 57%, 100% {
+            text-shadow: 0 0 8px #008dff, 0 0 16px #D400FF, 0 0 24px #008dff, 0 0 32px #D400FF, 0 0 48px #008dff, 0 0 64px #D400FF;
+        }
+
+        20%, 24%, 55% {
+            text-shadow: none;
+        }
+    }
+
+    /* ===== PARTICLE BACKGROUND ===== */
+    #particles-js {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        z-index: -1;
+    }
+
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, #008dff 0%, #D400FF 100%);
+        opacity: 0.8;
+        animation: particleFloat 10s infinite ease-in-out;
+    }
+
+    @@keyframes particleFloat {
+        0% {
+            transform: translateY(0) scale(1);
+            opacity: 0.6;
+        }
+
+        50% {
+            transform: translateY(-80px) scale(1.2);
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(0) scale(1);
+            opacity: 0.6;
+        }
+    }
+
+    /* ===== MATRIX BACKGROUND ===== */
+    #matrix-bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+        z-index: -1;
+    }
+
+    .matrix-char {
+        position: absolute;
+        color: #008dff;
+        text-shadow: 0 0 10px #D400FF, 0 0 20px #008dff;
+        font-family: 'Rajdhani', monospace;
+        animation: matrixFall linear infinite;
+    }
+
+    @@keyframes matrixFall {
+        from {
+            transform: translateY(-100%);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateY(100vh);
+            opacity: 0;
+        }
+    }
+
+    /* ===== ORB BACKGROUND ===== */
+    #orb-bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        z-index: -1;
+    }
+
+    .orb {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0,141,255,0.9) 0%, rgba(212,0,255,0.6) 70%);
+        box-shadow: 0 0 40px rgba(212,0,255,0.8);
+        animation: orbFloat 15s infinite ease-in-out;
+    }
+
+    @@keyframes orbFloat {
+        0%, 100% {
+            transform: translateY(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-50px) scale(1.2);
+        }
+    }
+
+    /* ===== NAVBAR FIX ===== */
+    .site-header {
+        position: relative;
+        z-index: 1000 !important;
+    }
+
+    .header-nav ul.navbar-nav {
+        display: flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    .sub-menu, .mega-menu {
+        display: none;
+        position: absolute;
+        border: 2px solid #008dff;
+        border-radius: 8px;
+        padding: 10px;
+        z-index: 1001;
+    }
+
+    .navbar-nav li:hover .sub-menu,
+    .navbar-nav li:hover .mega-menu {
+        display: block;
+    }
+
+    /* Force header black on this page only */
+    header.site-header,
+    header.site-header.header-transparent,
+    .site-header .sticky-header,
+    .site-header .main-bar,
+    .site-header .main-bar-wraper {
+        background-color: #000 !important;
+        background-image: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: none !important;
+        z-index: 9999 !important; /* keep header on top */
+    }
+
+        /* nav / links / dropdowns text color */
+        header.site-header .nav > li > a,
+        header.site-header .navbar-nav .nav-link,
+        header.site-header .dlab-social-icon a,
+        header.site-header .logo-header a,
+        header.site-header .extra-nav .site-button-link {
+            /* color: #fff !important; */
+        }
+
+        /* dropdown background */
+        header.site-header .sub-menu,
+        header.site-header .mega-menu,
+        header.site-header .dropdown-menu,
+        header.site-header .header-nav {
+            /* background-color: #000 !important; */
+            background-image: none !important;
+        }
+
+        /* if your header-logo is a light/dark variant, hide any color filter applied */
+        header.site-header .logo-header img {
+            filter: none !important;
+        }
+</style>
+@section Styles {
+    <link href="~/css/Blog.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+}
+<div class="gv-ultimate-bg-x9z text-gray-100 gv-ultimate-network-z6l">
+    <div class="gv-ultimate-matrix-z8b" id="gv-ultimate-matrix-rain"></div>
+    <div class="gv-ultimate-warp-lines-s8g fixed inset-0 z-0" id="gv-ultimate-warp-lines"></div>
+
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="gv-ultimate-energy-orb-t5y" style="top: 15%; left: 8%; animation-delay: 0s;"></div>
+        <div class="gv-ultimate-energy-orb-t5y" style="top: 65%; right: 12%; animation-delay: 2.5s;"></div>
+        <div class="gv-ultimate-energy-orb-t5y" style="bottom: 25%; left: 18%; animation-delay: 5s;"></div>
+        <div class="gv-ultimate-energy-orb-t5y" style="top: 35%; right: 28%; animation-delay: 1.5s;"></div>
+    </div>
+    <div class="gv-ultimate-particles-u7p fixed inset-0 z-0">
+        <div class="gv-ultimate-particle-v4w" style="left: 5%; animation-delay: 0s;"></div>
+        <div class="gv-ultimate-particle-v4w" style="left: 15%; animation-delay: 3s;"></div>
+        <div class="gv-ultimate-particle-v4w" style="left: 25%; animation-delay: 6s;"></div>
+        <div class="gv-ultimate-particle-v4w" style="left: 35%; animation-delay: 1.5s;"></div>
+        <div class="gv-ultimate-particle-v4w" style="left: 45%; animation-delay: 4.5s;"></div>
+        <div class="gv-ultimate-particle-v4w" style="left: 55%; animation-delay: 7.5s;"></div>
+        <div class="gv-ultimate-particle-v4w" style="left: 65%; animation-delay: 2s;"></div>
+        <div class="gv-ultimate-particle-v4w" style="left: 75%; animation-delay: 5s;"></div>
+        <div class="gv-ultimate-particle-v4w" style="left: 85%; animation-delay: 3.5s;"></div>
+        <div class="gv-ultimate-particle-v4w" style="left: 95%; animation-delay: 6.5s;"></div>
+    </div>
+
+    <div class="gv-ultimate-bg-h4v gv-ultimate-plasma-bg-j4e gv-ultimate-cyber-grid-a9w fixed inset-0 z-0"></div>
+
+    <section id="home" class="min-h-screen flex items-center justify-center relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="gv-ultimate-float-n1c absolute top-20 left-4 md:left-10 text-4xl md:text-6xl opacity-50">🎮</div>
+            <div class="gv-ultimate-float-n1c absolute top-40 right-4 md:right-20 text-3xl md:text-5xl opacity-50" style="animation-delay: 1.5s;">⚡</div>
+            <div class="gv-ultimate-float-n1c absolute bottom-40 left-4 md:left-20 text-4xl md:text-6xl opacity-50" style="animation-delay: 3s;">🏆</div>
+            <div class="gv-ultimate-float-n1c absolute bottom-20 right-4 md:right-10 text-3xl md:text-5xl opacity-50" style="animation-delay: 0.8s;">🔥</div>
+            <div class="gv-ultimate-float-n1c absolute top-1/2 left-1/4 text-2xl md:text-4xl opacity-40" style="animation-delay: 4s;">🌟</div>
+            <div class="gv-ultimate-float-n1c absolute top-1/3 right-1/3 text-3xl md:text-5xl opacity-45" style="animation-delay: 2s;">⚔️</div>
+        </div>
+
+        <div class="text-center z-10 max-w-7xl mx-auto px-4">
+            <h1 style="color:black;" class="font-orbitron font-black text-3xl sm:text-4xl md:text-5xl lg:text-7xl mb-6 md:mb-8 gv-ultimate-glitch-r3f gv-ultimate-text-l2s gv-ultimate-text-e4p gv-ultimate-neon-glow-i4q gv-ultimate-holographic-g9t gv-ultimate-quantum-shift-b3c" data-text="GAMAXY">
+                GAMAXY
+            </h1>
+            <p style="color:black;" class="text-base sm:text-lg md:text-xl lg:text-2xl mb-4 md:mb-6 gv-ultimate-text-l2s font-exo-2 font-bold gv-ultimate-text-e4p gv-ultimate-neon-glow-i4q gv-ultimate-holographic-g9t">
+                🌌 ULTIMATE GAMING UNIVERSE 🌌
+            </p>
+            <p class="text-base sm:text-lg md:text-xl mb-12 md:mb-16 text-gray-300 font-rajdhani font-medium max-w-4xl mx-auto">
+                Immerse yourself in 40+ legendary games across infinite dimensions with cutting-edge graphics and epic adventures
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-6 md:gap-8 justify-center mb-16 md:mb-20">
+                <button class="gv-ultimate-gradient-k7m px-8 sm:px-12 md:px-16 py-4 md:py-6 rounded-2xl font-bold text-lg md:text-2xl hover:scale-110 transition-all duration-300 gv-ultimate-glow-p8q gv-ultimate-pulse-s2k gv-ultimate-text-e4p">
+                    🚀 Enter Universe
+                </button>
+                <button class="gv-ultimate-border-x2j px-8 sm:px-12 md:px-16 py-4 md:py-6 rounded-2xl font-bold text-lg md:text-2xl hover:scale-110 transition-all duration-300 gv-ultimate-text-e4p">
+                    🎬 Ultimate Trailer
+                </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 md:gap-12 max-w-4xl mx-auto">
+                <div class="text-center gv-ultimate-card-w5r p-4 md:p-8 rounded-2xl md:rounded-3xl">
+                    <div class="gv-ultimate-counter-f9q text-2xl sm:text-4xl md:text-6xl font-black gv-ultimate-text-l2s mb-2 md:mb-4">3.2M+</div>
+                    <div class="text-gray-400 text-sm md:text-xl gv-ultimate-text-e4p">Ultimate Players</div>
+                </div>
+                <div class="text-center gv-ultimate-card-w5r p-4 md:p-8 rounded-2xl md:rounded-3xl">
+                    <div class="gv-ultimate-counter-f9q text-2xl sm:text-4xl md:text-6xl font-black gv-ultimate-text-l2s mb-2 md:mb-4">40+</div>
+                    <div class="text-gray-400 text-sm md:text-xl gv-ultimate-text-e4p">Epic Games</div>
+                </div>
+                <div class="text-center gv-ultimate-card-w5r p-4 md:p-8 rounded-2xl md:rounded-3xl">
+                    <div class="gv-ultimate-counter-f9q text-2xl sm:text-4xl md:text-6xl font-black gv-ultimate-text-l2s mb-2 md:mb-4">750+</div>
+                    <div class="text-gray-400 text-sm md:text-xl gv-ultimate-text-e4p">Ultimate Battles</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="games" class="py-16 md:py-32 px-4 relative gv-ultimate-section-g1r gv-ultimate-lightning-bg-p1u">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 md:mb-24">
+                <h2 class="font-orbitron font-black text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-text-e4p gv-ultimate-neon-glow-i4q gv-ultimate-holographic-g9t">🎮 ULTIMATE GAMES</h2>
+                <p class="text-lg sm:text-xl md:text-2xl text-gray-400 font-rajdhani font-bold">Experience next-generation gaming beyond reality</p>
+                <div class="w-32 md:w-48 h-1 md:h-2 gv-ultimate-gradient-k7m mx-auto mt-6 md:mt-8 rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+                <div class="gv-ultimate-card-w5r rounded-2xl md:rounded-3xl p-6 md:p-10 relative group gv-ultimate-dimension-c3n">
+                    <div class="absolute top-4 md:top-6 right-4 md:right-6 px-3 md:px-6 py-2 md:py-3 gv-ultimate-gradient-k7m rounded-full text-xs md:text-sm font-bold z-10 gv-ultimate-pulse-s2k gv-ultimate-text-e4p">
+                        ⭐ ULTIMATE
+                    </div>
+                    <div class="w-full h-40 md:h-48 gv-ultimate-gradient-k7m rounded-xl md:rounded-2xl mb-4 md:mb-6 flex items-center justify-center text-4xl md:text-6xl gv-ultimate-effect-m7y">
+                        🌌
+                    </div>
+                    <h3 class="font-bold text-xl md:text-3xl mb-3 md:mb-4 gv-ultimate-text-l2s gv-ultimate-text-e4p">Cosmic Nexus</h3>
+                    <p class="text-gray-400 mb-6 md:mb-8 leading-relaxed text-sm md:text-lg">Ultimate sci-fi adventure across infinite galaxies with quantum mechanics and interdimensional warfare</p>
+                    <div class="flex justify-between items-center mb-4 md:mb-6">
+                        <span class="text-2xl md:text-4xl font-black gv-ultimate-text-l2s gv-ultimate-counter-f9q">$39</span>
+                        <div class="flex space-x-1 text-lg md:text-2xl">
+                            <span class="gv-ultimate-text-l2s">⭐⭐⭐⭐⭐</span>
+                        </div>
+                    </div>
+                    <button class="w-full gv-ultimate-gradient-k7m py-3 md:py-5 rounded-xl md:rounded-2xl font-bold text-base md:text-xl hover:scale-105 transition-all duration-300 gv-ultimate-glow-p8q gv-ultimate-text-e4p">
+                        🚀 Enter Nexus
+                    </button>
+                </div>
+
+                <!-- Free Game Card -->
+                <div class="gv-ultimate-card-w5r rounded-2xl md:rounded-3xl p-6 md:p-10 relative group gv-ultimate-dimension-c3n">
+                    <div class="absolute top-4 md:top-6 right-4 md:right-6 px-3 md:px-6 py-2 md:py-3 bg-blue-600 rounded-full text-xs md:text-sm font-bold z-10 gv-ultimate-pulse-s2k gv-ultimate-text-e4p">
+                        🆓 ULTIMATE FREE
+                    </div>
+                    <div class="w-full h-40 md:h-48 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 rounded-xl md:rounded-2xl mb-4 md:mb-6 flex items-center justify-center text-4xl md:text-6xl gv-ultimate-effect-m7y">
+                        ⚡
+                    </div>
+                    <h3 class="font-bold text-xl md:text-3xl mb-3 md:mb-4 gv-ultimate-text-l2s gv-ultimate-text-e4p">Quantum Storm</h3>
+                    <p class="text-gray-400 mb-6 md:mb-8 leading-relaxed text-sm md:text-lg">Harness the power of quantum energy in epic battles across multiple dimensions and realities</p>
+                    <div class="flex justify-between items-center mb-4 md:mb-6">
+                        <span class="text-2xl md:text-4xl font-black text-blue-400 gv-ultimate-counter-f9q">FREE</span>
+                        <div class="flex space-x-1 text-lg md:text-2xl">
+                            <span class="gv-ultimate-text-l2s">⭐⭐⭐⭐⭐</span>
+                        </div>
+                    </div>
+                    <button class="w-full gv-ultimate-gradient-k7m py-3 md:py-5 rounded-xl md:rounded-2xl font-bold text-base md:text-xl hover:scale-105 transition-all duration-300 gv-ultimate-glow-p8q gv-ultimate-text-e4p">
+                        ⚡ Unleash Power
+                    </button>
+                </div>
+
+                <!-- Free Game Card -->
+                <div class="gv-ultimate-card-w5r rounded-2xl md:rounded-3xl p-6 md:p-10 relative group gv-ultimate-dimension-c3n">
+                    <div class="absolute top-4 md:top-6 right-4 md:right-6 px-3 md:px-6 py-2 md:py-3 bg-orange-600 rounded-full text-xs md:text-sm font-bold z-10 gv-ultimate-pulse-s2k gv-ultimate-text-e4p">
+                        🆓 ULTIMATE FREE
+                    </div>
+                    <div class="w-full h-40 md:h-48 bg-gradient-to-br from-orange-600 via-red-600 to-purple-600 rounded-xl md:rounded-2xl mb-4 md:mb-6 flex items-center justify-center text-4xl md:text-6xl gv-ultimate-effect-m7y">
+                        🔥
+                    </div>
+                    <h3 class="font-bold text-xl md:text-3xl mb-3 md:mb-4 gv-ultimate-text-l2s gv-ultimate-text-e4p">Cyber Arena</h3>
+                    <p class="text-gray-400 mb-6 md:mb-8 leading-relaxed text-sm md:text-lg">Ultimate cyberpunk battles with advanced AI opponents and neural-enhanced combat systems</p>
+                    <div class="flex justify-between items-center mb-4 md:mb-6">
+                        <span class="text-2xl md:text-4xl font-black text-orange-400 gv-ultimate-counter-f9q">FREE</span>
+                        <div class="flex space-x-1 text-lg md:text-2xl">
+                            <span class="gv-ultimate-text-l2s">⭐⭐⭐⭐⭐</span>
+                        </div>
+                    </div>
+                    <button class="w-full gv-ultimate-gradient-k7m py-3 md:py-5 rounded-xl md:rounded-2xl font-bold text-base md:text-xl hover:scale-105 transition-all duration-300 gv-ultimate-glow-p8q gv-ultimate-text-e4p">
+                        🔥 Enter Arena
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-center mt-12 md:mt-20">
+                <button class="gv-ultimate-border-x2j px-8 md:px-16 py-4 md:py-5 rounded-2xl font-bold text-lg md:text-2xl hover:scale-110 transition-all duration-300 gv-ultimate-text-e4p">
+                    🌌 Explore All 40+ Ultimate Games
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section id="blog" class="py-16 md:py-32 px-4 gv-ultimate-section-g1r relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 md:mb-24">
+                <h2 class="font-orbitron font-black text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-text-e4p">📰 ULTIMATE CHRONICLES</h2>
+                <p class="text-lg sm:text-xl md:text-2xl text-gray-400 font-rajdhani font-bold">Latest intel from the gaming multiverse</p>
+                <div class="w-32 md:w-48 h-1 md:h-2 gv-ultimate-gradient-k7m mx-auto mt-6 md:mt-8 rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+                <article class="gv-ultimate-card-w5r rounded-2xl md:rounded-3xl overflow-hidden gv-ultimate-dimension-c3n">
+                    <div class="h-40 md:h-48 gv-ultimate-gradient-k7m flex items-center justify-center text-4xl md:text-6xl gv-ultimate-effect-m7y">
+                        📰
+                    </div>
+                    <div class="p-6 md:p-10">
+                        <span class="gv-ultimate-text-l2s text-xs md:text-sm font-bold bg-purple-900 px-3 md:px-4 py-1 md:py-2 rounded-full gv-ultimate-text-e4p">🏆 ULTIMATE REVIEW</span>
+                        <h3 class="font-bold text-xl md:text-3xl mt-4 md:mt-6 mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-text-e4p">Top 10 Ultimate Games 2024</h3>
+                        <p class="text-gray-400 mb-6 md:mb-8 leading-relaxed text-sm md:text-lg">Discover the most revolutionary games that are transforming the gaming multiverse with quantum mechanics...</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs md:text-sm text-gray-500 font-rajdhani">Dec 15, 2024</span>
+                            <button class="gv-ultimate-text-l2s font-bold hover:scale-110 transition-all gv-ultimate-text-e4p text-sm md:text-base">Read Intel →</button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="gv-ultimate-card-w5r rounded-2xl md:rounded-3xl overflow-hidden gv-ultimate-dimension-c3n">
+                    <div class="h-40 md:h-48 bg-gradient-to-br from-blue-600 via-cyan-600 to-purple-600 flex items-center justify-center text-4xl md:text-6xl gv-ultimate-effect-m7y">
+                        🎯
+                    </div>
+                    <div class="p-6 md:p-10">
+                        <span class="text-blue-400 text-xs md:text-sm font-bold bg-blue-900 px-3 md:px-4 py-1 md:py-2 rounded-full gv-ultimate-text-e4p">📚 ULTIMATE GUIDE</span>
+                        <h3 class="font-bold text-xl md:text-3xl mt-4 md:mt-6 mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-text-e4p">Quantum Combat Mastery</h3>
+                        <p class="text-gray-400 mb-6 md:mb-8 leading-relaxed text-sm md:text-lg">Master advanced quantum combat techniques and interdimensional strategies from elite players...</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs md:text-sm text-gray-500 font-rajdhani">Dec 12, 2024</span>
+                            <button class="gv-ultimate-text-l2s font-bold hover:scale-110 transition-all gv-ultimate-text-e4p text-sm md:text-base">Read Intel →</button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="gv-ultimate-card-w5r rounded-2xl md:rounded-3xl overflow-hidden gv-ultimate-dimension-c3n">
+                    <div class="h-40 md:h-48 bg-gradient-to-br from-orange-600 via-red-600 to-purple-600 flex items-center justify-center text-4xl md:text-6xl gv-ultimate-effect-m7y">
+                        🏆
+                    </div>
+                    <div class="p-6 md:p-10">
+                        <span class="text-orange-400 text-xs md:text-sm font-bold bg-orange-900 px-3 md:px-4 py-1 md:py-2 rounded-full gv-ultimate-text-e4p">🎮 ULTIMATE TOURNAMENT</span>
+                        <h3 class="font-bold text-xl md:text-3xl mt-4 md:mt-6 mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-text-e4p">Cosmic Championship</h3>
+                        <p class="text-gray-400 mb-6 md:mb-8 leading-relaxed text-sm md:text-lg">Epic recap of the ultimate cosmic tournaments with massive prize pools and interdimensional battles...</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs md:text-sm text-gray-500 font-rajdhani">Dec 10, 2024</span>
+                            <button class="gv-ultimate-text-l2s font-bold hover:scale-110 transition-all gv-ultimate-text-e4p text-sm md:text-base">Read Intel →</button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tournament Section -->
+    <section id="tournaments" class="py-16 md:py-32 px-4 relative gv-ultimate-section-g1r gv-ultimate-plasma-bg-j4e">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 md:mb-24">
+                <h2 class="font-orbitron font-black text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-text-e4p gv-ultimate-neon-glow-i4q gv-ultimate-holographic-g9t gv-ultimate-quantum-shift-b3c">🏆 ULTIMATE TOURNAMENTS</h2>
+                <p class="text-lg sm:text-xl md:text-2xl text-gray-400 font-rajdhani font-bold">Compete in interdimensional battles for ultimate glory</p>
+                <div class="w-32 md:w-48 h-1 md:h-2 gv-ultimate-gradient-k7m mx-auto mt-6 md:mt-8 rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
+                <div class="gv-ultimate-card-w5r rounded-2xl md:rounded-3xl p-8 md:p-12 gv-ultimate-dimension-c3n">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 md:mb-10 gap-4">
+                        <h3 class="font-bold text-2xl md:text-4xl gv-ultimate-text-l2s gv-ultimate-text-e4p">Cosmic Championship</h3>
+                        <span class="px-4 md:px-6 py-2 md:py-3 gv-ultimate-gradient-k7m rounded-full text-xs md:text-sm font-bold gv-ultimate-pulse-s2k gv-ultimate-text-e4p self-start">🔴 LIVE NOW</span>
+                    </div>
+                    <div class="space-y-6 md:space-y-8 mb-8 md:mb-10">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg md:text-2xl gv-ultimate-text-e4p">💰 Ultimate Prize Pool:</span>
+                            <span class="font-black text-2xl md:text-3xl gv-ultimate-text-l2s gv-ultimate-counter-f9q">$75,000</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg md:text-2xl gv-ultimate-text-e4p">👥 Ultimate Players:</span>
+                            <span class="font-black text-lg md:text-2xl gv-ultimate-counter-f9q">4,127 players</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg md:text-2xl gv-ultimate-text-e4p">⏰ Time Remaining:</span>
+                            <span class="font-black text-lg md:text-2xl text-red-400 gv-ultimate-glitch-r3f" data-text="1d 18h 45m">1d 18h 45m</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-3 md:h-4">
+                            <div class="gv-ultimate-gradient-k7m h-3 md:h-4 rounded-full gv-ultimate-pulse-s2k" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <button class="w-full gv-ultimate-gradient-k7m py-4 md:py-6 rounded-xl md:rounded-2xl font-bold text-lg md:text-2xl hover:scale-105 transition-all duration-300 gv-ultimate-glow-p8q gv-ultimate-text-e4p">
+                        🚀 Join Ultimate Battle
+                    </button>
+                </div>
+
+                <div class="gv-ultimate-card-w5r rounded-2xl md:rounded-3xl p-8 md:p-12 gv-ultimate-dimension-c3n">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 md:mb-10 gap-4">
+                        <h3 class="font-bold text-2xl md:text-4xl gv-ultimate-text-l2s gv-ultimate-text-e4p">Quantum Speed Run</h3>
+                        <span class="bg-blue-600 px-4 md:px-6 py-2 md:py-3 rounded-full text-xs md:text-sm font-bold gv-ultimate-pulse-s2k gv-ultimate-text-e4p self-start">🔜 INCOMING</span>
+                    </div>
+                    <div class="space-y-6 md:space-y-8 mb-8 md:mb-10">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg md:text-2xl gv-ultimate-text-e4p">💰 Ultimate Prize Pool:</span>
+                            <span class="font-black text-2xl md:text-3xl gv-ultimate-text-l2s gv-ultimate-counter-f9q">$35,000</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg md:text-2xl gv-ultimate-text-e4p">📝 Registration:</span>
+                            <span class="font-black text-lg md:text-2xl text-blue-400">Open Portal</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg md:text-2xl gv-ultimate-text-e4p">🚀 Launch Time:</span>
+                            <span class="font-black text-lg md:text-2xl text-purple-400 gv-ultimate-glitch-r3f" data-text="5d 12h 30m">5d 12h 30m</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-3 md:h-4">
+                            <div class="bg-blue-500 h-3 md:h-4 rounded-full gv-ultimate-pulse-s2k" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    <button class="w-full gv-ultimate-border-x2j py-4 md:py-6 rounded-xl md:rounded-2xl font-bold text-lg md:text-2xl hover:scale-105 transition-all duration-300 gv-ultimate-text-e4p">
+                        📝 Enter Portal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community Section -->
+    <section id="community" class="py-16 md:py-32 px-4 gv-ultimate-section-g1r relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 md:mb-24">
+                <h2 class="font-orbitron font-black text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-text-e4p">👥 ULTIMATE COMMUNITY</h2>
+                <p class="text-lg sm:text-xl md:text-2xl text-gray-400 font-rajdhani font-bold">Unite with elite players across all dimensions</p>
+                <div class="w-32 md:w-48 h-1 md:h-2 gv-ultimate-gradient-k7m mx-auto mt-6 md:mt-8 rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 text-center mb-16 md:mb-20">
+                <div class="p-8 md:p-12 gv-ultimate-card-w5r rounded-2xl md:rounded-3xl gv-ultimate-dimension-c3n">
+                    <div class="text-4xl md:text-6xl mb-4 md:mb-6 gv-ultimate-float-n1c">👥</div>
+                    <h3 class="font-black text-3xl md:text-5xl mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-counter-f9q">3.2M+</h3>
+                    <p class="text-gray-400 text-lg md:text-2xl gv-ultimate-text-e4p">Ultimate Players</p>
+                </div>
+                <div class="p-8 md:p-12 gv-ultimate-card-w5r rounded-2xl md:rounded-3xl gv-ultimate-dimension-c3n">
+                    <div class="text-4xl md:text-6xl mb-4 md:mb-6 gv-ultimate-float-n1c" style="animation-delay: 1.5s;">🎮</div>
+                    <h3 class="font-black text-3xl md:text-5xl mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-counter-f9q">40+</h3>
+                    <p class="text-gray-400 text-lg md:text-2xl gv-ultimate-text-e4p">Ultimate Games</p>
+                </div>
+                <div class="p-8 md:p-12 gv-ultimate-card-w5r rounded-2xl md:rounded-3xl gv-ultimate-dimension-c3n">
+                    <div class="text-4xl md:text-6xl mb-4 md:mb-6 gv-ultimate-float-n1c" style="animation-delay: 3s;">🏆</div>
+                    <h3 class="font-black text-3xl md:text-5xl mb-4 md:mb-6 gv-ultimate-text-l2s gv-ultimate-counter-f9q">750+</h3>
+                    <p class="text-gray-400 text-lg md:text-2xl gv-ultimate-text-e4p">Ultimate Tournaments</p>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button class="gv-ultimate-gradient-k7m px-12 md:px-20 py-6 md:py-8 rounded-2xl md:rounded-3xl font-bold text-xl md:text-3xl hover:scale-110 transition-all duration-300 gv-ultimate-glow-p8q gv-ultimate-pulse-s2k gv-ultimate-text-e4p">
+                    🌌 Join Ultimate Universe
+                </button>
+            </div>
+        </div>
+    </section>
+</div>
+@section Scripts {
+    <script src="~/js/Blog.js"></script>
+}
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f91422e1073890',t:'MTc1NTI2NDk2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+

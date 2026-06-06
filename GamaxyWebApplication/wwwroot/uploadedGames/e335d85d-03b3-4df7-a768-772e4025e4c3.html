@@ -1,0 +1,1078 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Realistic Car Race - Grand Sprint</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Orbitron" />
+<style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #0a0a1e;
+      font-family: "Orbitron", sans-serif;
+      height: 98vh;
+    }
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+    .topUI {
+      position: absolute;
+      z-index: 1000;
+      transform: translate(-50%, 25px);
+      text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+      color: #00ffcc;
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+    .topUI::before {
+      display: inline-block;
+      padding: 5px 10px;
+      background: rgba(0, 255, 204, 0.2);
+      border: 2px solid #00ffcc;
+      border-radius: 5px;
+      margin-right: 20px;
+      color: #ff00ff;
+      text-shadow: 0 0 5px #ff00ff;
+    }
+    #raceTime {
+      left: 15%;
+    }
+    #raceTime::before {
+      content: "RACE TIME";
+    }
+    #position {
+      left: 50%;
+    }
+    #position::before {
+      content: "POS";
+    }
+    #nitro {
+      left: 85%;
+    }
+    #nitro::before {
+      content: "NITRO";
+    }
+    #nitroBar {
+      position: absolute;
+      bottom: 5%;
+      right: 15%;
+      width: 250px;
+      height: 25px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 3px solid #00ffcc;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00ffcc;
+    }
+    #nitroFill {
+      height: 100%;
+      background: linear-gradient(to right, #ff00ff, #00ffcc);
+      transition: width 0.2s;
+      border-radius: 8px;
+    }
+    #tacho {
+      position: absolute;
+      bottom: 10%;
+      right: 5%;
+      z-index: 2000;
+      color: #ff00ff;
+      text-shadow: 0 0 20px #ff00ff, 0 0 30px #ff00ff, 0 0 10px #00ffcc;
+      font-size: 40px;
+      letter-spacing: 3px;
+      padding: 10px 20px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 3px solid #00ffcc;
+      border-radius: 10px;
+    }
+    #tacho::after {
+      content: "km/h";
+      color: #00ffcc;
+      font-size: 25px;
+      margin-left: 10px;
+    }
+    #message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ff00ff;
+      font-size: 36px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 30px;
+      border: 3px solid #00ffcc;
+      border-radius: 15px;
+      text-shadow: 0 0 15px #ff00ff;
+      display: none;
+      text-align: center;
+      white-space: pre-wrap;
+    }
+    #restartButton {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: rgba(0, 255, 204, 0.2);
+      border: 2px solid #00ffcc;
+      border-radius: 5px;
+      color: #ff00ff;
+      font-size: 24px;
+      font-family: "Orbitron", sans-serif;
+      cursor: pointer;
+      text-shadow: 0 0 5px #ff00ff;
+    }
+    #restartButton:hover {
+      background: rgba(0, 255, 204, 0.4);
+    }
+    #countdown {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ff0000;
+      font-size: 72px;
+      text-shadow: 0 0 15px #ff0000;
+      display: none;
+    }
+    #minimap {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      width: 250px;
+      height: 100px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #00ffcc;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #minimapCanvas {
+      width: 200px;
+      height: 80px;
+    }
+    #distanceText {
+      position: absolute;
+      bottom: 5px;
+      right: 15px;
+      color: #00ffcc;
+      font-size: 14px;
+      text-shadow: 0 0 5px #00ffcc;
+    }
+    #controls {
+      color: #00ffcc;
+      font-size: 12px;
+      text-align: center;
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    #controls > span {
+      margin: 0 15px;
+    }
+    #controls > span > span {
+      border: 2px solid #00ffcc;
+      border-radius: 5px;
+      padding: 5px;
+      display: inline-block;
+      text-shadow: 0 0 5px #00ffcc;
+    }
+    #dashboard {
+      position: absolute;
+      bottom: 20%;
+      left: 5%;
+      color: #00ffcc;
+      font-size: 24px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 15px;
+      border: 3px solid #00ffcc;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #00ffcc;
+    }
+    #speedometer {
+      width: 200px;
+      height: 200px;
+      margin: 10px 0;
+    }
+    #controlsButton {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: rgba(0, 255, 204, 0.2);
+      border: 2px solid #00ffcc;
+      border-radius: 5px;
+      color: #ff00ff;
+      font-size: 18px;
+      font-family: "Orbitron", sans-serif;
+      cursor: pointer;
+      text-shadow: 0 0 5px #ff00ff;
+      z-index: 1000;
+    }
+    #controlsButton:hover {
+      background: rgba(0, 255, 204, 0.4);
+    }
+    #controlsMenu {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      padding: 20px;
+      border: 3px solid #00ffcc;
+      border-radius: 10px;
+      color: #ff00ff;
+      font-size: 24px;
+      text-shadow: 0 0 10px #ff00ff;
+      display: none;
+      text-align: center;
+      z-index: 1000;
+    }
+    #controlsMenu button {
+      margin: 10px;
+      padding: 10px 20px;
+      background: rgba(0, 255, 204, 0.2);
+      border: 2px solid #00ffcc;
+      border-radius: 5px;
+      color: #ff00ff;
+      font-size: 20px;
+      font-family: "Orbitron", sans-serif;
+      cursor: pointer;
+      text-shadow: 0 0 5px #ff00ff;
+    }
+    #controlsMenu button:hover {
+      background: rgba(0, 255, 204, 0.4);
+    }
+</style>
+</head>
+<body>
+    <div id="hud">
+        <span id="raceTime" class="topUI">0:00.0</span>
+        <span id="position" class="topUI">1/5</span>
+        <span id="nitro" class="topUI">100%</span>
+        <span id="tacho">0</span>
+        <div id="nitroBar"><div id="nitroFill" style="width: 100%"></div></div>
+    </div>
+    <div id="message">Race Over!</div>
+    <div id="countdown">3</div>
+    <div id="minimap">
+        <canvas id="minimapCanvas"></canvas>
+        <div id="distanceText">Distance to Finish: 5000m</div>
+    </div>
+    <div id="dashboard">
+        <canvas id="speedometer" width="200" height="200"></canvas>
+        <div style="font-size: 20px; text-align: center;">Speed: <span id="digitalSpeed">0</span> km/h</div>
+    </div>
+    <div id="controls">
+        <span><span>W</span><span>S</span>Accelerate/Brake</span>
+        <span><span>←</span><span>→</span>Steer</span>
+        <span><span>Space</span>Nitro</span>
+        <span><span>Esc</span>Controls</span>
+    </div>
+    <button id="controlsButton">Controls</button>
+    <div id="controlsMenu">
+        <div>Controls</div>
+        <button id="pauseButton">Pause</button>
+        <button id="restartButtonMenu">Restart</button>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script>
+var gk_isXlsx = false;
+var gk_xlsxFileLookup = {};
+var gk_fileData = {};
+function filledCell(cell) {
+  return cell !== '' && cell != null;
+}
+function loadFileData(filename) {
+if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+    try {
+        var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+        var firstSheetName = workbook.SheetNames[0];
+        var worksheet = workbook.Sheets[firstSheetName];
+        var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+        var filteredData = jsonData.filter(row => row.some(filledCell));
+        var headerRowIndex = filteredData.findIndex((row, index) =>
+          row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+        );
+        if (headerRowIndex === -1 || headerRowIndex > 25) {
+          headerRowIndex = 0;
+        }
+        var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+        csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+        return csv;
+    } catch (e) {
+        console.error(e);
+        return "";
+    }
+}
+return gk_fileData[filename] || "";
+}
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.BasicShadowMap;
+document.body.appendChild(renderer.domElement);
+const minimapScene = new THREE.Scene();
+const minimapCamera = new THREE.OrthographicCamera(-50, 50, 25, -25, 0.1, 5000);
+const minimapRenderer = new THREE.WebGLRenderer({ canvas: document.getElementById('minimapCanvas'), alpha: true });
+minimapRenderer.setSize(200, 80);
+minimapCamera.position.set(0, 40, 0);
+minimapCamera.lookAt(0, 0, 4000);
+const distanceText = document.getElementById('distanceText');
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let engineSound = null;
+let nitroSound = null;
+function createEngineSound() {
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  oscillator.type = 'sawtooth';
+  oscillator.frequency.setValueAtTime(100, audioCtx.currentTime);
+  gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  oscillator.start();
+  return { oscillator, gainNode };
+}
+function createNitroSound() {
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  oscillator.type = 'triangle';
+  oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  oscillator.start();
+  return { oscillator, gainNode };
+}
+function initAudio() {
+  if (!engineSound && !nitroSound) {
+    audioCtx.resume().then(() => {
+      engineSound = createEngineSound();
+      nitroSound = createNitroSound();
+    }).catch(err => {
+      console.error("Failed to initialize audio:", err);
+    });
+  }
+}
+document.addEventListener('keydown', initAudio, { once: true });
+document.addEventListener('click', initAudio, { once: true });
+const cityTexture = new THREE.TextureLoader().load(
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAABHklEQVR4nO2VsQ3DMBAF7/QKbv8K7l7AhUtEaBFEnHAD3sAtaOb5JYwhahMCi2auCyzavS6waOa6wKLr6wILrrkv0Oj6usCi7+sCi76/Cyz6/i6w6Pu6wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6Pu7wKLv7wKLvq8LLPr+rrDo+7vAou/vAou+rws0+v4usOj7u8Ci7+8Ci76/Cyz6/i6w6AAAAAElFTkSuQmCC'
+);
+const cityGeometry = new THREE.BoxGeometry(1000, 500, 5000);
+const cityMaterial = new THREE.MeshBasicMaterial({ map: cityTexture, side: THREE.BackSide, fog: true });
+const citySkybox = new THREE.Mesh(cityGeometry, cityMaterial);
+scene.add(citySkybox);
+scene.fog = new THREE.Fog(0x0a0a1e, 20, 1000);
+const ambientLight = new THREE.AmbientLight(0x202040, 0.6);
+scene.add(ambientLight);
+const streetLight = new THREE.PointLight(0x00ffcc, 3, 300);
+streetLight.position.set(0, 50, 2500);
+streetLight.castShadow = false;
+scene.add(streetLight);
+for (let i = 0; i < 20; i++) {
+  const neonLight = new THREE.PointLight(0x00ffcc, 1.5, 80);
+  neonLight.position.set(
+    (Math.random() < 0.5 ? -1 : 1) * (40 + Math.random() * 60),
+    10,
+    Math.random() * 5000
+  );
+  neonLight.castShadow = false;
+  scene.add(neonLight);
+}
+const trackLength = 5000;
+const trackWidth = 15;
+const trackMaterial = new THREE.MeshPhongMaterial({ color: 0x1c2c26, specular: 0x555555, shininess: 30 });
+const road = new THREE.Mesh(
+  new THREE.PlaneGeometry(trackWidth * 2, trackLength),
+  trackMaterial
+);
+road.rotation.x = -Math.PI / 2;
+road.position.set(0, 0, trackLength / 2);
+road.receiveShadow = true;
+scene.add(road);
+const minimapRoad = road.clone();
+minimapRoad.scale.set(1, 0.025, 1);
+minimapScene.add(minimapRoad);
+const arrowGeometry = new THREE.PlaneGeometry(10, 2);
+const arrowBorderMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.9 });
+const arrowFillMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.7 });
+for (let i = 0; i < 50; i++) {
+  const leftBorder = new THREE.Mesh(arrowGeometry, arrowBorderMaterial);
+  leftBorder.position.set(-trackWidth - 5, 3, i * (trackLength / 50));
+  leftBorder.rotation.y = Math.PI / 2;
+  scene.add(leftBorder);
+  const leftFill = new THREE.Mesh(arrowGeometry, arrowFillMaterial);
+  leftFill.position.set(-trackWidth - 5, 3.1, i * (trackLength / 50));
+  leftFill.rotation.y = Math.PI / 2;
+  scene.add(leftFill);
+  const rightBorder = new THREE.Mesh(arrowGeometry, arrowBorderMaterial);
+  rightBorder.position.set(trackWidth + 5, 3, i * (trackLength / 50));
+  rightBorder.rotation.y = -Math.PI / 2;
+  scene.add(rightBorder);
+  const rightFill = new THREE.Mesh(arrowGeometry, arrowFillMaterial);
+  rightFill.position.set(trackWidth + 5, 3.1, i * (trackLength / 50));
+  rightBorder.rotation.y = -Math.PI / 2;
+  scene.add(rightFill);
+}
+const finishLineMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.5 });
+const finishLine = new THREE.Mesh(
+  new THREE.PlaneGeometry(trackWidth * 2, 5),
+  finishLineMaterial
+);
+finishLine.rotation.x = -Math.PI / 2;
+finishLine.position.set(0, 0.02, trackLength);
+finishLine.userData = { passed: false };
+scene.add(finishLine);
+const minimapFinish = finishLine.clone();
+minimapFinish.scale.set(1, 0.025, 1);
+minimapScene.add(minimapFinish);
+const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+const lineGeometry = new THREE.PlaneGeometry(0.3, 5);
+for (let i = 0; i < 200; i++) {
+  const z = (i / 200) * trackLength;
+  for (let lane = -1; lane <= 1; lane += 2) {
+    const line = new THREE.Mesh(lineGeometry, lineMaterial);
+    line.rotation.x = -Math.PI / 2;
+    line.position.set(lane * 5, 0.02, z);
+    scene.add(line);
+  }
+}
+const buildingGeometry = new THREE.BoxGeometry(10, 20, 10);
+const buildingMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a3d, emissive: 0x00ffcc, emissiveIntensity: 0.2 });
+for (let i = 0; i < 50; i++) {
+  const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+  building.position.set(
+    (Math.random() < 0.5 ? -1 : 1) * (trackWidth + 20 + Math.random() * 40),
+    10,
+    Math.random() * trackLength
+  );
+  scene.add(building);
+}
+const opponentColors = [0x0000ff, 0xff00ff, 0x00ff00, 0xffff00];
+const opponents = [];
+function createOpponent(index) {
+  const opponent = new THREE.Group();
+  const carMain = new THREE.Mesh(
+    new THREE.BoxGeometry(2.5, 1, 5),
+    new THREE.MeshStandardMaterial({ color: opponentColors[index % 4], metalness: 0.8, roughness: 0.3 })
+  );
+  carMain.position.y = 0.5;
+  carMain.castShadow = true;
+  opponent.add(carMain);
+  for (let j = 0; j < 4; j++) {
+    const wheel = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.4, 0.4, 0.25, 16),
+      new THREE.MeshStandardMaterial({ color: 0x222222 })
+    );
+    wheel.rotation.z = Math.PI / 2;
+    wheel.position.set(
+      (j % 2 === 0 ? 1.2 : -1.2),
+      0.25,
+      (j < 2 ? 1.8 : -1.8)
+    );
+    opponent.add(wheel);
+  }
+  opponent.userData = { 
+    z: -10 * (index + 1),
+    x: (index - 1.5) * 3,
+    speed: 120 + Math.random() * 60,
+    acceleration: 0.5 + Math.random() * 0.5,
+    lane: index - 1.5,
+    finished: false,
+    place: null,
+    name: ["Blaze", "Thunder", "Viper", "Shadow"][index],
+    laneChangeTimer: 20 + Math.random() * 40,
+    targetLane: null
+  };
+  opponent.position.set(opponent.userData.x, 0.5, opponent.userData.z);
+  opponent.rotation.y = 0;
+  scene.add(opponent);
+  const minimapClone = new THREE.Mesh(
+    new THREE.BoxGeometry(2.5, 1, 5),
+    new THREE.MeshBasicMaterial({ color: opponentColors[index % 4] })
+  );
+  minimapClone.position.copy(opponent.position);
+  minimapClone.rotation.copy(opponent.rotation);
+  minimapScene.add(minimapClone);
+  opponent.userData.minimapClone = minimapClone;
+  opponents.push(opponent);
+}
+for (let i = 0; i < 4; i++) {
+  createOpponent(i);
+}
+const carTexture = new THREE.TextureLoader().load(
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6AAABGklEQVR4nO2VSwqDMBBF3/oV3P4V3L2AC5eI0CKIuOAGvIFb0M3zSxhD1iYEFs1cF1i0c11g0c51gUXX3BZY9M19gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDM59gUXf3BZY9M59gUX/3BZYDAAAAP//AwC4wQfJAAAAAElFTkSuQmCC'
+);
+carTexture.wrapS = carTexture.wrapT = THREE.RepeatWrapping;
+carTexture.repeat.set(1, 1);
+const carBody = new THREE.Group();
+const mainBody = new THREE.Mesh(
+  new THREE.BoxGeometry(2.5, 1, 5),
+  new THREE.MeshStandardMaterial({ map: carTexture, color: 0xff3333, metalness: 0.8, roughness: 0.3 })
+);
+mainBody.position.y = 0.5;
+mainBody.castShadow = true;
+carBody.add(mainBody);
+const hood = new THREE.Mesh(
+  new THREE.BoxGeometry(2.5, 0.25, 2),
+  new THREE.MeshStandardMaterial({ map: carTexture, color: 0xff3333 })
+);
+hood.position.set(0, 0.75, 1.8);
+hood.rotation.x = -0.2;
+carBody.add(hood);
+const spoiler = new THREE.Mesh(
+  new THREE.BoxGeometry(2.5, 0.15, 0.6),
+  new THREE.MeshStandardMaterial({ color: 0x000000 })
+);
+spoiler.position.set(0, 1.1, -2.5);
+carBody.add(spoiler);
+const underglow = new THREE.PointLight(0xff00ff, 2, 8);
+underglow.position.set(0, 0.25, 0);
+carBody.add(underglow);
+const headlightBeam = new THREE.SpotLight(0xffffff, 2, 30, Math.PI / 6, 0.5);
+headlightBeam.position.set(0, 0.6, 2.5);
+headlightBeam.target.position.set(0, 0, 20);
+carBody.add(headlightBeam);
+carBody.add(headlightBeam.target);
+const windowMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+const frontWindow = new THREE.Mesh(
+  new THREE.BoxGeometry(2.2, 0.4, 0.1),
+  windowMat
+);
+frontWindow.position.set(0, 0.8, 0.6);
+frontWindow.rotation.x = -0.3;
+carBody.add(frontWindow);
+const rearWindow = new THREE.Mesh(
+  new THREE.BoxGeometry(2.2, 0.4, 0.1),
+  new THREE.MeshStandardMaterial({ 
+    color: 0x111111, 
+    transparent: true, 
+    opacity: 0.5, 
+    metalness: 0.9, 
+    roughness: 0.1 
+  })
+);
+rearWindow.position.set(0, 0.8, -0.6);
+rearWindow.rotation.x = 0.3;
+carBody.add(rearWindow);
+const taillightLeft = new THREE.PointLight(0xff0000, 5, 10);
+taillightLeft.position.set(-1, 0.6, -2.8);
+taillightLeft.castShadow = false;
+carBody.add(taillightLeft);
+const taillightRight = new THREE.PointLight(0xff0000, 5, 10);
+taillightRight.position.set(1, 0.6, -2.8);
+taillightRight.castShadow = false;
+carBody.add(taillightRight);
+const nitroFlame = new THREE.Mesh(
+  new THREE.ConeGeometry(0.6, 2.5, 16),
+  new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.7 })
+);
+nitroFlame.position.set(0, 0.5, -3.5);
+nitroFlame.rotation.x = Math.PI / 2;
+nitroFlame.visible = false;
+carBody.add(nitroFlame);
+const wheels = [];
+for (let i = 0; i < 4; i++) {
+  const wheel = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.4, 0.4, 0.25, 16),
+    new THREE.MeshStandardMaterial({ color: 0x222222 })
+  );
+  wheel.rotation.z = Math.PI / 2;
+  wheel.position.set(
+    (i % 2 === 0 ? 1.2 : -1.2),
+    0.25,
+    (i < 2 ? 1.8 : -1.8)
+  );
+  carBody.add(wheel);
+  wheels.push(wheel);
+}
+carBody.userData = { x: 0, z: 0, speed: 0, acceleration: 0, targetSpeed: 0, finished: false, place: null, name: "Sid", crashCooldown: 0 };
+carBody.position.set(0, 0.5, 0);
+carBody.rotation.y = 0;
+scene.add(carBody);
+const minimapCar = new THREE.Mesh(
+  new THREE.BoxGeometry(2.5, 1, 5),
+  new THREE.MeshBasicMaterial({ color: 0xff3333 })
+);
+minimapScene.add(minimapCar);
+camera.position.set(carBody.position.x, 3, carBody.position.z - 10);
+camera.lookAt(carBody.position.x, 0, carBody.position.z + 20);
+let keys = { KeyW: false, KeyS: false, ArrowLeft: false, ArrowRight: false, Space: false, Escape: false };
+document.addEventListener('keydown', e => { 
+  keys[e.code] = true;
+  if (e.code === 'Escape' && !gameOver) {
+    console.log("ESC pressed, calling toggleControlsMenu");
+    toggleControlsMenu();
+  }
+});
+document.addEventListener('keyup', e => { 
+  keys[e.code] = false; 
+});
+let maxSpeed = 250,
+    nitroSpeed = 350,
+    accelerationRate = 2.0,
+    decelerationRate = 1.5,
+    friction = 0.97,
+    steerSpeed = 3.0,
+    nitro = 100,
+    raceTime = 0,
+    position = 1,
+    gameOver = false,
+    gamePaused = false,
+    cameraShake = 0,
+    lastFrameTime = performance.now(),
+    finishOrder = [],
+    raceStarted = false,
+    animationFrameId = null;
+const raceTimeDisplay = document.getElementById('raceTime');
+const positionDisplay = document.getElementById('position');
+const nitroDisplay = document.getElementById('nitro');
+const nitroFill = document.getElementById('nitroFill');
+const tachoDisplay = document.getElementById('tacho');
+const messageDisplay = document.getElementById('message');
+const countdownDisplay = document.getElementById('countdown');
+const controlsButton = document.getElementById('controlsButton');
+const controlsMenu = document.getElementById('controlsMenu');
+const pauseButton = document.getElementById('pauseButton');
+const restartButtonMenu = document.getElementById('restartButtonMenu');
+function updatePosition(car) {
+  car.position.x += (car.userData.x - car.position.x) * 0.5;
+  car.position.z += (car.userData.z - car.position.z) * 0.1;
+  if (car.userData.minimapClone) {
+    car.userData.minimapClone.position.set(car.position.x, 0.5, car.position.z * 0.01);
+    car.userData.minimapClone.rotation.copy(car.rotation);
+  }
+}
+function toggleControlsMenu() {
+  if (gameOver) return;
+  gamePaused = !gamePaused;
+  controlsMenu.style.display = gamePaused ? 'block' : 'none';
+  controlsButton.style.display = gamePaused ? 'none' : 'block';
+  pauseButton.textContent = gamePaused ? 'Resume' : 'Pause';
+  console.log("Toggled controls menu, gamePaused:", gamePaused);
+  if (gamePaused) {
+    if (engineSound) {
+      engineSound.gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    }
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+  } else {
+    if (engineSound) {
+      engineSound.gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    }
+    if (raceStarted && !gameOver) {
+      lastFrameTime = performance.now();
+      animate();
+    }
+  }
+}
+controlsButton.addEventListener('click', () => {
+  console.log("Controls button clicked");
+  toggleControlsMenu();
+});
+pauseButton.addEventListener('click', () => {
+  console.log("Pause/Resume button clicked");
+  toggleControlsMenu();
+});
+restartButtonMenu.addEventListener('click', () => {
+  console.log("Restart button in menu clicked");
+  gamePaused = false;
+  controlsMenu.style.display = 'none';
+  controlsButton.style.display = 'block';
+  pauseButton.textContent = 'Pause';
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+  resetGame();
+});
+function startCountdown() {
+  countdownDisplay.style.display = 'block';
+  let countdownTimer = 3;
+  const interval = setInterval(() => {
+    countdownDisplay.textContent = countdownTimer || 'Go!';
+    countdownTimer--;
+    if (countdownTimer < 0) {
+      clearInterval(interval);
+      countdownDisplay.style.display = 'none';
+      raceStarted = true;
+      carBody.userData.targetSpeed = maxSpeed;
+      initAudio();
+      animate();
+    }
+  }, 1000);
+}
+function updateOpponents() {
+  opponents.forEach(o => {
+    if (raceStarted && !o.userData.finished) {
+      o.userData.targetSpeed = Math.min(o.userData.speed, maxSpeed + 50 + Math.random() * 100);
+      o.userData.speed += (o.userData.targetSpeed - o.userData.speed) * o.userData.acceleration * 0.03;
+      o.userData.speed *= friction;
+      o.userData.z += o.userData.speed * 0.02;
+      o.userData.laneChangeTimer--;
+      if (o.userData.laneChangeTimer <= 0 && Math.random() < 0.05) {
+        const nearbyCars = [...opponents, carBody].filter(c => c !== o && Math.abs(c.userData.z - o.userData.z) < 20);
+        const playerAhead = carBody.userData.z > o.userData.z && Math.abs(carBody.userData.z - o.userData.z) < 30;
+        const canOvertake = !nearbyCars.some(c => Math.abs(c.userData.x - o.userData.x) < 4 && Math.abs(c.userData.z - o.userData.z) < 15);
+        if (canOvertake || playerAhead) {
+          const laneOptions = [-2, -1, 0, 1, 2].filter(l => Math.abs(l - o.userData.lane) <= 1);
+          o.userData.targetLane = laneOptions[Math.floor(Math.random() * laneOptions.length)];
+        }
+      }
+      if (o.userData.targetLane !== null) {
+        o.userData.lane += (o.userData.targetLane - o.userData.lane) * 0.05;
+        if (Math.abs(o.userData.lane - o.userData.targetLane) < 0.1) {
+          o.userData.targetLane = null;
+          o.userData.laneChangeTimer = 20 + Math.random() * 40;
+        }
+      }
+      o.userData.x = o.userData.lane * 3;
+      o.userData.x = Math.max(-trackWidth + 2, Math.min(trackWidth - 2, o.userData.x));
+      updatePosition(o);
+      if (o.userData.z >= trackLength && !o.userData.finished) {
+        o.userData.finished = true;
+        o.userData.place = finishOrder.length + 1;
+        finishOrder.push(o);
+        if (finishOrder.length === 5) {
+          endRace();
+        }
+      }
+    }
+  });
+}
+function updateRacePosition() {
+  const allCars = [...opponents, carBody].filter(car => !car.userData.finished);
+  allCars.sort((a, b) => b.userData.z - a.userData.z);
+  position = allCars.indexOf(carBody) + 1 + finishOrder.length;
+  positionDisplay.textContent = `${position}/${5}`;
+}
+function endRace() {
+  gameOver = true;
+  if (carBody.userData.finished && carBody.userData.place === 1) {
+    const remainingBots = opponents
+      .filter(o => !o.userData.finished)
+      .sort((a, b) => b.userData.z - a.userData.z);
+    let nextPlace = 2;
+    remainingBots.forEach(bot => {
+      if (!bot.userData.finished) {
+        bot.userData.finished = true;
+        bot.userData.place = nextPlace++;
+        finishOrder.push(bot);
+      }
+    });
+  }
+  const standings = finishOrder.map((car, index) => {
+    const place = ['1st', '2nd', '3rd', '4th', '5th'][index] || `${index + 1}th`;
+    return `${place}. ${car.userData.name}`;
+  });
+  if (!carBody.userData.finished) {
+    carBody.userData.place = finishOrder.length + 1;
+    standings.push(`${carBody.userData.place}th. Sid`);
+  }
+  messageDisplay.innerHTML = `Race Complete!\n${standings.join('\n')}\nTime: ${formatTime(raceTime)}\n<button id="restartButton">Restart</button>`;
+  messageDisplay.style.display = 'block';
+  const restartButton = document.getElementById('restartButton');
+  restartButton.addEventListener('click', () => {
+    console.log("Restart button in race results clicked");
+    messageDisplay.style.display = 'none';
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+    resetGame();
+  });
+  if (engineSound) {
+    engineSound.gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  }
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+}
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const secs = (seconds % 60).toFixed(1);
+  return `${minutes}:${secs.padStart(4, '0')}`;
+}
+function animate() {
+  if (gameOver || gamePaused) {
+    animationFrameId = null;
+    return;
+  }
+  const now = performance.now();
+  if (now - lastFrameTime < 16.67) {
+    animationFrameId = requestAnimationFrame(animate);
+    return;
+  }
+  lastFrameTime = now;
+  if (!raceStarted) {
+    animationFrameId = null;
+    return;
+  }
+  raceTime += 1 / 60;
+  const isNitroActive = keys.Space && nitro > 0 && !carBody.userData.finished && carBody.userData.crashCooldown <= 0;
+  carBody.userData.targetSpeed = keys.KeyW ? maxSpeed : keys.KeyS ? 0 : 0;
+  if (isNitroActive) {
+    carBody.userData.targetSpeed = nitroSpeed;
+    nitro -= 2.0;
+    headlightBeam.intensity = 2.5;
+    nitroFlame.visible = true;
+    if (nitroSound) {
+      nitroSound.gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    }
+    cameraShake = 0.15;
+  } else {
+    headlightBeam.intensity = 2;
+    nitroFlame.visible = false;
+    if (nitroSound) {
+      nitroSound.gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    }
+    cameraShake = 0;
+  }
+  carBody.userData.acceleration = (carBody.userData.targetSpeed - carBody.userData.speed) * accelerationRate * 0.02;
+  carBody.userData.speed += carBody.userData.acceleration;
+  if (!keys.KeyW && !keys.KeyS && !isNitroActive) {
+    carBody.userData.speed *= 0.9;
+  }
+  if (carBody.userData.speed < 0) carBody.userData.speed = 0;
+  if (carBody.userData.speed > maxSpeed) carBody.userData.speed = maxSpeed;
+  raceTimeDisplay.textContent = formatTime(raceTime);
+  nitroDisplay.textContent = Math.floor(nitro) + '%';
+  nitroFill.style.width = nitro + '%';
+  tachoDisplay.textContent = Math.floor(carBody.userData.speed);
+  document.getElementById('digitalSpeed').textContent = Math.floor(carBody.userData.speed);
+  if (engineSound) {
+    engineSound.oscillator.frequency.setValueAtTime(100 + carBody.userData.speed * 1.5, audioCtx.currentTime);
+  }
+  if (!carBody.userData.finished) {
+    if (carBody.userData.crashCooldown > 0) {
+      carBody.userData.crashCooldown -= 1 / 60;
+      carBody.userData.speed *= 0.9;
+    } else {
+      const steer = (keys.ArrowLeft ? 1 : keys.ArrowRight ? -1 : 0) * 0.5;
+      carBody.userData.x += steer;
+      carBody.userData.x = Math.max(-trackWidth + 2.5, Math.min(trackWidth - 2.5, carBody.userData.x));
+      carBody.userData.z += carBody.userData.speed * 0.02;
+    }
+    updatePosition(carBody);
+  }
+  wheels.forEach(wheel => {
+    wheel.rotation.x += carBody.userData.speed * 0.05;
+    if (wheel.position.x > 0 && wheel.position.z > 0) {
+      wheel.rotation.y = (keys.ArrowLeft ? 1 : keys.ArrowRight ? -1 : 0) * 0.4;
+    }
+  });
+  updateOpponents();
+  updateRacePosition();
+  if (!carBody.userData.finished && carBody.userData.z >= trackLength) {
+    carBody.userData.finished = true;
+    carBody.userData.place = finishOrder.length + 1;
+    finishOrder.push(carBody);
+    positionDisplay.textContent = `${carBody.userData.place}st`;
+    carBody.userData.speed = 0;
+    if (carBody.userData.place === 1) {
+      endRace();
+    } else if (finishOrder.length === 5) {
+      endRace();
+    }
+  }
+  for (let o of opponents) {
+    if (!o.position || o.userData.finished || carBody.userData.finished) continue;
+    const dx = carBody.position.x - o.position.x;
+    const dz = carBody.position.z - o.position.z;
+    const distance = Math.sqrt(dx * dx + dz * dz);
+    if (distance < 2.0) {
+      carBody.userData.crashCooldown = 1.0;
+      carBody.userData.speed *= 0.7;
+      if (carBody.userData.speed > o.userData.speed) {
+        nitro = Math.max(0, nitro - 20);
+      }
+      o.userData.speed *= 0.7;
+      const pushFactor = 0.3;
+      const pushX = dx / distance * pushFactor;
+      const pushZ = dz / distance * pushFactor;
+      carBody.userData.x += pushX;
+      carBody.userData.z += pushZ;
+      o.userData.x -= pushX;
+      o.userData.z -= pushZ;
+      carBody.userData.x = Math.max(-trackWidth + 2.5, Math.min(trackWidth - 2.5, carBody.userData.x));
+      o.userData.x = Math.max(-trackWidth + 2, Math.min(trackWidth - 2, o.userData.x));
+    }
+  }
+  const shakeX = cameraShake * (Math.random() - 0.5);
+  const shakeY = cameraShake * (Math.random() - 0.5);
+  camera.position.set(carBody.position.x + shakeX, carBody.position.y + 3 + shakeY, carBody.position.z - 10);
+  camera.lookAt(carBody.position.x, 0, carBody.position.z + 20);
+  minimapCar.position.set(carBody.position.x, 0.5, carBody.position.z * 0.01);
+  minimapCar.rotation.copy(carBody.rotation);
+  opponents.forEach(o => {
+    if (o.userData.minimapClone) {
+      o.userData.minimapClone.position.set(o.position.x, 0.5, o.position.z * 0.01);
+    }
+  });
+  const distanceToFinish = Math.max(0, trackLength - carBody.userData.z).toFixed(0);
+  distanceText.textContent = `Distance to Finish: ${distanceToFinish}m`;
+  minimapCamera.position.set(carBody.position.x, 40, carBody.position.z * 0.01);
+  minimapCamera.lookAt(carBody.position.x, 0, trackLength * 0.01);
+  minimapRenderer.render(minimapScene, minimapCamera);
+  drawSpeedometer(carBody.userData.speed);
+  renderer.render(scene, camera);
+  animationFrameId = requestAnimationFrame(animate);
+}
+function resetGame() {
+  messageDisplay.style.display = 'none';
+  carBody.userData = { x: 0, z: 0, speed: 0, acceleration: 0, targetSpeed: 0, finished: false, place: null, name: "Sid", crashCooldown: 0 };
+  carBody.position.set(0, 0.5, 0);
+  carBody.rotation.y = 0;
+  raceTime = 0;
+  nitro = 100;
+  cameraShake = 0;
+  raceStarted = false;
+  position = 1;
+  finishOrder = [];
+  gamePaused = false;
+  gameOver = false;
+  controlsMenu.style.display = 'none';
+  controlsButton.style.display = 'block';
+  pauseButton.textContent = 'Pause';
+  opponents.forEach(o => {
+    scene.remove(o);
+    if (o.userData.minimapClone) {
+      minimapScene.remove(o.userData.minimapClone);
+    }
+  });
+  opponents.length = 0;
+  for (let i = 0; i < 4; i++) {
+    createOpponent(i);
+  }
+  if (engineSound) {
+    engineSound.oscillator.stop();
+    engineSound = null;
+  }
+  if (nitroSound) {
+    nitroSound.oscillator.stop();
+    nitroSound = null;
+  }
+  audioCtx.resume().then(() => {
+    engineSound = createEngineSound();
+    nitroSound = createNitroSound();
+  }).catch(err => {
+    console.error("Failed to reinitialize audio:", err);
+  });
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+  startCountdown();
+}
+Number.prototype.padStart = function(size, char = '0') {
+  let s = String(this);
+  while (s.length < size) s = char + s;
+  return s;
+};
+startCountdown();
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+const speedometerCanvas = document.getElementById('speedometer');
+const ctx = speedometerCanvas.getContext('2d');
+function drawSpeedometer(speed) {
+  ctx.clearRect(0, 0, 200, 200);
+  ctx.beginPath();
+  ctx.arc(100, 100, 90, 0, Math.PI * 2);
+  ctx.strokeStyle = '#00ffcc';
+  ctx.lineWidth = 8;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(100, 100, 80, -Math.PI / 2, -Math.PI / 2 + (speed / 350) * Math.PI * 1.5, false);
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = 'rgba(255, 0, 255, 0.7)';
+  ctx.stroke();
+  ctx.fillStyle = '#ff00ff';
+  ctx.font = '30px Orbitron';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${Math.floor(speed)}`, 100, 110);
+  ctx.font = '20px Orbitron';
+  ctx.fillText('km/h', 100, 130);
+}
+</script>
+</body>
+</html>

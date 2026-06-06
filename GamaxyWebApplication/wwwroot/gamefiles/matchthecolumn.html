@@ -1,0 +1,771 @@
+<!-- @{
+    ViewData["Title"] = "Game Page";
+    Layout = "_layout3";
+} -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wire Match Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="~/css/matchthecolumn.css" rel="stylesheet" />
+<style>
+
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Orbitron', sans-serif;
+    background-color: #0a0e17;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #0f1724 0%, #1a2639 100%);
+    overflow: hidden;
+}
+
+.circuit-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(circle at 10% 20%, rgba(30, 60, 114, 0.03) 0%, rgba(30, 60, 114, 0) 20%), radial-gradient(circle at 90% 80%, rgba(30, 60, 114, 0.03) 0%, rgba(30, 60, 114, 0) 20%);
+    opacity: 0.6;
+}
+
+.circuit-lines {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: 50px 50px;
+    background-image: linear-gradient(to right, rgba(30, 60, 114, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(30, 60, 114, 0.05) 1px, transparent 1px);
+    opacity: 0.4;
+}
+
+.game-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 800px;
+    height: 80%;
+    max-height: 600px;
+    background: linear-gradient(145deg, #1c2b44 0%, #131e30 100%);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 0 30px rgba(0, 100, 255, 0.1) inset;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.panel-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: 60px;
+}
+
+.timer {
+    font-size: 1.5rem;
+    color: #0cf;
+    text-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+    font-family: 'Roboto Mono', monospace;
+    letter-spacing: 2px;
+}
+
+.level-indicator {
+    font-size: 1.2rem;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.panel-content {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+}
+
+.wire-container {
+    position: relative;
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 0;
+}
+
+.wire-side {
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    z-index: 20;
+}
+
+.wire-connector {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin: 15px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .wire-connector::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+
+    .wire-connector::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .wire-connector.left {
+        margin-left: 20px;
+        box-shadow: -5px 0 10px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    }
+
+    .wire-connector.right {
+        margin-right: 20px;
+        box-shadow: 5px 0 10px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    }
+
+    .wire-connector:hover {
+        transform: scale(1.1);
+    }
+
+.wire-path {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.wire {
+    position: absolute;
+    height: 6px;
+    border-radius: 3px;
+    transform-origin: left center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+    .wire.dragging {
+        z-index: 30;
+    }
+
+    .wire.connected {
+        animation: pulseGlow 2s infinite;
+    }
+
+.spark {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    opacity: 0;
+    z-index: 40;
+    pointer-events: none;
+}
+
+.panel-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    height: 60px;
+}
+
+.btn {
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+}
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+    }
+
+    .btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+    }
+
+.btn-reset {
+    background: linear-gradient(to bottom, #e63946, #d62b39);
+    color: white;
+}
+
+.btn-next {
+    background: linear-gradient(to bottom, #4cc9f0, #4361ee);
+    color: white;
+}
+
+.level-complete {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+    .level-complete.show {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .level-complete h2 {
+        font-size: 2.5rem;
+        color: #4cc9f0;
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+    }
+
+    .level-complete p {
+        font-size: 1.2rem;
+        color: white;
+        margin-bottom: 30px;
+    }
+
+@keyframes pulseGlow {
+    0% {
+        filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+    }
+}
+
+@keyframes sparkAnimation {
+    0% {
+        transform: scale(0.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+
+    20%, 60% {
+        transform: translateX(-5px);
+    }
+
+    40%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes success {
+    0% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.5);
+    }
+
+    100% {
+        filter: brightness(1);
+    }
+}
+
+.score {
+    font-size: 1.2rem;
+    color: #4cc9f0;
+    text-shadow: 0 0 5px rgba(76, 201, 240, 0.5);
+}
+
+</style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="circuit-bg"></div>
+        <div class="circuit-lines"></div>
+
+        <div class="game-panel">
+            <div class="panel-inner">
+                <div class="panel-top">
+                    <div class="level-indicator">LEVEL <span id="level-num">1</span></div>
+                    <div class="timer" id="timer">00:30</div>
+                    <div class="score">SCORE: <span id="score">0</span></div>
+                </div>
+
+                <div class="panel-content">
+                    <div class="wire-container" id="wire-container">
+                        <div class="wire-side left-side" id="left-side"></div>
+                        <div class="wire-path" id="wire-path"></div>
+                        <div class="wire-side right-side" id="right-side"></div>
+                    </div>
+                </div>
+
+                <div class="panel-bottom">
+                    <button class="btn btn-reset" id="reset-btn">Reset</button>
+                    <button class="btn btn-next" id="next-btn" style="display: none;">Next Level</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="level-complete" id="level-complete">
+            <h2>Level Complete!</h2>
+            <p>Time Bonus: <span id="time-bonus">0</span></p>
+            <button class="btn btn-next" id="next-level-btn">Next Level</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game variables
+            const colors = [
+                { name: 'red', bg: '#e63946', glow: 'rgba(230, 57, 70, 0.8)' },
+                { name: 'blue', bg: '#4cc9f0', glow: 'rgba(76, 201, 240, 0.8)' },
+                { name: 'green', bg: '#2a9d8f', glow: 'rgba(42, 157, 143, 0.8)' },
+                { name: 'yellow', bg: '#e9c46a', glow: 'rgba(233, 196, 106, 0.8)' },
+                { name: 'purple', bg: '#8338ec', glow: 'rgba(131, 56, 236, 0.8)' },
+                { name: 'orange', bg: '#fb8500', glow: 'rgba(251, 133, 0, 0.8)' },
+                { name: 'pink', bg: '#ff006e', glow: 'rgba(255, 0, 110, 0.8)' },
+                { name: 'teal', bg: '#0096c7', glow: 'rgba(0, 150, 199, 0.8)' }
+            ];
+
+            let level = 1;
+            let score = 0;
+            let timeLeft = 30;
+            let timerInterval;
+            let wireCount = 4; // Starting with 4 wires
+            let connections = [];
+            let correctConnections = 0;
+            let activeWire = null;
+            let wireStartX, wireStartY;
+            let isDragging = false;
+
+            // DOM elements
+            const leftSide = document.getElementById('left-side');
+            const rightSide = document.getElementById('right-side');
+            const wirePath = document.getElementById('wire-path');
+            const wireContainer = document.getElementById('wire-container');
+            const timerElement = document.getElementById('timer');
+            const levelElement = document.getElementById('level-num');
+            const scoreElement = document.getElementById('score');
+            const resetBtn = document.getElementById('reset-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const levelComplete = document.getElementById('level-complete');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+            const timeBonusElement = document.getElementById('time-bonus');
+
+            // Initialize game
+            initLevel();
+
+            // Event listeners
+            resetBtn.addEventListener('click', resetLevel);
+            nextBtn.addEventListener('click', nextLevel);
+            nextLevelBtn.addEventListener('click', nextLevel);
+
+            // Functions
+            function initLevel() {
+                // Clear previous level
+                leftSide.innerHTML = '';
+                rightSide.innerHTML = '';
+                wirePath.innerHTML = '';
+                connections = [];
+                correctConnections = 0;
+
+                // Update UI
+                levelElement.textContent = level;
+                scoreElement.textContent = score;
+
+                // Set wire count based on level
+                wireCount = Math.min(4 + Math.floor(level / 2), 8);
+
+                // Create shuffled array of colors
+                const shuffledColors = [...colors].sort(() => Math.random() - 0.5).slice(0, wireCount);
+                const rightSideColors = [...shuffledColors].sort(() => Math.random() - 0.5);
+
+                // Create left side connectors
+                shuffledColors.forEach((color, index) => {
+                    const connector = createConnector(color, 'left', index);
+                    leftSide.appendChild(connector);
+                });
+
+                // Create right side connectors
+                rightSideColors.forEach((color, index) => {
+                    const connector = createConnector(color, 'right', index);
+                    rightSide.appendChild(connector);
+                });
+
+                // Start timer
+                clearInterval(timerInterval);
+                timeLeft = 30 + (level * 5); // More time for higher levels
+                updateTimer();
+                timerInterval = setInterval(updateTimer, 1000);
+
+                // Hide next button and level complete
+                nextBtn.style.display = 'none';
+                levelComplete.classList.remove('show');
+            }
+
+            function createConnector(color, side, index) {
+                const connector = document.createElement('div');
+                connector.className = `wire-connector ${side}`;
+                connector.style.backgroundColor = color.bg;
+                connector.style.boxShadow = `0 0 10px ${color.glow}, 0 0 5px ${color.glow} inset`;
+                connector.dataset.color = color.name;
+                connector.dataset.index = index;
+                connector.dataset.side = side;
+
+                // Add event listeners for wire dragging
+                if (side === 'left') {
+                    connector.addEventListener('mousedown', startDrag);
+                    connector.addEventListener('touchstart', startDrag, { passive: false });
+                }
+
+                return connector;
+            }
+
+            function startDrag(e) {
+                e.preventDefault();
+
+                // Get connector element
+                const connector = e.target.closest('.wire-connector');
+                if (!connector || connector.dataset.side !== 'left') return;
+
+                // Check if this connector is already connected
+                const existingConnection = connections.find(conn => conn.leftIndex === parseInt(connector.dataset.index));
+                if (existingConnection) {
+                    // Remove existing connection
+                    const wireElement = document.getElementById(`wire-${existingConnection.leftIndex}-${existingConnection.rightIndex}`);
+                    if (wireElement) {
+                        wireElement.remove();
+                    }
+                    connections = connections.filter(conn => conn.leftIndex !== parseInt(connector.dataset.index));
+                    if (existingConnection.correct) {
+                        correctConnections--;
+                    }
+                }
+
+                // Get connector position
+                const rect = connector.getBoundingClientRect();
+                const containerRect = wireContainer.getBoundingClientRect();
+
+                wireStartX = rect.left + rect.width / 2 - containerRect.left;
+                wireStartY = rect.top + rect.height / 2 - containerRect.top;
+
+                // Create new wire
+                const wire = document.createElement('div');
+                wire.className = 'wire dragging';
+                wire.id = `temp-wire`;
+                wire.style.backgroundColor = connector.style.backgroundColor;
+                wire.style.boxShadow = connector.style.boxShadow;
+                wire.style.left = `${wireStartX}px`;
+                wire.style.top = `${wireStartY}px`;
+                wirePath.appendChild(wire);
+
+                // Set active wire
+                activeWire = {
+                    element: wire,
+                    color: connector.dataset.color,
+                    leftIndex: parseInt(connector.dataset.index)
+                };
+
+                isDragging = true;
+
+                // Add mouse/touch move and up events
+                document.addEventListener('mousemove', dragWire);
+                document.addEventListener('touchmove', dragWire, { passive: false });
+                document.addEventListener('mouseup', endDrag);
+                document.addEventListener('touchend', endDrag);
+            }
+
+            function dragWire(e) {
+                if (!isDragging || !activeWire) return;
+
+                e.preventDefault();
+
+                // Get current mouse/touch position
+                const containerRect = wireContainer.getBoundingClientRect();
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+                if (!clientX || !clientY) return;
+
+                const mouseX = clientX - containerRect.left;
+                const mouseY = clientY - containerRect.top;
+
+                // Calculate wire length and angle
+                const dx = mouseX - wireStartX;
+                const dy = mouseY - wireStartY;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                // Update wire style
+                activeWire.element.style.width = `${length}px`;
+                activeWire.element.style.transform = `rotate(${angle}deg)`;
+
+                // Add slight wave animation to simulate cable physics
+                const waveAmount = Math.sin(Date.now() / 300) * 2;
+                activeWire.element.style.height = `${6 + waveAmount}px`;
+            }
+
+            function endDrag(e) {
+                if (!isDragging || !activeWire) return;
+
+                isDragging = false;
+
+                // Remove event listeners
+                document.removeEventListener('mousemove', dragWire);
+                document.removeEventListener('touchmove', dragWire);
+                document.removeEventListener('mouseup', endDrag);
+                document.removeEventListener('touchend', endDrag);
+
+                // Check if wire is dropped on a right connector
+                const rightConnectors = document.querySelectorAll('.wire-connector.right');
+                const containerRect = wireContainer.getBoundingClientRect();
+                const clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+                const clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+
+                if (!clientX || !clientY) {
+                    activeWire.element.remove();
+                    activeWire = null;
+                    return;
+                }
+
+                let dropped = false;
+
+                rightConnectors.forEach(connector => {
+                    const rect = connector.getBoundingClientRect();
+
+                    // Check if mouse/touch is over this connector
+                    if (
+                        clientX >= rect.left &&
+                        clientX <= rect.right &&
+                        clientY >= rect.top &&
+                        clientY <= rect.bottom
+                    ) {
+                        dropped = true;
+
+                        // Check if this right connector is already connected
+                        const existingRightConnection = connections.find(conn => conn.rightIndex === parseInt(connector.dataset.index));
+                        if (existingRightConnection) {
+                            // Remove existing connection
+                            const wireElement = document.getElementById(`wire-${existingRightConnection.leftIndex}-${existingRightConnection.rightIndex}`);
+                            if (wireElement) {
+                                wireElement.remove();
+                            }
+                            connections = connections.filter(conn => conn.rightIndex !== parseInt(connector.dataset.index));
+                            if (existingRightConnection.correct) {
+                                correctConnections--;
+                            }
+                        }
+
+                        // Get end position
+                        const endX = rect.left + rect.width / 2 - containerRect.left;
+                        const endY = rect.top + rect.height / 2 - containerRect.top;
+
+                        // Calculate wire properties
+                        const dx = endX - wireStartX;
+                        const dy = endY - wireStartY;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                        // Remove temp wire
+                        activeWire.element.remove();
+
+                        // Create permanent wire
+                        const wire = document.createElement('div');
+                        wire.className = 'wire';
+                        wire.id = `wire-${activeWire.leftIndex}-${connector.dataset.index}`;
+                        wire.style.backgroundColor = connector.style.backgroundColor;
+                        wire.style.boxShadow = connector.style.boxShadow;
+                        wire.style.left = `${wireStartX}px`;
+                        wire.style.top = `${wireStartY}px`;
+                        wire.style.width = `${length}px`;
+                        wire.style.transform = `rotate(${angle}deg)`;
+                        wirePath.appendChild(wire);
+
+                        // Check if connection is correct
+                        const isCorrect = activeWire.color === connector.dataset.color;
+
+                        // Add connection to array
+                        connections.push({
+                            leftIndex: activeWire.leftIndex,
+                            rightIndex: parseInt(connector.dataset.index),
+                            correct: isCorrect
+                        });
+
+                        if (isCorrect) {
+                            // Correct connection
+                            correctConnections++;
+                            wire.classList.add('connected');
+
+                            // Add success animation
+                            wire.style.animation = 'success 0.5s';
+
+                            // Check if level complete
+                            if (correctConnections === wireCount) {
+                                levelComplete.classList.add('show');
+                                clearInterval(timerInterval);
+
+                                // Calculate time bonus
+                                const timeBonus = timeLeft * 10;
+                                score += timeBonus + (level * 100);
+                                scoreElement.textContent = score;
+                                timeBonusElement.textContent = timeBonus;
+
+                                nextBtn.style.display = 'block';
+                            }
+                        } else {
+                            // Wrong connection - show spark animation
+                            createSpark(endX, endY);
+
+                            // Shake the panel
+                            wireContainer.style.animation = 'shake 0.5s';
+                            setTimeout(() => {
+                                wireContainer.style.animation = '';
+                            }, 500);
+
+                            // Penalty: reduce time
+                            timeLeft = Math.max(1, timeLeft - 3);
+                            updateTimer();
+                        }
+                    }
+                });
+
+                if (!dropped) {
+                    // Wire wasn't dropped on a connector
+                    activeWire.element.remove();
+                }
+
+                activeWire = null;
+            }
+
+            function createSpark(x, y) {
+                const spark = document.createElement('div');
+                spark.className = 'spark';
+                spark.style.left = `${x - 20}px`;
+                spark.style.top = `${y - 20}px`;
+                spark.style.animation = 'sparkAnimation 0.3s forwards';
+                wirePath.appendChild(spark);
+
+                setTimeout(() => {
+                    spark.remove();
+                }, 300);
+            }
+
+            function updateTimer() {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timeLeft = 0;
+                    resetLevel();
+                    return;
+                }
+
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // Change color when time is running out
+                if (timeLeft <= 10) {
+                    timerElement.style.color = '#e63946';
+                    timerElement.style.textShadow = '0 0 10px rgba(230, 57, 70, 0.8)';
+                } else {
+                    timerElement.style.color = '#0cf';
+                    timerElement.style.textShadow = '0 0 10px rgba(0, 200, 255, 0.5)';
+                }
+
+                timeLeft--;
+            }
+
+            function resetLevel() {
+                clearInterval(timerInterval);
+                initLevel();
+            }
+
+            function nextLevel() {
+                level++;
+                resetLevel();
+            }
+
+            // Add circuit pattern animation
+            function animateCircuitPattern() {
+                const circuitLines = document.querySelector('.circuit-lines');
+                let offset = 0;
+
+                setInterval(() => {
+                    offset = (offset + 0.5) % 50;
+                    circuitLines.style.backgroundPosition = `${offset}px ${offset}px`;
+                }, 100);
+            }
+
+            animateCircuitPattern();
+        });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9687da3de3be3e38',t:'MTc1NDA3NzcwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

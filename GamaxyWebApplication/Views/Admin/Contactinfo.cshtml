@@ -1,0 +1,58 @@
+﻿@model IEnumerable<Contact>
+@{
+    ViewData["Title"] = "Contact Info";
+    Layout = "Admin_layout";
+    var duplicates = ViewBag.DuplicateIds as List<int>;
+}
+
+<style>
+    .table-warning {
+        background-color: #fff3cd !important;
+        font-weight: bold;
+    }
+</style>
+
+<!-- Table Start -->
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <div class="row mt-3">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title">Contact Info</div>
+                        <hr />
+                        <table class="table table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Message</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Subject</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var con in Model)
+                                {
+                                    var isDuplicate = duplicates != null && duplicates.Contains(con.Id);
+                                    <tr class="@(isDuplicate ? "table-warning" : "")">
+                                        <td>@con.Id</td>
+                                        <td>@con.Message</td>
+                                        <td>@con.Name</td>
+                                        <td>@con.Email</td>
+                                        <td>@con.Subject</td>
+                                        <td>
+                                            <a class="btn btn-sm btn-primary" asp-action="Editcon" asp-route-id="@con.Id">Edit</a>
+                                            <a class="btn btn-sm btn-danger" asp-action="delcon" asp-route-id="@con.Id">Delete</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

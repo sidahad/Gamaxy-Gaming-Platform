@@ -1,0 +1,1340 @@
+﻿@model IEnumerable<LeaderboardPlayer>
+@{
+    ViewData["Title"] = "Home Page";
+}
+@section Styles {
+    <link href="~/css/FeaturedGames.css" rel="stylesheet" />
+}
+<!-- Content -->
+<div class="page-content bg-white" style="padding-bottom: 0px;">
+    <!-- Slider -->
+    <div class="main-slider style-two default-banner" id="home">
+        <div class="tp-banner-container">
+            <div class="tp-banner">
+                <div id="rev_slider_1175_1_wrapper" class="rev_slider_wrapper fullscreen-container"
+                     data-alias="duotone192" data-source="gallery"
+                     style="background-color:transparent;padding:0px;">
+                    <div id="rev_slider_1175_1" class="rev_slider fullscreenbanner" style="display:none;"
+                         data-version="5.3.0.2">
+                        <ul>
+                            <!-- SLIDE  -->
+                            <li data-index="rs-3239" data-transition="fade" data-slotamount="default"
+                                data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default"
+                                data-easeout="default" data-masterspeed="default" data-thumb="~/web/assets/images/bg2.jpg"
+                                data-rotate="0" data-fstransition="fade" data-fsmasterspeed="300"
+                                data-fsslotamount="7" data-saveperformance="off" data-title="Slide"
+                                data-param1="" data-param2="" data-param3="" data-param4="" data-param5=""
+                                data-param6="" data-param7="" data-param8="" data-param9="" data-param10=""
+                                data-description="">
+                                <!-- MAIN IMAGE -->
+                                <img src="~/web/assets/images/bg2.jpg" alt="" data-lazyload="~/web/assets/images/bg2.jpg"
+                                     data-bgposition="center center" data-bgfit="cover" data-bgrepeat="no-repeat"
+                                     data-bgparallax="3" class="rev-slidebg" data-no-retina>
+                                <!-- LAYERS -->
+                                <div class="tp-caption tp-shape tp-shapewrapper " id="slide-100-layer"
+                                     data-x="['center','center','center','center']"
+                                     data-hoffset="['0','0','0','0']"
+                                     data-y="['middle','middle','middle','middle']"
+                                     data-voffset="['0','0','0','0']" data-width="full" data-height="full"
+                                     data-whitespace="nowrap" data-type="shape" data-basealign="slide"
+                                     data-responsive_offset="off" data-responsive="off"
+                                     data-frames='[{"from":"opacity:0;","speed":1000,"to":"o:1;","delay":0,"ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power4.easeOut"}]'
+                                     data-textAlign="['left','left','left','left']" data-paddingtop="[0,0,0,0]"
+                                     data-paddingright="[0,0,0,0]" data-paddingbottom="[0,0,0,0]"
+                                     data-paddingleft="[0,0,0,0]"
+                                     style="z-index: 2;background-color:rgba(0, 0, 0, 0.1);border-color:rgba(0, 0, 0, 0);border-width:0px; background-image:url(web/assets/images/overlay/rrdiagonal-line.png)">
+                                </div>
+                                <div class="rs-background-video-layer" data-forcerewind="on" data-volume="mute"
+                                     data-videowidth="100%" data-videoheight="100%" data-videomp4="web/assets/video/bg.mp4"
+                                     data-videopreload="auto" data-videoloop="none" data-aspectratio="16:9"
+                                     data-autoplay="true" data-autoplayonlyfirsttime="false" data-forceCover="1"
+                                     data-nextslideatend="true"></div>
+                                <!-- LAYER NR. 1 -->
+                                <div class="tp-caption   rs-parallaxlevel-4" id="slide-3239-layer-1"
+                                     data-x="['center','center','center','center']"
+                                     data-hoffset="['0','0','0','0']"
+                                     data-y="['middle','middle','middle','middle']"
+                                     data-voffset="['0','0','0','0']" data-fontsize="['60','60','40','20']"
+                                     data-lineheight="['75','70','50','30']"
+                                     data-width="['720','640','480','300']" data-height="none"
+                                     data-whitespace="normal" data-type="text" data-responsive_offset="off"
+                                     data-responsive="off"
+                                     data-frames='[{"from":"y:20px;sX:0.9;sY:0.9;opacity:0;","speed":1000,"to":"o:1;","delay":500,"ease":"Power4.easeOut"},{"delay":"wait","speed":300,"to":"opacity:0;","ease":"nothing"}]'
+                                     data-textAlign="['center','center','center','center']"
+                                     data-paddingtop="[0,0,0,0]" data-paddingright="[0,0,0,0]"
+                                     data-paddingbottom="[0,0,0,0]" data-paddingleft="[0,0,0,0]"
+                                     style="z-index: 5; min-width: 720px; max-width: 720px; white-space: normal; font-size: 60px; line-height: 70px;  color: rgba(255, 255, 255, 1.00);font-family:Poppins;border-width:0px; font-weight:600;">
+                                    Welcome to <br />The Galaxy of Games
+                                    <a class="music-toggle" href="javascript:;">
+                                        <i class="fa fa-volume">
+                                            <audio id="bg-music" loop>
+                                                <source src="~/web/assets/video/game.mp3" type="audio/mp3">
+                                            </audio>
+                                        </i>
+                                    </a>
+                                </div>
+                            </li>
+                            <!-- SLIDE  -->
+                            <li data-index="rs-3240" data-transition="fade" data-slotamount="default"
+                                data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default"
+                                data-easeout="default" data-masterspeed="default" data-thumb="~/web/assets/images/bg3.jpg"
+                                data-rotate="0" data-saveperformance="off" data-title="Slide" data-param1=""
+                                data-param2="" data-param3="" data-param4="" data-param5="" data-param6=""
+                                data-param7="" data-param8="" data-param9="" data-param10=""
+                                data-description="">
+                                <!-- MAIN IMAGE -->
+                                <img src="~/web/assets/images/bg3.jpg" alt="" data-lazyload="~/web/assets/images/bg3.jpg"
+                                     data-bgposition="center center" data-bgfit="cover" data-bgrepeat="no-repeat"
+                                     data-bgparallax="3" class="rev-slidebg" data-no-retina>
+                                <!-- LAYERS -->
+                                <div class="tp-caption tp-shape tp-shapewrapper " id="slide-200-layer"
+                                     data-x="['center','center','center','center']"
+                                     data-hoffset="['0','0','0','0']"
+                                     data-y="['middle','middle','middle','middle']"
+                                     data-voffset="['0','0','0','0']" data-width="full" data-height="full"
+                                     data-whitespace="nowrap" data-type="shape" data-basealign="slide"
+                                     data-responsive_offset="off" data-responsive="off"
+                                     data-frames='[{"from":"opacity:0;","speed":1000,"to":"o:1;","delay":0,"ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power4.easeOut"}]'
+                                     data-textAlign="['left','left','left','left']" data-paddingtop="[0,0,0,0]"
+                                     data-paddingright="[0,0,0,0]" data-paddingbottom="[0,0,0,0]"
+                                     data-paddingleft="[0,0,0,0]"
+                                     style="z-index: 2;background-color:rgba(0, 0, 0, 0.1);border-color:rgba(0, 0, 0, 0);border-width:0px; background-image:url(web/assets/images/overlay/rrdiagonal-line.png)">
+                                </div>
+                                <!-- LAYER NR. 4 -->
+                                <div class="tp-caption   rs-parallaxlevel-4" id="slide-3239-layer-2"
+                                     data-x="['center','center','center','center']"
+                                     data-hoffset="['0','0','0','0']"
+                                     data-y="['middle','middle','middle','middle']"
+                                     data-voffset="['0','0','0','0']" data-fontsize="['60','60','40','20']"
+                                     data-lineheight="['75','70','50','30']"
+                                     data-width="['720','640','480','300']" data-height="none"
+                                     data-whitespace="normal" data-type="text" data-responsive_offset="off"
+                                     data-responsive="off"
+                                     data-frames='[{"from":"y:20px;sX:0.9;sY:0.9;opacity:0;","speed":1000,"to":"o:1;","delay":500,"ease":"Power4.easeOut"},{"delay":"wait","speed":300,"to":"opacity:0;","ease":"nothing"}]'
+                                     data-textAlign="['center','center','center','center']"
+                                     data-paddingtop="[0,0,0,0]" data-paddingright="[0,0,0,0]"
+                                     data-paddingbottom="[0,0,0,0]" data-paddingleft="[0,0,0,0]"
+                                     style="z-index: 5; min-width: 720px; max-width: 720px; white-space: normal; font-size: 60px; line-height: 70px;  color: rgba(255, 255, 255, 1.00);font-family:Poppins;border-width:0px; font-weight:600;">
+                                    Play Games. Earn Glory. <br> Launch Your Own
+                                    <a class="music-toggle" href="javascript:;">
+                                        <i class="fa fa-volume">
+                                            <audio id="bg-music" loop>
+                                                <source src="~/web/assets/video/game.mp3" type="audio/mp3">
+                                            </audio>
+                                        </i>
+                                    </a>
+                                </div>
+                            </li>
+                            <!-- SLIDE  -->
+                        </ul>
+                        <div class="tp-bannertimer"
+                             style="height: 8px; background-color: rgba(255, 255, 255, 0.25);"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <section class="games-section">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="sort-title clearfix text-center" style=" margin-bottom: 0px;">
+                    <h2 class="text-gradient title fw-bold"> Featured Games</h2>
+                </div>
+            </div>
+        </div>
+        <div class="slider">
+            <button class="slide-btn left" onclick="moveGameSlide(this, -1)">&#10094;</button>
+            <div class="game-grid">
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="CarEscape">
+                        <img src="~/assets/images/CarEscape.jpg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="CandyCrushGame">
+                        <img src="~/assets/images/CandyCrushGame.jpg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="burger">
+                        <img src="~/assets/images/burger.png" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="Ballon">
+                        <img src="~/assets/images/ballshooter.png" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="AlienDefense">
+                        <img src="~/assets/images/alienssapcewar.png" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="AngryBird">
+                        <img src="~/assets/images/angrybird.jpg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="CarParker">
+                        <img src="~/assets/images/CarParker.jpeg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="ChronoRunner">
+                        <img src="~/assets/images/ChronoRunner.jpg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+            </div>
+
+            <button class="slide-btn right" onclick="moveGameSlide(this, 1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+      
+        <div class="row ">
+            <div class="col-lg-12">
+                <div class="sort-title clearfix text-center" style=" margin-bottom: 0px;">
+                    <h2 class="text-gradient title fw-bold">Trending Now</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="slider">
+            <button class="slide-btn left" onclick="moveGameSlide(this, -1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <div class="game-grid">
+                <div class="game-card">
+                    <img src="~/web/assets/images/pong.png" style="height:200px; width:300px;" alt="Pong">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/tictactoe.png" style="height:200px; width:300px;" alt="Tic Tac Toe">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/brickbreaker.png" style="height:200px; width:300px;" alt="Brick Breaker">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/memorygame.jpg" style="height:200px; width:300px;" alt="Memory Game">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/pong.png" style="height:200px; width:300px;" alt="Pong">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/tictactoe.png" style="height:200px; width:300px;" alt="Tic Tac Toe">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/brickbreaker.png" style="height:200px; width:300px;" alt="Brick Breaker">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/memorygame.jpg" style="height:200px; width:300px;" alt="Memory Game">
+                </div>
+                <!-- repeat more cards -->
+            </div>
+
+            <button class="slide-btn right" onclick="moveGameSlide(this, 1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+      
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="sort-title clearfix text-center" style=" margin-bottom: 0px;">
+                    <h2 class="text-gradient title fw-bold">New Releases</h2>
+                </div>
+            </div>
+        </div>
+        <div class="slider">
+            <button class="slide-btn left" onclick="moveGameSlide(this, -1)">&#10094;</button>
+            <div class="game-grid">
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="CarEscape">
+                        <img src="~/assets/images/CarEscape.jpg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="CandyCrushGame">
+                        <img src="~/assets/images/CandyCrushGame.jpg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="burger">
+                        <img src="~/assets/images/burger.png" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="Ballon">
+                        <img src="~/assets/images/ballshooter.png" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="AlienDefense">
+                        <img src="~/assets/images/alienssapcewar.png" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="AngryBird">
+                        <img src="~/assets/images/angrybird.jpg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="CarParker">
+                        <img src="~/assets/images/CarParker.jpeg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+                <div class="game-card">
+                    <a asp-controller="Home" asp-action="ChronoRunner">
+                        <img src="~/assets/images/ChronoRunner.jpg" style="height:200px; width:300px;" alt="">
+                    </a>
+                </div>
+            </div>
+
+            <button class="slide-btn right" onclick="moveGameSlide(this, 1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="sort-title clearfix text-center" style=" margin-bottom: 0px;">
+                    <h2 class="text-gradient title fw-bold">Popular Picks</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="slider">
+            <button class="slide-btn left" onclick="moveGameSlide(this, -1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <div class="game-grid">
+                <div class="game-card">
+                    <img src="~/web/assets/images/pong.png" style="height:200px; width:300px;" alt="Pong">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/tictactoe.png" style="height:200px; width:300px;" alt="Tic Tac Toe">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/brickbreaker.png" style="height:200px; width:300px;" alt="Brick Breaker">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/memorygame.jpg" style="height:200px; width:300px;" alt="Memory Game">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/pong.png" style="height:200px; width:300px;" alt="Pong">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/tictactoe.png" style="height:200px; width:300px;" alt="Tic Tac Toe">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/brickbreaker.png" style="height:200px; width:300px;" alt="Brick Breaker">
+                </div>
+                <div class="game-card">
+                    <img src="~/web/assets/images/memorygame.jpg" style="height:200px; width:300px;" alt="Memory Game">
+                </div>
+                <!-- repeat more cards -->
+            </div>
+
+            <button class="slide-btn right" onclick="moveGameSlide(this, 1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="more-btn-wrapper text-center mb-4">
+                    <a asp-controller="Home" asp-action="Games" class="site-button outline outline-2 btnhover11">
+                        For More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .games-section {
+            position: relative;
+            padding: 60px 20px;
+            color: #fff;
+            overflow: hidden;
+            z-index: 1;
+            background: #000; /* fallback */
+        }
+
+            /* 3D Infinite Neon Grid Background */
+            .games-section::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(#008dff 1px, transparent 1px), linear-gradient(90deg, #D400FF 1px, transparent 1px);
+                background-size: 80px 80px;
+                transform: perspective(800px) rotateX(60deg);
+                animation: moveGrid 5s linear infinite;
+                opacity: 0.3;
+                z-index: 0;
+            }
+
+            /* Neon Glow Overlay */
+            .games-section::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(circle at center, rgba(0,141,255,0.2), rgba(212,0,255,0.2), transparent 70%);
+                animation: pulseGlow 6s ease-in-out infinite alternate;
+                z-index: 0;
+            }
+
+            /* Keep content above background */
+            .games-section * {
+                position: relative;
+                z-index: 1;
+            }
+
+        /* Animations */
+        @@keyframes moveGrid {
+            0%
+
+        {
+            background-position: 0 0, 0 0;
+        }
+
+        100% {
+            background-position: 0 80px, 80px 0;
+        }
+
+        }
+
+        @@keyframes pulseGlow {
+            0%
+
+        {
+            opacity: 0.15;
+        }
+
+        100% {
+            opacity: 0.35;
+        }
+
+        }
+
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(to right,0% #008dff, 50% #D400FF, 100% #008dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            color: #aaa;
+            font-size: 1rem;
+            margin-top: 8px;
+        }
+
+        .slider {
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-top: 30px;
+        }
+
+        .game-grid {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 15px 10px;
+        }
+
+        .game-card {
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 2px solid transparent;
+            transition: 0.3s;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 141, 255, 0.2);
+        }
+
+            .game-card img {
+                width: 100%;
+                border-radius: 12px;
+            }
+
+            .game-card:hover {
+                transform: scale(1.08);
+                border-color: #008dff;
+                box-shadow: 0 0 20px rgba(212, 0, 255, 0.5);
+            }
+
+        .game-title {
+            display: block;
+            margin: 10px 0;
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        .slide-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: 0.3s;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+        }
+
+            .slide-btn.left {
+                left: 5px;
+            }
+
+            .slide-btn.right {
+                right: 5px;
+            }
+
+            .slide-btn:hover {
+              background:linear-gradient(to right,0% #008dff, 50% #D400FF, 100% #008dff);
+            }
+    </style>
+
+
+    <script>
+        let slideIndex = 0;
+
+        function moveSlide(direction) {
+            const slideTrack = document.getElementById("slideTrack");
+            const slideWidth = 315; // 300px + 15px gap
+            slideIndex += direction;
+
+            if (slideIndex < 0) slideIndex = 0;
+            if (slideIndex > slideTrack.children.length - 3) slideIndex = slideTrack.children.length - 3;
+
+            slideTrack.style.transform = `translateX(-${slideWidth * slideIndex}px)`;
+        }
+
+        function moveGameSlide(button, direction) {
+            const grid = button.parentElement.querySelector(".game-grid");
+            const scrollAmount = 210; // image width + gap
+            grid.scrollBy({ left: direction * scrollAmount, behavior: "smooth" });
+        }
+    </script>
+    <div class="content-block">
+        <div class="section-full">
+            <div class="row spno about-industry">
+                <div class="col-lg-8 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.2s">
+                    <div class="dlab-post-media dlab-img-effect zoom">
+                        <img src="~/web/assets/images/bg1.jpg" alt="" class="img-cover">
+                    </div>
+                </div>
+                <div class="col-lg-4 bg-white wow fadeIn" data-wow-duration="2s" data-wow-delay="0.4s">
+                    <div class="service-box style2">
+                        <div>
+                            <h2 class="title text-white">
+                                <span>Gamaxy</span> <br />Universe
+                            </h2>
+                            <p>
+                                Step into the next dimension of gaming with <strong>Gamaxy</strong>.
+                                Discover trending titles, explore unique adventures, and connect with a
+                                community built for gamers by gamers.
+                            </p>
+                            <a href="/Home/About" class="site-button outline outline-2 btnhover11">
+                                ABOUT US
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.6s">
+                    <div class="dlab-post-media dlab-img-effect zoom">
+                        <img src="~/web/assets/images/bg4.jpg" alt="" class="img-cover">
+                    </div>
+                </div>
+                <div class="col-lg-4 text-white wow fadeIn" style="background-color: #008dff;"
+                     data-wow-duration="2s" data-wow-delay="0.8s">
+                    <div class="service-box style2">
+                        <div>
+                            <h2 class="title">
+                                <span>Power Up</span> <br />Your Game
+                            </h2>
+                            <p>
+                                At <strong>Gamaxy</strong>, we bring you the energy of gaming worlds —
+                                from action to strategy, from classics to next-gen.
+                                Discover, play, and level up with us.
+                            </p>
+                            <a href="/Home/About" class="site-button outline white outline-2 btnhover11">
+                                ABOUT US
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-lg-4 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.2s">
+                    <div class="dlab-post-media dlab-img-effect zoom">
+                        <img src="~/web/assets/images/bg6.jpg" alt="" class="img-cover">
+                    </div>
+                </div>
+                <div class="col-lg-4 bg-primary text-white wow fadeIn" data-wow-duration="2s"
+                     data-wow-delay="0.4s">
+                    <div class="service-box style2">
+                        <div>
+                            <h2 class="title">
+                                <span>Explore</span> <br />New Worlds
+                            </h2>
+                            <p>
+                                Dive into endless adventures with <strong>Gamaxy</strong>.
+                                Discover trending games, connect with players,
+                                and power up your gaming journey.
+                            </p>
+                            <a href="/Home/About" class="site-button outline white outline-2 btnhover11">
+                                ABOUT US
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-lg-4 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.6s">
+                    <div class="dlab-post-media dlab-img-effect zoom">
+                        <img src="~/web/assets/images/bg7.jpg" alt="" class="img-cover">
+                    </div>
+                </div>
+                <div class="col-lg-4 bg-primary text-white wow fadeIn" data-wow-duration="2s"
+                     data-wow-delay="0.8s">
+                    <div class="service-box style2">
+                        <div>
+                            <h2 class="title text-white">
+                                <span>Play</span> <br />Without Limits
+                            </h2>
+                            <p>
+                                Welcome to <strong>Gamaxy</strong> — where imagination meets technology.
+                                Explore trending titles, discover hidden gems, and unlock
+                                limitless gaming experiences.
+                            </p>
+                            <a href="/Home/About" class="site-button outline white outline-2 btnhover11">
+                                ABOUT US
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-lg-4 bg-white wow fadeIn" data-wow-duration="2s" data-wow-delay="0.2s">
+                    <div class="service-box style2">
+                        <div>
+                            <h2 class="title text-white">
+                                <span>Next-Gen</span> <br />Gaming
+                            </h2>
+                            <p>
+                                At <strong>Gamaxy</strong>, we craft more than just games —
+                                we build immersive experiences, futuristic adventures,
+                                and a community where every player belongs.
+                            </p>
+                            <a href="/Home/About" class="site-button outline outline-2 btnhover11">
+                                ABOUT US
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.4s">
+                    <div class="dlab-post-media dlab-img-effect zoom">
+                        <img src="~/web/assets/images/Flappybird.png" alt="" class="img-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Content Section End -->
+    </div>
+
+
+    <div class="section-full content-inner bg-img-fix text-white overlay-black-dark"
+         style="background-image: url(web/assets/images/bg6.jpg); background-size: cover; ">
+        <div class="container">
+            <div class="section-head text-center">
+                <h2 class="title">Why Choose Gamaxy</h2>
+                <p>
+                    Level up your gaming journey with powerful features, epic tournaments, and a vibrant gamer
+                    community.
+                </p>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 col-sm-12 m-b30 wow fadeInLeft" data-wow-duration="2s"
+                     data-wow-delay="0.3s">
+                    <div class="icon-bx-wraper bx-style-2 m-l40 p-a30 left icon-bx-ho"
+                         style="background-color: #000000;">
+                        <div class="icon-bx-sm bg-primary m-b20">
+                            <span class="icon-cell">
+                                <i class="flaticon-robot-arm"></i>
+                            </span>
+                        </div>
+                        <div class="icon-content p-l40">
+                            <h5 class="dlab-tilte">Launch Your Game</h5>
+                            <p>Upload and share your game with the world in one click.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-sm-12 m-b30 wow fadeInDown" data-wow-duration="2s"
+                     data-wow-delay="0.3s">
+                    <div class="icon-bx-wraper bx-style-2 m-l40 p-a30 left icon-bx-ho"
+                         style="background-color: #000000;">
+                        <div class="icon-bx-sm bg-primary m-b20">
+                            <a href="javascript:void(0);"
+                               class="icon-cell"><i class="flaticon-factory-1"></i></a>
+                        </div>
+                        <div class="icon-content p-l40">
+                            <h5 class="dlab-tilte">Tournaments</h5>
+                            <p>Compete in live battles and win exciting rewards.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-sm-12 m-b30 wow fadeInRight" data-wow-duration="2s"
+                     data-wow-delay="0.3s">
+                    <div class="icon-bx-wraper bx-style-2 m-l40 p-a30 left icon-bx-ho"
+                         style="background-color: #000000;">
+                        <div class="icon-bx-sm bg-primary m-b20">
+                            <a href="javascript:void(0);"
+                               class="icon-cell"><i class="flaticon-fuel-station"></i></a>
+                        </div>
+                        <div class="icon-content p-l40">
+                            <h5 class="dlab-tilte">Dynamic Leaderboards</h5>
+                            <p>Track your rank and rise to the top.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-sm-12 m-b30 wow fadeInLeft" data-wow-duration="2s"
+                     data-wow-delay="0.3s">
+                    <div class="icon-bx-wraper bx-style-2 m-l40 p-a30 left icon-bx-ho"
+                         style="background-color: #000000;">
+                        <div class="icon-bx-sm bg-primary m-b20">
+                            <a href="javascript:void(0);"
+                               class="icon-cell"><i class="flaticon-conveyor-1"></i></a>
+                        </div>
+                        <div class="icon-content p-l40">
+                            <h5 class="dlab-tilte">Gaming Community</h5>
+                            <p>Chat, connect, and grow with gamers like you.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-sm-12 m-b30 wow fadeInUp" data-wow-duration="2s"
+                     data-wow-delay="0.3s">
+                    <div class="icon-bx-wraper bx-style-2 m-l40 p-a30 left icon-bx-ho"
+                         style="background-color: #000000;">
+                        <div class="icon-bx-sm bg-primary m-b20">
+                            <a href="javascript:void(0);"
+                               class="icon-cell"><i class="flaticon-engineer-1"></i></a>
+                        </div>
+                        <div class="icon-content p-l40">
+                            <h5 class="dlab-tilte">Earn XP & Rewards</h5>
+                            <p>GPlay more, win more, level up faster.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-sm-12 m-b30 wow fadeInRight " data-wow-duration="2s"
+                     data-wow-delay="0.3s">
+                    <div class="icon-bx-wraper bx-style-2 m-l40 p-a30 left  icon-bx-ho"
+                         style="background-color: #000000;">
+                        <div class="icon-bx-sm bg-primary m-b20">
+                            <a href="javascript:void(0);"
+                               class="icon-cell"><i class="flaticon-robot-arm"></i></a>
+                        </div>
+                        <div class="icon-content p-l40">
+                            <h5 class="dlab-tilte">Gamaxy Studio Tools</h5>
+                            <p>Create and manage games with ease.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- 🏆 Gamaxy Leaderboard Section -->
+    <div class="section-full content-inner bg-img-fix overlay-black-dark py-5"
+         style="background-image:url(/web/assets/images/bg6.jpg); background-size:cover;">
+        <div class="container">
+
+            <!-- Section Header -->
+            <div class="section-head style2 text-white text-center mb-4">
+                <h2 class="title text-gradient">🏆 Top Gamers on Gamaxy</h2>
+                <div class="dlab-separator bg-primary mx-auto" style="width: 80px; height: 4px;"></div>
+            </div>
+
+            <!-- Leaderboard Table -->
+            <div class="table-responsive">
+                <table class="table table-hover table-borderless align-middle text-center"
+                       style="background: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%);
+                          color: white; border-radius: 12px; overflow: hidden;">
+                    <thead style="background-color: rgba(255, 255, 255, 0.9); color: #000;">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Level</th>
+                            <th>XP</th>
+                            <th>Country</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var player in Model)
+                        {
+                            <tr style="background-color: rgba(255, 255, 255, 0.05);">
+                                <td>
+                                    <strong>
+                                        @(player.Rank == 1 ? "🥇" : player.Rank == 2 ? "🥈" : player.Rank == 3 ? "🥉" : player.Rank.ToString())
+                                    </strong>
+                                </td>
+                                <td>
+                                    <i class="fa-solid fa-user me-2" style="color: #ffffff;"></i>@player.Name
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark">Level @player.Level</span>
+                                </td>
+                                <td>
+                                    @($"{player.XP:N0} XP")
+                                </td>
+                                <td>
+                                    <img src="~/web/assets/images/flags/@player.CountryCode.ToLower()).png"
+                                         alt="@player.CountryCode" style="width:24px;" /> @player.CountryCode.ToUpper()
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="leaderboard.html" class="site-button outline outline-2 btnhover11 px-4">
+                    🔎
+                    View
+                    Full Leaderboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <section class="how-it-works-3d py-5 text-white" style="background-image:url(web/assets/images/bg8.jpg);">
+        <div class="container text-center">
+            <h2 class="mb-5 fw-bold">🎯 How Gamaxy Works</h2>
+
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+
+                <!-- Step 1 -->
+                <div class="step-3d bg-blue">
+                    <div class="icon">🧑‍💻</div>
+                    <h5>Sign Up</h5>
+                    <p>Create your profile and start your journey.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step-3d bg-purple">
+                    <div class="icon">🎮</div>
+                    <h5>Play</h5>
+                    <p>Play action-packed games and earn XP.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step-3d bg-green">
+                    <div class="icon">🏆</div>
+                    <h5>Compete</h5>
+                    <p>Join tournaments & challenge players worldwide.</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="step-3d bg-yellow">
+                    <div class="icon">📈</div>
+                    <h5>Climb</h5>
+                    <p>Rise in leaderboard and show your skills.</p>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="step-3d bg-orange">
+                    <div class="icon">🚀</div>
+                    <h5>Launch</h5>
+                    <p>Publish your game and reach thousands.</p>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="step-3d bg-pink">
+                    <div class="icon">🌍</div>
+                    <h5>Connect</h5>
+                    <p>Be part of the Gamaxy global community.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="launch-game-section">
+        <div class="section-full content-inner-2 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.2s"
+             style="background-color: #000;">
+            <div class="container">
+                <div class="row align-items-center text-white">
+
+                    <!-- Left Content -->
+                    <div class="col-md-8 mb-4 mb-md-0">
+                        <h2 class="fs-5 fw-bold display-5 text-glow">Launch Your Game on Gamaxy</h2>
+                        <p class="text-light mt-3">
+                            Are you a game developer? Share your creation with the world
+                            and get noticed by gamers across the globe.
+                        </p>
+                        <a href="launchgame.html" class=" launch-btn mt-4">🎮 Submit Your Game</a>
+                        <div class="mt-3 small text-muted">
+                            <em>*Must be registered to launch a game</em>
+                        </div>
+                    </div>
+
+                    <!-- Right Image -->
+                    <div class="col-md-4 text-center">
+                        <img src="~/web/assets/images/bg9.jpg" alt="Game Preview" class="img-fluid rounded shadow-lg"
+                             style="max-height: 400px;">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Our Video Gallery -->
+    <div class="section-full content-inner-1">
+        <div class="row gallery-bx">
+            <div class="col-lg-6 m-b30">
+                <div class="section-head">
+                    <h2 class="text-gradient title fw-bold">Video Gallery</h2>
+                    <div class="dlab-separator bg-primary m-b0"></div>
+                </div>
+                <div class="dlab-gallery-listing row sp15 gallery video-gallery">
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.1s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/bg3.jpg" style="width: 430px; height: 160px;" alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <a href="~/web/assets/video/game1.mp4" class="popup-youtube video">
+                                            <i class="fa fa-play"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.2s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/bg4.jpg" style="width: 430px; height: 160px;" alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <a href="~/web/assets/video/game3.mp4" class="popup-youtube video">
+                                            <i class="fa fa-play"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.3s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/bg6.jpg" style="width: 430px; height: 160px;" alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <a href="~/web/assets/video/game5.mp4" class="popup-youtube video">
+                                            <i class="fa fa-play"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.4s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/Flappybird.png" style="width: 430px; height: 160px;"
+                                         alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <a href="~/web/assets/video/game6.mp4" class="popup-youtube video">
+                                            <i class="fa fa-play"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.5s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/bg1.jpg" style="width: 430px; height: 160px;" alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <a href="~/web/assets/video/game1.mp4" class="popup-youtube video">
+                                            <i class="fa fa-play"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.6s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/bg7.jpg" style="width: 430px; height: 160px;" alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <a href="~/web/assets/video/game2.mp4" class="popup-youtube video">
+                                            <i class="fa fa-play"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="m-t20">
+                    <a href="#" class="site-button btnhover14">View All Video</a>
+                </div>
+            </div>
+            <div class="col-lg-6 m-b30">
+                <div class="section-head">
+                    <h2 class="text-gradient title fw-bold">Image Gallery</h2>
+                    <div class="dlab-separator bg-primary m-b0"></div>
+                </div>
+                <div id="lightgallery" class="dlab-gallery-listing row sp15 gallery">
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.1s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/alienssapcewar.png" style="width: 430px; height: 160px;"
+                                         alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <span data-exthumbimage="images/alienssapcewar.png"
+                                              data-src="images/alienssapcewar.png" class="check-km"
+                                              title="Image 1 Title will come here">
+                                            <i class="fa fa-search icon-bx-xs"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.2s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/ballshooter.png" style="width: 430px; height: 160px;"
+                                         alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <span class="check-km" data-exthumbimage="~/web/assets/images/ballshooter.png"
+                                              data-src="~/web/assets/images/ballshooter.png"
+                                              title="Image 2 Title will come here">
+                                            <i class="fa fa-search icon-bx-xs"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.3s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/bg4.jpg" style="width: 430px; height: 160px;" alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <span class="check-km" data-exthumbimage="~/web/assets/images/bg4.jpg"
+                                              data-src="~/web/assets/images/bg4.jpg" title="Image 3 Title will come here">
+                                            <i class="fa fa-search icon-bx-xs"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.4s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/Flappybird.png" style="width: 430px; height: 160px;"
+                                         alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <span class="check-km" data-exthumbimage="~/web/assets/images/Flappybird.png"
+                                              data-src="~/web/assets/images/Flappybird.png"
+                                              title="Image 4 Title will come here">
+                                            <i class="fa fa-search icon-bx-xs"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.5s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/rps.jpg" style="width: 430px; height: 160px;" alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <span class="check-km" data-exthumbimage="~/web/assets/images/rps.jpg"
+                                              data-src="~/web/assets/images/rps.jpg" title="Image 5 Title will come here">
+                                            <i class="fa fa-search icon-bx-xs"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-6 wow bounceInUp" data-wow-duration="2s"
+                         data-wow-delay="0.6s">
+                        <div class="dlab-box m-b15">
+                            <div class="dlab-img-overlay4 dlab-img-effect zoom">
+                                <a href="javascript:void(0);">
+                                    <img src="~/web/assets/images/snake.jpg" style="width: 430px; height: 160px;" alt="">
+                                </a>
+                                <div class="overlay-bx">
+                                    <div class="overlay-icon">
+                                        <span class="check-km" data-exthumbimage="~/web/assets/images/snake.jpg"
+                                              data-src="~/web/assets/images/snake.jpg" title="Image 6 Title will come here">
+                                            <i class="fa fa-search icon-bx-xs"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="m-t20">
+                    <a href="#" class="site-button btnhover14">View All Image</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Our Video Gallery End -->
+
+  
+        <style>
+        /* Add spacing between carousel cards */
+        .testimonial-six .item {
+            padding: 15px; /* inner spacing around each card */
+        }
+
+        .testimonial-card {
+            background: #000; /* keeps card bg */
+            border-radius: 1.5rem;
+            padding: 25px;
+            margin: 20px; /* gap between cards */
+            position: relative;
+        }
+
+
+                /* Gradient border glow */
+                .testimonial-card::before {
+                    content: "";
+                    position: absolute;
+                    inset: -2px;
+                    border-radius: 1.5rem;
+                    padding: 2px;
+                    background: linear-gradient(to right, #008dff, #D400FF, #008dff);
+                    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                    -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+                    pointer-events: none;
+                }
+
+            .owl-item.active.center .testimonial-text {
+                    background-color: transparent;
+                }
+        /* Gradient text */
+        .text-gradient {
+            background: linear-gradient(to right, #008dff, #D400FF, #008dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Gradient border effect */
+        .gradient-border {
+            position: relative;
+            background: black;
+            border-radius: 15px;
+            padding: 25px;
+            overflow: hidden;
+        }
+
+            .gradient-border::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                padding: 5px;
+                border-radius: 15px;
+                background: linear-gradient(to right, #008dff, #D400FF, #008dff);
+                -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                -webkit-mask-composite: xor;
+                mask-composite: exclude;
+                z-index: -1;
+            }
+
+        .testimonial-text {
+            color: #ddd;
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .testimonial-name {
+            color: #fff;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .testimonial-position {
+            font-size: 14px;
+            color: #008dff;
+        }
+
+
+        </style>
+
+        <div class="section-full content-inner-2" style="background-color:black;">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="sort-title clearfix text-center">
+                            <h2 class="text-gradient title fw-bold"> What People Are Saying</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-content">
+                    <div class="testimonial-six owl-carousel owl-btn-center-lr owl-btn-2 primary testimonial-13-area dots-style-3 owl-theme">
+
+                        <!-- Testimonial Card -->
+                        <div class="item">
+                            <div class="testimonial-card">
+                                <div class="testimonial-text">
+                                    <i class="fas fa-quote-left text-gradient fa-2x mb-3"></i>
+                                <p>
+                                    “Gamaxy changed the way I discover games. The smooth design
+                                    make it my go-to hub for gaming.”
+                                </p>
+                                </div>
+                                <div class="testimonial-detail text-center">
+                                <h5 class="testimonial-name m-t10 m-b5">Ayesha Khan</h5>
+                                    <span class="testimonial-position text-primary">aye@gmail.com</span>
+                                    <span>26-08-2025</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Repeat -->
+                        <div class="item">
+                            <div class="testimonial-card">
+                                <div class="testimonial-text">
+                                    <i class="fas fa-quote-left text-gradient fa-2x mb-3"></i>
+                                <p>
+                                    “I love how easy it is to upload and share my games on Gamaxy.
+                                    It feels like the future of gaming platforms.”
+                                </p>
+                                </div>
+                                <div class="testimonial-detail text-center">
+                                <h5 class="testimonial-name m-t10 m-b5">Zain Malik</h5>
+                                    <span class="testimonial-position text-primary">zain@gmail.com</span>
+                                <span>26-08-2025</span>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="item">
+                        <div class="testimonial-card">
+                            <div class="testimonial-text">
+                                <i class="fas fa-quote-left text-gradient fa-2x mb-3"></i>
+                                <p>
+                                    “Gamaxy isn’t just a website — it’s a universe.
+                                    The gradient style and futuristic feel make it stand out.”
+                                </p>
+                            </div>
+                            <div class="testimonial-detail text-center">
+                                <h5 class="testimonial-name m-t10 m-b5">Sara Ahmed</h5>
+                                <span class="testimonial-position text-primary">saraah@gmail.com</span>
+                                <span>26-08-2025</span>
+                            </div>
+                        </div>
+                    </div>
+                    @foreach (var player in Model)
+                    {
+                        if (player.Feedbackss != null && player.Feedbackss.Any())
+                        {
+                            foreach (var feedback in player.Feedbackss)
+                            {
+                        <div class="item">
+                                    <div class="testimonial-card">
+                                        <div class="mb-2">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= feedback.Rating)
+                                                {
+                                                    <i class="fa-solid fa-star text-warning"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-regular fa-star text-warning"></i>
+                                                }
+                                            }
+                                        </div>
+                                <div class="testimonial-text">
+                                    <i class="fas fa-quote-left text-gradient fa-2x mb-3"></i>
+                                                <p>"@feedback.Comment"</p>
+                                </div>
+                                <div class="testimonial-detail text-center">
+                                            <h5 class="testimonial-name m-t10 m-b5">@feedback.Name</h5>
+                                                <span class="testimonial-position text-primary">(@feedback.Email)</span>
+                                                <span> @feedback.DateSubmitted.ToString("MMM dd, yyyy hh:mm tt")</span>
+
+                                </div>
+                            </div>
+                        </div>
+                                    }
+                                    }
+                                    }
+
+                    </div>
+                </div>
+            </div>
+        </div>

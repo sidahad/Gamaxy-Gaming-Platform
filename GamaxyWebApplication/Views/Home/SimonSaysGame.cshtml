@@ -1,0 +1,293 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Simon Says";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Simon Says</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="~/css/simonsays.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">SIMON SAYS</h1>
+                <div class="game-subtitle">FOLLOW THE SEQUENCE!</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container" id="game-container">
+                    <div class="color-btn" id="green"></div>
+                    <div class="color-btn" id="red"></div>
+                    <div class="color-btn" id="yellow"></div>
+                    <div class="color-btn" id="blue"></div>
+                    <div id="game-status">
+                        <p class="my-text" id="sequence">
+                            Sequence: <span id="sequence-display">-</span>
+                        </p>
+                        <p class="my-text" id="clicks">
+                            Clicks: <span id="click-count">0</span>
+                        </p>
+                        <p class="my-text" id="status">
+                            Status: <span id="status-text">Waiting...</span>
+                        </p>
+                    </div>
+                    <button id="start-btn">Start Game</button>
+                    <p id="level-message"></p>
+                </div>
+            </div>
+
+            <div class="controls">
+                <p>Click or tap the buttons in the correct sequence</p>
+            </div>
+            <div class="mobile-controls">
+                <p>Tap the buttons in the correct sequence</p>
+            </div>
+
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+
+            const colors = ["green", "red", "yellow", "blue"];
+            let gamePattern = [];
+            let userPattern = [];
+            let level = 0;
+            let clickCount = 0;
+            let gameStarted = false;
+
+            const gameContainer = document.getElementById("game-container");
+            const startBtn = document.getElementById("start-btn");
+            const levelMessage = document.getElementById("level-message");
+            const sequenceDisplay = document.getElementById("sequence-display");
+            const clickCountDisplay = document.getElementById("click-count");
+            const statusDisplay = document.getElementById("status-text");
+
+            function updateButtonSizes() {
+                const containerWidth = gameContainer.clientWidth;
+                const buttonSize = Math.min(containerWidth / 5, 100);
+                document.querySelectorAll(".color-btn").forEach(btn => {
+                    btn.style.width = `${buttonSize}px`;
+                    btn.style.height = `${buttonSize}px`;
+                    btn.style.margin = `${buttonSize / 10}px`;
+                });
+            }
+
+            function startGame() {
+                if (!gameStarted) {
+                    gameStarted = true;
+                    level = 0;
+                    gamePattern = [];
+                    userPattern = [];
+                    clickCount = 0;
+                    statusDisplay.textContent = `Level ${level}`;
+                    clickCountDisplay.textContent = clickCount;
+                    showMyTexts();
+                    nextSequence();
+                    startBtn.classList.add("active");
+                }
+            }
+
+            function nextSequence() {
+                userPattern = [];
+                clickCount = 0;
+                clickCountDisplay.textContent = clickCount;
+                level++;
+                statusDisplay.textContent = `Level ${level}`;
+                sequenceDisplay.innerHTML = "-";
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                gamePattern.push(randomColor);
+                animateSequence();
+            }
+
+            function animateSequence() {
+                let i = 0;
+                const interval = setInterval(() => {
+                    flashButton(gamePattern[i]);
+                    i++;
+                    if (i === gamePattern.length) {
+                        clearInterval(interval);
+                        enableUserInput();
+                    }
+                }, 600);
+            }
+
+            function flashButton(color) {
+                const button = document.getElementById(color);
+                button.classList.add("active");
+                setTimeout(() => {
+                    button.classList.remove("active");
+                }, 300);
+            }
+
+            function enableUserInput() {
+                colors.forEach((color) => {
+                    const btn = document.getElementById(color);
+                    btn.addEventListener("click", handleUserClick);
+                    btn.addEventListener("touchstart", handleUserClick, { passive: true });
+                });
+            }
+
+            function disableUserInput() {
+                colors.forEach((color) => {
+                    const btn = document.getElementById(color);
+                    btn.removeEventListener("click", handleUserClick);
+                    btn.removeEventListener("touchstart", handleUserClick);
+                });
+            }
+
+            function handleUserClick(event) {
+                event.preventDefault();
+                const clickedColor = event.target.id;
+                userPattern.push(clickedColor);
+                flashButton(clickedColor);
+                clickCount++;
+                clickCountDisplay.textContent = clickCount;
+
+                sequenceDisplay.innerHTML = "";
+                userPattern.forEach((color) => {
+                    const span = document.createElement("span");
+                    span.style.color = color;
+                    span.textContent = color.toUpperCase() + " ";
+                    sequenceDisplay.appendChild(span);
+                });
+
+                checkAnswer(userPattern.length - 1);
+            }
+
+            function checkAnswer(currentLevel) {
+                if (userPattern[currentLevel] === gamePattern[currentLevel]) {
+                    if (userPattern.length === gamePattern.length) {
+                        disableUserInput();
+                        setTimeout(() => {
+                            showCongratsMessage();
+                            setTimeout(() => {
+                                hideCongratsMessage();
+                                setTimeout(nextSequence, 1000);
+                            }, 2000);
+                        }, 1000);
+                    }
+                } else {
+                    statusDisplay.textContent = `Game Over!`;
+                    setTimeout(() => {
+                        flashButton(gamePattern[userPattern.length - 1]);
+                    }, 1000);
+                    setTimeout(hideMyTexts, 1000);
+                    showLoseMessage();
+                    setTimeout(hideLoseMessage, 2000);
+                    gameStarted = false;
+                    startBtn.classList.remove("active");
+                    setTimeout(() => {
+                        level = 0;
+                        gamePattern = [];
+                        sequenceDisplay.textContent = "-";
+                        clickCountDisplay.textContent = 0;
+                    }, 1500);
+                }
+            }
+
+            function showCongratsMessage() {
+                levelMessage.textContent = `Congrats! You passed level ${level}!`;
+                levelMessage.style.color = "var(--success)";
+                levelMessage.classList.add("active");
+            }
+
+            function hideCongratsMessage() {
+                levelMessage.classList.remove("active");
+            }
+
+            function showLoseMessage() {
+                levelMessage.textContent = `Game Over! Correct color was ${gamePattern[userPattern.length - 1]}.`;
+                levelMessage.style.color = "var(--danger)";
+                levelMessage.classList.add("active");
+            }
+
+            function hideLoseMessage() {
+                levelMessage.classList.remove("active");
+            }
+
+            function showMyTexts() {
+                document.querySelectorAll(".my-text").forEach(text => {
+                    text.classList.add("active");
+                });
+            }
+
+            function hideMyTexts() {
+                document.querySelectorAll(".my-text").forEach(text => {
+                    text.classList.remove("active");
+                });
+            }
+
+            startBtn.addEventListener("click", startGame);
+            startBtn.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                startGame();
+            }, { passive: true });
+
+            window.addEventListener('resize', () => {
+                clearTimeout(window.resizeTimeout);
+                window.resizeTimeout = setTimeout(updateButtonSizes, 100);
+            });
+            window.addEventListener('orientationchange', () => {
+                clearTimeout(window.resizeTimeout);
+                window.resizeTimeout = setTimeout(updateButtonSizes, 100);
+            });
+
+            updateButtonSizes();
+        });
+    </script>
+</body>
+</html>

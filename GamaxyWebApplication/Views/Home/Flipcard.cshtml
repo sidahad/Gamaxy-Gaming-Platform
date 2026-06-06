@@ -1,0 +1,257 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "GameName";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="~/css/FlipCard.css" rel="stylesheet" />
+    <title>Memory Match Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        .game-container {
+            max-width: 700px;
+            margin: auto;
+        }
+
+        .score-panel {
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            background: #fff;
+            color: #764ba2;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-gap: 15px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            perspective: 600px;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .card.flip .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            font-size: 2rem;
+            line-height: 100px;
+            text-align: center;
+            border-radius: 10px;
+            backface-visibility: hidden;
+        }
+
+        .card-front {
+            background: #fff;
+            color: #333;
+            transform: rotateY(180deg);
+        }
+
+        .card-back {
+            background: #333;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+
+
+        <div class="game-container">
+            <h1>🧠 Memory Match Game</h1>
+            <div class="score-panel">
+                <p>Moves: <span id="moves">0</span></p>
+                <p>Time: <span id="timer">0</span> sec</p>
+                <button id="restart">🔄 Restart</button>
+            </div>
+            <div id="game-board" class="board"></div>
+        </div>
+
+    </div>
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+
+            const emojis = ['🐶', '🐱', '🐵', '🐸', '🐼', '🦁', '🐯', '🐮'];
+        let cards = [...emojis, ...emojis];
+        let moves = 0;
+        let matchedPairs = 0;
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false;
+        let timer = 0;
+        let timerInterval;
+
+        const gameBoard = document.getElementById("game-board");
+        const movesDisplay = document.getElementById("moves");
+        const timerDisplay = document.getElementById("timer");
+        const restartBtn = document.getElementById("restart");
+
+        function shuffle(array) {
+          return array.sort(() => Math.random() - 0.5);
+        }
+
+        function startGame() {
+          gameBoard.innerHTML = "";
+          shuffle(cards);
+          moves = 0;
+          matchedPairs = 0;
+          firstCard = null;
+          secondCard = null;
+          lockBoard = false;
+          movesDisplay.textContent = moves;
+          timer = 0;
+          timerDisplay.textContent = timer;
+          clearInterval(timerInterval);
+          timerInterval = setInterval(() => {
+            timer++;
+            timerDisplay.textContent = timer;
+          }, 1000);
+
+          cards.forEach((emoji) => {
+            const card = document.createElement("div");
+            card.classList.add("card");
+            card.innerHTML = `
+              <div class="card-inner">
+                <div class="card-front">${emoji}</div>
+                <div class="card-back">❓</div>
+              </div>`;
+            gameBoard.appendChild(card);
+            card.addEventListener("click", () => handleCardClick(card, emoji));
+          });
+        }
+
+        function handleCardClick(card, emoji) {
+          if (lockBoard || card.classList.contains("flip")) return;
+
+          card.classList.add("flip");
+
+          if (!firstCard) {
+            firstCard = { card, emoji };
+          } else {
+            secondCard = { card, emoji };
+            moves++;
+            movesDisplay.textContent = moves;
+            lockBoard = true;
+
+            if (firstCard.emoji === secondCard.emoji) {
+              matchedPairs++;
+              firstCard.card.removeEventListener("click", handleCardClick);
+              secondCard.card.removeEventListener("click", handleCardClick);
+              resetTurn();
+              if (matchedPairs === emojis.length) {
+                clearInterval(timerInterval);
+                setTimeout(() => {
+                  alert(`🎉 You won in ${moves} moves and ${timer} seconds!`);
+                }, 500);
+              }
+            } else {
+              setTimeout(() => {
+                firstCard.card.classList.remove("flip");
+                secondCard.card.classList.remove("flip");
+                resetTurn();
+              }, 1000);
+            }
+          }
+        }
+
+        function resetTurn() {
+          [firstCard, secondCard] = [null, null];
+          lockBoard = false;
+        }
+
+        restartBtn.addEventListener("click", startGame);
+
+        startGame();
+
+    </script>
+</body>
+</html>

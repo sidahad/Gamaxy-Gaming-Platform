@@ -1,0 +1,264 @@
+﻿<!-- ✅ Add Bootstrap CSS (you were only loading JS before) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Font Awesome (optional) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+    :root {
+        --bg: #0b0d12;
+        --panel: #12161c;
+        --border: #1f2630;
+        --text: #e6edf3;
+        --muted: #9aa4ad;
+        --accent: #008dff;
+    }
+
+    .faq-wrap {
+        padding: 72px 0;
+        position: relative;
+        letter-spacing: 1px;
+        color: #ffffff;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background-image: url('@Url.Content("~/assets/images/bg11.jpg")');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+        .faq-wrap::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5); /* adjust 0.5 → darker or lighter */
+        z-index: 1;
+    }
+
+    /* Make sure content stays above the overlay */
+        .faq-wrap > * {
+        position: relative;
+        z-index: 2;
+    }
+
+    .faq-header .title {
+        font-weight: 700;
+        letter-spacing: .3px;
+        margin-bottom: .5rem;
+    }
+
+    .faq-header .separator {
+        width: 72px;
+        height: 3px;
+        border-radius: 999px;
+        background: white;
+        margin: 0 auto 12px;
+        opacity: .9;
+    }
+
+    .accordion {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .accordion-item {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px !important;
+        overflow: hidden;
+        margin-bottom: 12px;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+        .accordion-item:has(.accordion-button:not(.collapsed)) {
+            border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+            box-shadow: 0 6px 20px rgba(91,156,255,.08);
+        }
+
+    .accordion-button {
+        background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);
+        color: white;
+        font-weight: 600;
+        padding: 1rem 1.25rem;
+        box-shadow: none !important;
+    }
+
+        .accordion-button::after {
+            filter: brightness(0) saturate(100%) invert(73%) sepia(36%) saturate(658%) hue-rotate(186deg) brightness(101%) contrast(96%);
+            opacity: .9;
+        }
+
+        .accordion-button:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .accordion-button:not(.collapsed) {
+            color: var(--text);
+            background: rgba(91,156,255,.06);
+        }
+
+    .accordion-body {
+        color: var(--muted);
+        padding: .9rem 1.25rem 1.2rem;
+        line-height: 1.6;
+    }
+
+    .faq-icon {
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: #001121;
+        color: white;
+        margin-right: .6rem;
+        font-size: .9rem;
+    }
+</style>
+
+<section class="faq-wrap">
+    <div class="container">
+        <div class="faq-header text-center mb-4">
+            <h2 class="title">Frequently Asked Questions</h2>
+            <div class="separator"></div>
+            <p class="text-secondary small m-0" style="color: var(--muted)!important;">
+                All your doubts, answered in one place.
+            </p>
+        </div>
+
+        <div class="accordion" id="faqAccordion">
+            <!-- FAQ 1 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingOne">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faqCollapseOne"
+                            aria-expanded="false" aria-controls="faqCollapseOne">
+                        <span class="faq-icon"><i class="fa-solid fa-question"></i></span>
+                        What is Gamaxy?
+                    </button>
+                </h2>
+                <div id="faqCollapseOne" class="accordion-collapse collapse"
+                     aria-labelledby="faqHeadingOne" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Gamaxy is a modern gaming platform where users can play, upload, and discover a variety of browser games — all in one place.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingTwo">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faqCollapseTwo"
+                            aria-expanded="false" aria-controls="faqCollapseTwo">
+                        <span class="faq-icon"><i class="fa-solid fa-upload"></i></span>
+                        How do I upload a game?
+                    </button>
+                </h2>
+                <div id="faqCollapseTwo" class="accordion-collapse collapse"
+                     aria-labelledby="faqHeadingTwo" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Gamers can upload games through their dashboard using the upload form, or generate game ideas via our AI assistant and submit them directly.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingThree">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faqCollapseThree"
+                            aria-expanded="false" aria-controls="faqCollapseThree">
+                        <span class="faq-icon"><i class="fa-solid fa-lock"></i></span>
+                        Is my data secure?
+                    </button>
+                </h2>
+                <div id="faqCollapseThree" class="accordion-collapse collapse"
+                     aria-labelledby="faqHeadingThree" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes. Gamaxy uses encryption and secure storage methods. We never sell or share your data.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingFour">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faqCollapseFour"
+                            aria-expanded="false" aria-controls="faqCollapseFour">
+                        <span class="faq-icon"><i class="fa-solid fa-bug"></i></span>
+                        My game isn’t loading. What should I do?
+                    </button>
+                </h2>
+                <div id="faqCollapseFour" class="accordion-collapse collapse"
+                     aria-labelledby="faqHeadingFour" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        First, refresh the page. If the issue persists, check your internet connection or browser. If it's still not working, contact Gamaxy Support.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 5 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingFive">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faqCollapseFive"
+                            aria-expanded="false" aria-controls="faqCollapseFive">
+                        <span class="faq-icon"><i class="fa-solid fa-credit-card"></i></span>
+                        Do I need to pay to use Gamaxy?
+                    </button>
+                </h2>
+                <div id="faqCollapseFive" class="accordion-collapse collapse"
+                     aria-labelledby="faqHeadingFive" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        No, Gamaxy is free to use. However, some premium games may include optional purchases or subscriptions.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 6 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingSix">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faqCollapseSix"
+                            aria-expanded="false" aria-controls="faqCollapseSix">
+                        <span class="faq-icon"><i class="fa-solid fa-users"></i></span>
+                        Can I play multiplayer games?
+                    </button>
+                </h2>
+                <div id="faqCollapseSix" class="accordion-collapse collapse"
+                     aria-labelledby="faqHeadingSix" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes! Gamaxy supports multiplayer experiences for certain games. You can join friends or invite others directly.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 7 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingSeven">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faqCollapseSeven"
+                            aria-expanded="false" aria-controls="faqCollapseSeven">
+                        <span class="faq-icon"><i class="fa-solid fa-headset"></i></span>
+                        How can I contact support?
+                    </button>
+                </h2>
+                <div id="faqCollapseSeven" class="accordion-collapse collapse"
+                     aria-labelledby="faqHeadingSeven" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        You can reach our support team via the “Help & Support” section in your dashboard. We’re available 24/7.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

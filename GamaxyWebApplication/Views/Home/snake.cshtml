@@ -1,0 +1,1115 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Ultimate Snake Game Deluxe";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Ultimate Snake Game Deluxe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link href="~/css/snake.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">ULTIMATE SNAKE DELUXE</h1>
+                <div class="game-subtitle">SLITHER TO VICTORY</div>
+            </div>
+
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-label">SCORE</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">HIGH SCORE</div>
+                    <div class="stat-value" id="high-score">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">LEVEL</div>
+                    <div class="stat-value" id="level">1</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">LENGTH</div>
+                    <div class="stat-value" id="length">3</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">MODE</div>
+                    <div class="stat-value" id="game-mode">Classic</div>
+                </div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container" id="game-container">
+                    <div class="game-grid" id="game-grid"></div>
+                    <div class="pause-indicator" id="pause-indicator">PAUSED</div>
+
+                    <div class="status-effects">
+                        <div class="status-effect speed" id="speed-boost">SPEED BOOST!</div>
+                        <div class="status-effect shield" id="shield-effect">SHIELD ACTIVE!</div>
+                        <div class="status-effect ghost" id="ghost-effect">GHOST MODE!</div>
+                    </div>
+
+                    <div class="achievements" id="achievement">
+                        <div class="achievement-title">Achievement Unlocked!</div>
+                        <div class="achievement-text" id="achievement-text"></div>
+                    </div>
+
+                    <div class="level-up" id="level-up">
+                        <div class="level-up-title">LEVEL UP!</div>
+                        <div class="level-up-text" id="level-up-text">You reached Level 2</div>
+                    </div>
+
+                    <div class="game-overlay" id="start-screen">
+                        <div class="overlay-content">
+                            <h2 class="overlay-title">Ultimate Snake Deluxe</h2>
+                            <p class="overlay-text">
+                                Use arrow keys or WASD to control the snake.<br>
+                                Collect food to grow longer and earn points.<br>
+                                Special power-ups appear occasionally!<br>
+                                Press P to pause the game.
+                            </p>
+                            <button class="btn" id="start-button">Start Game</button>
+
+                            <div class="difficulty-buttons">
+                                <button class="btn difficulty-button active" data-speed="150">Easy</button>
+                                <button class="btn difficulty-button" data-speed="100">Medium</button>
+                                <button class="btn difficulty-button" data-speed="70">Hard</button>
+                            </div>
+
+                            <div class="game-mode-buttons">
+                                <button class="btn game-mode-button active" data-mode="classic">Classic</button>
+                                <button class="btn game-mode-button" data-mode="obstacles">Obstacles</button>
+                                <button class="btn game-mode-button" data-mode="portal">Portal</button>
+                                <button class="btn game-mode-button" data-mode="maze">Maze</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="game-overlay" id="game-over">
+                        <div class="overlay-content">
+                            <h2 class="overlay-title">Game Over!</h2>
+                            <p class="overlay-text">
+                                Your score: <span id="final-score">0</span><br>
+                                Snake length: <span id="final-length">0</span><br>
+                                Level reached: <span id="final-level">1</span>
+                            </p>
+
+                            <table class="stats-table">
+                                <tr>
+                                    <th>Food Eaten</th>
+                                    <th>Power-ups</th>
+                                    <th>Time</th>
+                                </tr>
+                                <tr>
+                                    <td id="food-eaten">0</td>
+                                    <td id="power-ups">0</td>
+                                    <td id="time-played">0:00</td>
+                                </tr>
+                            </table>
+
+                            <button class="btn" id="restart-button">Play Again</button>
+                            <button class="btn" id="menu-button">Main Menu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-info" id="desktop-controls">
+                Arrow Keys or WASD to move | P to pause | Space to resume
+            </div>
+
+            <div class="game-controls" id="mobile-controls">
+                <div class="mobile-controls">
+                    <div class="control-button control-pause" id="btn-pause">⏸️</div>
+                    <div class="control-button control-up" id="btn-up">⬆️</div>
+                    <div class="control-button control-menu" id="btn-menu">⚙️</div>
+                    <div class="control-button control-left" id="btn-left">⬅️</div>
+                    <div class="control-button control-right" id="btn-right">➡️</div>
+                    <div class="control-button control-down" id="btn-down">⬇️</div>
+                </div>
+            </div>
+
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game elements
+            const gameContainer = document.getElementById('game-container');
+            const gameGrid = document.getElementById('game-grid');
+            const scoreElement = document.getElementById('score');
+            const highScoreElement = document.getElementById('high-score');
+            const levelElement = document.getElementById('level');
+            const lengthElement = document.getElementById('length');
+            const gameModeElement = document.getElementById('game-mode');
+            const finalScoreElement = document.getElementById('final-score');
+            const finalLengthElement = document.getElementById('final-length');
+            const finalLevelElement = document.getElementById('final-level');
+            const foodEatenElement = document.getElementById('food-eaten');
+            const powerUpsElement = document.getElementById('power-ups');
+            const timePlayedElement = document.getElementById('time-played');
+            const startScreen = document.getElementById('start-screen');
+            const gameOverScreen = document.getElementById('game-over');
+            const startButton = document.getElementById('start-button');
+            const restartButton = document.getElementById('restart-button');
+            const menuButton = document.getElementById('menu-button');
+            const difficultyButtons = document.querySelectorAll('.difficulty-button');
+            const gameModeButtons = document.querySelectorAll('.game-mode-button');
+            const pauseIndicator = document.getElementById('pause-indicator');
+            const speedBoostIndicator = document.getElementById('speed-boost');
+            const shieldEffectIndicator = document.getElementById('shield-effect');
+            const ghostEffectIndicator = document.getElementById('ghost-effect');
+            const achievementBox = document.getElementById('achievement');
+            const achievementText = document.getElementById('achievement-text');
+            const levelUpBox = document.getElementById('level-up');
+            const levelUpText = document.getElementById('level-up-text');
+
+            // Mobile controls
+            const btnUp = document.getElementById('btn-up');
+            const btnDown = document.getElementById('btn-down');
+            const btnLeft = document.getElementById('btn-left');
+            const btnRight = document.getElementById('btn-right');
+            const btnPause = document.getElementById('btn-pause');
+            const btnMenu = document.getElementById('btn-menu');
+
+            // Game settings
+            const gridSize = 30; // 30x30 grid
+            let cellSize;
+            let baseSpeed = 150; // Default speed (milliseconds)
+            let currentSpeed = baseSpeed;
+            let speedMultiplier = 1;
+            let gameMode = 'classic'; // classic, obstacles, portal, maze
+
+            // Game state
+            let snake = [];
+            let food = null;
+            let powerUps = [];
+            let obstacles = [];
+            let portals = [];
+            let direction = 'right';
+            let nextDirection = 'right';
+            let score = 0;
+            let level = 1;
+            let foodEaten = 0;
+            let powerUpsCollected = 0;
+            let startTime;
+            let gameTime = 0;
+            let highScore = localStorage.getItem('snakeHighScore') || 0;
+            let gameInterval;
+            let isGameActive = false;
+            let isPaused = false;
+            let powerUpTimeout;
+            let speedBoostActive = false;
+            let speedBoostTimer;
+            let shieldActive = false;
+            let shieldTimer;
+            let ghostActive = false;
+            let ghostTimer;
+            let achievements = {};
+
+            // Update high score display
+            highScoreElement.textContent = highScore;
+
+            // Calculate cell size based on container size
+            function calculateCellSize() {
+                const containerSize = gameContainer.clientWidth;
+                cellSize = Math.floor(containerSize / gridSize);
+                return cellSize;
+            }
+
+            // Create grid background
+            function createGrid() {
+                gameGrid.innerHTML = '';
+                const cellSize = calculateCellSize();
+
+                for (let y = 0; y < gridSize; y++) {
+                    for (let x = 0; x < gridSize; x++) {
+                        if ((x + y) % 2 === 0) {
+                            const cell = document.createElement('div');
+                            cell.className = 'grid-cell';
+                            cell.style.width = `${cellSize}px`;
+                            cell.style.height = `${cellSize}px`;
+                            cell.style.left = `${x * cellSize}px`;
+                            cell.style.top = `${y * cellSize}px`;
+                            gameGrid.appendChild(cell);
+                        }
+                    }
+                }
+            }
+
+            // Initialize game
+            function initGame() {
+                clearInterval(gameInterval);
+                gameContainer.querySelectorAll('.snake-segment, .food, .power-up, .obstacle, .points-popup').forEach(el => el.remove());
+
+                snake = [];
+                food = null;
+                powerUps = [];
+                obstacles = [];
+                portals = [];
+                direction = 'right';
+                nextDirection = 'right';
+                score = 0;
+                level = 1;
+                foodEaten = 0;
+                powerUpsCollected = 0;
+                startTime = Date.now();
+                scoreElement.textContent = '0';
+                levelElement.textContent = '1';
+                lengthElement.textContent = '3';
+                gameModeElement.textContent = gameMode.charAt(0).toUpperCase() + gameMode.slice(1);
+                currentSpeed = baseSpeed;
+                speedMultiplier = 1;
+
+                clearTimeout(powerUpTimeout);
+                clearTimeout(speedBoostTimer);
+                clearTimeout(shieldTimer);
+                clearTimeout(ghostTimer);
+                speedBoostActive = false;
+                shieldActive = false;
+                ghostActive = false;
+                speedBoostIndicator.classList.remove('active');
+                shieldEffectIndicator.classList.remove('active');
+                ghostEffectIndicator.classList.remove('active');
+
+                const cellSize = calculateCellSize();
+
+                const startX = Math.floor(gridSize / 2);
+                const startY = Math.floor(gridSize / 2);
+
+                for (let i = 0; i < 3; i++) {
+                    const segment = document.createElement('div');
+                    segment.className = `snake-segment ${i === 0 ? 'snake-head' : i === 2 ? 'snake-tail' : 'snake-body'}`;
+                    segment.style.width = `${cellSize}px`;
+                    segment.style.height = `${cellSize}px`;
+                    segment.style.left = `${(startX - i) * cellSize}px`;
+                    segment.style.top = `${startY * cellSize}px`;
+                    gameContainer.appendChild(segment);
+
+                    snake.push({
+                        x: startX - i,
+                        y: startY,
+                        element: segment
+                    });
+                }
+
+                lengthElement.textContent = snake.length;
+
+                if (gameMode === 'obstacles' || gameMode === 'maze') {
+                    createObstacles();
+                }
+
+                if (gameMode === 'portal') {
+                    createPortals();
+                }
+
+                createFood();
+
+                isGameActive = true;
+                isPaused = false;
+                gameOverScreen.classList.remove('active');
+                pauseIndicator.classList.remove('active');
+                gameInterval = setInterval(moveSnake, currentSpeed);
+            }
+
+            // Create obstacles
+            function createObstacles() {
+                const cellSize = calculateCellSize();
+
+                if (gameMode === 'obstacles') {
+                    const obstacleCount = Math.floor(gridSize * gridSize * 0.05);
+
+                    for (let i = 0; i < obstacleCount; i++) {
+                        let x, y;
+                        do {
+                            x = Math.floor(Math.random() * gridSize);
+                            y = Math.floor(Math.random() * gridSize);
+                        } while (
+                            isPositionOnSnake(x, y) ||
+                            isPositionNearSnake(x, y, 3)
+                        );
+
+                        createObstacle(x, y);
+                    }
+                } else if (gameMode === 'maze') {
+                    for (let i = 0; i < gridSize; i++) {
+                        if (i % 5 !== 0) continue;
+
+                        for (let j = 0; j < gridSize; j++) {
+                            if (j % 7 === 0) continue;
+
+                            if (i % 10 === 0) {
+                                createObstacle(j, i);
+                            } else {
+                                createObstacle(i, j);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Create a single obstacle
+            function createObstacle(x, y) {
+                const cellSize = calculateCellSize();
+
+                const obstacle = document.createElement('div');
+                obstacle.className = 'obstacle';
+                obstacle.style.width = `${cellSize}px`;
+                obstacle.style.height = `${cellSize}px`;
+                obstacle.style.left = `${x * cellSize}px`;
+                obstacle.style.top = `${y * cellSize}px`;
+                gameContainer.appendChild(obstacle);
+
+                obstacles.push({ x, y, element: obstacle });
+            }
+
+            // Create portals
+            function createPortals() {
+                const cellSize = calculateCellSize();
+
+                for (let i = 0; i < 2; i++) {
+                    let x, y;
+                    do {
+                        x = Math.floor(Math.random() * gridSize);
+                        y = Math.floor(Math.random() * gridSize);
+                    } while (
+                        isPositionOnSnake(x, y) ||
+                        isPositionOnObstacle(x, y) ||
+                        (portals.length > 0 && isPositionNear(x, y, portals[0].x, portals[0].y, 5))
+                    );
+
+                    const portal = document.createElement('div');
+                    portal.className = 'power-up';
+                    portal.style.width = `${cellSize}px`;
+                    portal.style.height = `${cellSize}px`;
+                    portal.style.left = `${x * cellSize}px`;
+                    portal.style.top = `${y * cellSize}px`;
+                    gameContainer.appendChild(portal);
+
+                    portals.push({ x, y, element: portal });
+                }
+            }
+
+            // Check if position is near another position
+            function isPositionNear(x1, y1, x2, y2, distance) {
+                return Math.abs(x1 - x2) <= distance && Math.abs(y1 - y2) <= distance;
+            }
+
+            // Check if position is near snake
+            function isPositionNearSnake(x, y, distance) {
+                return snake.some(segment => isPositionNear(x, y, segment.x, segment.y, distance));
+            }
+
+            // Create food
+            function createFood() {
+                if (food && food.element) {
+                    food.element.remove();
+                }
+
+                const cellSize = calculateCellSize();
+
+                let x, y;
+                do {
+                    x = Math.floor(Math.random() * gridSize);
+                    y = Math.floor(Math.random() * gridSize);
+                } while (
+                    isPositionOnSnake(x, y) ||
+                    isPositionOnObstacle(x, y) ||
+                    isPositionOnPortal(x, y) ||
+                    isPositionOnPowerUp(x, y)
+                );
+
+                const foodElement = document.createElement('div');
+                foodElement.className = 'food';
+                foodElement.style.width = `${cellSize * 0.7}px`;
+                foodElement.style.height = `${cellSize * 0.7}px`;
+                foodElement.style.left = `${x * cellSize + cellSize * 0.15}px`;
+                foodElement.style.top = `${y * cellSize + cellSize * 0.15}px`;
+                gameContainer.appendChild(foodElement);
+
+                food = { x, y, element: foodElement };
+
+                if (score > 50 && Math.random() < 0.1 && powerUps.length < 2) {
+                    createPowerUp();
+                }
+            }
+
+            // Create power-up
+            function createPowerUp() {
+                const cellSize = calculateCellSize();
+
+                let x, y;
+                do {
+                    x = Math.floor(Math.random() * gridSize);
+                    y = Math.floor(Math.random() * gridSize);
+                } while (
+                    isPositionOnSnake(x, y) ||
+                    isPositionOnObstacle(x, y) ||
+                    (food && food.x === x && food.y === y) ||
+                    isPositionOnPortal(x, y) ||
+                    isPositionOnPowerUp(x, y)
+                );
+
+                const powerUpTypes = ['speed', 'shield', 'ghost'];
+                const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+
+                const powerUpElement = document.createElement('div');
+                powerUpElement.className = `power-up power-${type}`;
+                powerUpElement.style.width = `${cellSize * 0.8}px`;
+                powerUpElement.style.height = `${cellSize * 0.8}px`;
+                powerUpElement.style.left = `${x * cellSize + cellSize * 0.1}px`;
+                powerUpElement.style.top = `${y * cellSize + cellSize * 0.1}px`;
+                gameContainer.appendChild(powerUpElement);
+
+                powerUps.push({ x, y, type, element: powerUpElement });
+
+                setTimeout(() => {
+                    const index = powerUps.findIndex(p => p.x === x && p.y === y);
+                    if (index !== -1) {
+                        powerUps[index].element.remove();
+                        powerUps.splice(index, 1);
+                    }
+                }, 10000);
+            }
+
+            // Check if position is on snake
+            function isPositionOnSnake(x, y) {
+                return snake.some(segment => segment.x === x && segment.y === y);
+            }
+
+            // Check if position is on obstacle
+            function isPositionOnObstacle(x, y) {
+                return obstacles.some(obstacle => obstacle.x === x && obstacle.y === y);
+            }
+
+            // Check if position is on portal
+            function isPositionOnPortal(x, y) {
+                return portals.some(portal => portal.x === x && portal.y === y);
+            }
+
+            // Check if position is on power-up
+            function isPositionOnPowerUp(x, y) {
+                return powerUps.some(powerUp => powerUp.x === x && powerUp.y === y);
+            }
+
+            // Show points popup
+            function showPointsPopup(x, y, points) {
+                const cellSize = calculateCellSize();
+                const popup = document.createElement('div');
+                popup.className = 'points-popup';
+                popup.textContent = `+${points}`;
+                popup.style.left = `${x * cellSize + cellSize/2}px`;
+                popup.style.top = `${y * cellSize - 10}px`;
+                gameContainer.appendChild(popup);
+
+                setTimeout(() => popup.remove(), 1000);
+            }
+
+            // Activate speed boost
+            function activateSpeedBoost() {
+                if (speedBoostActive) {
+                    clearTimeout(speedBoostTimer);
+                } else {
+                    speedBoostActive = true;
+                    speedBoostIndicator.classList.add('active');
+                    speedMultiplier = 1.5;
+                    updateGameSpeed();
+                }
+
+                speedBoostTimer = setTimeout(() => {
+                    speedBoostActive = false;
+                    speedBoostIndicator.classList.remove('active');
+                    speedMultiplier = 1;
+                    updateGameSpeed();
+                }, 5000);
+            }
+
+            // Activate shield
+            function activateShield() {
+                if (shieldActive) {
+                    clearTimeout(shieldTimer);
+                } else {
+                    shieldActive = true;
+                    shieldEffectIndicator.classList.add('active');
+                    if (snake[0] && snake[0].element) {
+                        snake[0].element.classList.add('shield-active');
+                    }
+                }
+
+                shieldTimer = setTimeout(() => {
+                    shieldActive = false;
+                    shieldEffectIndicator.classList.remove('active');
+                    if (snake[0] && snake[0].element) {
+                        snake[0].element.classList.remove('shield-active');
+                    }
+                }, 7000);
+            }
+
+            // Activate ghost mode
+            function activateGhost() {
+                if (ghostActive) {
+                    clearTimeout(ghostTimer);
+                } else {
+                    ghostActive = true;
+                    ghostEffectIndicator.classList.add('active');
+                    snake.forEach(segment => {
+                        if (segment.element) {
+                            segment.element.classList.add('ghost-active');
+                        }
+                    });
+                }
+
+                ghostTimer = setTimeout(() => {
+                    ghostActive = false;
+                    ghostEffectIndicator.classList.remove('active');
+                    snake.forEach(segment => {
+                        if (segment.element) {
+                            segment.element.classList.remove('ghost-active');
+                        }
+                    });
+                }, 6000);
+            }
+
+            // Update game speed
+            function updateGameSpeed() {
+                const newSpeed = Math.floor(baseSpeed / speedMultiplier);
+                if (newSpeed !== currentSpeed) {
+                    currentSpeed = newSpeed;
+                    if (isGameActive && !isPaused) {
+                        clearInterval(gameInterval);
+                        gameInterval = setInterval(moveSnake, currentSpeed);
+                    }
+                }
+            }
+
+            // Show achievement
+            function showAchievement(text) {
+                achievementText.textContent = text;
+                achievementBox.classList.add('active');
+                setTimeout(() => {
+                    achievementBox.classList.remove('active');
+                }, 3000);
+            }
+
+            // Show level up
+            function showLevelUp(level) {
+                levelUpText.textContent = `You reached Level ${level}`;
+                levelUpBox.classList.add('active');
+                setTimeout(() => {
+                    levelUpBox.classList.remove('active');
+                }, 2000);
+            }
+
+            // Check achievements
+            function checkAchievements() {
+                if (snake.length >= 10 && !achievements.length10) {
+                    achievements.length10 = true;
+                    showAchievement('Snake Apprentice: Reach length 10');
+                }
+                if (snake.length >= 20 && !achievements.length20) {
+                    achievements.length20 = true;
+                    showAchievement('Snake Master: Reach length 20');
+                }
+                if (snake.length >= 30 && !achievements.length30) {
+                    achievements.length30 = true;
+                    showAchievement('Snake Legend: Reach length 30');
+                }
+                if (score >= 100 && !achievements.score100) {
+                    achievements.score100 = true;
+                    showAchievement('Point Collector: Score 100 points');
+                }
+                if (score >= 250 && !achievements.score250) {
+                    achievements.score250 = true;
+                    showAchievement('Score Champion: Score 250 points');
+                }
+                if (level >= 3 && !achievements.level3) {
+                    achievements.level3 = true;
+                    showAchievement('Rising Star: Reach level 3');
+                }
+                if (level >= 5 && !achievements.level5) {
+                    achievements.level5 = true;
+                    showAchievement('Snake Elite: Reach level 5');
+                }
+                if (powerUpsCollected >= 3 && !achievements.powerups3) {
+                    achievements.powerups3 = true;
+                    showAchievement('Power Hunter: Collect 3 power-ups');
+                }
+            }
+
+            // Move snake
+            function moveSnake() {
+                if (isPaused) return;
+
+                direction = nextDirection;
+                const head = { ...snake[0] };
+
+                switch (direction) {
+                    case 'up': head.y--; break;
+                    case 'down': head.y++; break;
+                    case 'left': head.x--; break;
+                    case 'right': head.x++; break;
+                }
+
+                if (gameMode === 'portal') {
+                    const portalIndex = portals.findIndex(portal => portal.x === head.x && portal.y === head.y);
+                    if (portalIndex !== -1) {
+                        const otherPortal = portals[portalIndex === 0 ? 1 : 0];
+                        head.x = otherPortal.x;
+                        head.y = otherPortal.y;
+
+                        const teleportEffect = document.createElement('div');
+                        teleportEffect.className = 'points-popup';
+                        teleportEffect.textContent = '↯';
+                        const cellSize = calculateCellSize();
+                        teleportEffect.style.left = `${otherPortal.x * cellSize + cellSize/2}px`;
+                        teleportEffect.style.top = `${otherPortal.y * cellSize}px`;
+                        gameContainer.appendChild(teleportEffect);
+                        setTimeout(() => teleportEffect.remove(), 1000);
+                    }
+                }
+
+                if (head.x < 0) head.x = gridSize - 1;
+                else if (head.x >= gridSize) head.x = 0;
+                if (head.y < 0) head.y = gridSize - 1;
+                else if (head.y >= gridSize) head.y = 0;
+
+                if (isPositionOnSnake(head.x, head.y)) {
+                    if (shieldActive) {
+                        shieldActive = false;
+                        shieldEffectIndicator.classList.remove('active');
+                        clearTimeout(shieldTimer);
+                        if (snake[0] && snake[0].element) {
+                            snake[0].element.classList.remove('shield-active');
+                        }
+                        const cellSize = calculateCellSize();
+                        const shieldEffect = document.createElement('div');
+                        shieldEffect.className = 'points-popup';
+                        shieldEffect.textContent = '🛡️';
+                        shieldEffect.style.left = `${head.x * cellSize + cellSize/2}px`;
+                        shieldEffect.style.top = `${head.y * cellSize}px`;
+                        gameContainer.appendChild(shieldEffect);
+                        setTimeout(() => shieldEffect.remove(), 1000);
+                        return;
+                    } else {
+                        gameOver();
+                        return;
+                    }
+                }
+
+                if (!ghostActive && isPositionOnObstacle(head.x, head.y)) {
+                    if (shieldActive) {
+                        shieldActive = false;
+                        shieldEffectIndicator.classList.remove('active');
+                        clearTimeout(shieldTimer);
+                        if (snake[0] && snake[0].element) {
+                            snake[0].element.classList.remove('shield-active');
+                        }
+                        const cellSize = calculateCellSize();
+                        const shieldEffect = document.createElement('div');
+                        shieldEffect.className = 'points-popup';
+                        shieldEffect.textContent = '🛡️';
+                        shieldEffect.style.left = `${head.x * cellSize + cellSize/2}px`;
+                        shieldEffect.style.top = `${head.y * cellSize}px`;
+                        gameContainer.appendChild(shieldEffect);
+                        setTimeout(() => shieldEffect.remove(), 1000);
+                        return;
+                    } else {
+                        gameOver();
+                        return;
+                    }
+                }
+
+                const cellSize = calculateCellSize();
+                const newHead = document.createElement('div');
+                newHead.className = 'snake-segment snake-head';
+                newHead.style.width = `${cellSize}px`;
+                newHead.style.height = `${cellSize}px`;
+                newHead.style.left = `${head.x * cellSize}px`;
+                newHead.style.top = `${head.y * cellSize}px`;
+                if (shieldActive) newHead.classList.add('shield-active');
+                if (ghostActive) newHead.classList.add('ghost-active');
+                gameContainer.appendChild(newHead);
+
+                if (snake[0].element) {
+                    snake[0].element.classList.remove('snake-head');
+                    snake[0].element.classList.add('snake-body');
+                    if (ghostActive) snake[0].element.classList.add('ghost-active');
+                }
+
+                snake.unshift({ x: head.x, y: head.y, element: newHead });
+
+                let foodEatenThisMove = false;
+                let powerUpEaten = false;
+
+                if (food && head.x === food.x && head.y === food.y) {
+                    score += 10;
+                    foodEaten++;
+                    scoreElement.textContent = score;
+                    showPointsPopup(food.x, food.y, 10);
+                    createFood();
+                    foodEatenThisMove = true;
+
+                    if (score % 50 === 0) {
+                        level++;
+                        levelElement.textContent = level;
+                        showLevelUp(level);
+                        baseSpeed = Math.max(70, baseSpeed - 10);
+                        updateGameSpeed();
+                    }
+
+                    if (score > highScore) {
+                        highScore = score;
+                        highScoreElement.textContent = highScore;
+                        localStorage.setItem('snakeHighScore', highScore);
+                    }
+
+                    checkAchievements();
+                }
+
+                for (let i = 0; i < powerUps.length; i++) {
+                    const powerUp = powerUps[i];
+                    if (head.x === powerUp.x && head.y === powerUp.y) {
+                        score += 30;
+                        scoreElement.textContent = score;
+                        powerUpsCollected++;
+                        showPointsPopup(powerUp.x, powerUp.y, 30);
+                        switch (powerUp.type) {
+                            case 'speed': activateSpeedBoost(); break;
+                            case 'shield': activateShield(); break;
+                            case 'ghost': activateGhost(); break;
+                        }
+                        powerUp.element.remove();
+                        powerUps.splice(i, 1);
+                        powerUpEaten = true;
+                        if (score > highScore) {
+                            highScore = score;
+                            highScoreElement.textContent = highScore;
+                            localStorage.setItem('snakeHighScore', highScore);
+                        }
+                        checkAchievements();
+                        break;
+                    }
+                }
+
+                if (!foodEatenThisMove && !powerUpEaten) {
+                    if (snake.length > 1) {
+                        const preTail = snake[snake.length - 2];
+                        if (preTail && preTail.element) {
+                            preTail.element.classList.add('snake-tail');
+                            if (ghostActive) preTail.element.classList.add('ghost-active');
+                        }
+                    }
+                    const tail = snake.pop();
+                    if (tail && tail.element) {
+                        tail.element.remove();
+                    }
+                } else {
+                    lengthElement.textContent = snake.length;
+                }
+
+                gameTime = Math.floor((Date.now() - startTime) / 1000);
+            }
+
+            // Format time
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+
+            // Toggle pause
+            function togglePause() {
+                if (!isGameActive) return;
+                isPaused = !isPaused;
+                if (isPaused) {
+                    clearInterval(gameInterval);
+                    pauseIndicator.classList.add('active');
+                } else {
+                    gameInterval = setInterval(moveSnake, currentSpeed);
+                    pauseIndicator.classList.remove('active');
+                }
+            }
+
+            // Game over
+            function gameOver() {
+                isGameActive = false;
+                clearInterval(gameInterval);
+                clearTimeout(powerUpTimeout);
+                clearTimeout(speedBoostTimer);
+                clearTimeout(shieldTimer);
+                clearTimeout(ghostTimer);
+                speedBoostActive = false;
+                shieldActive = false;
+                ghostActive = false;
+                speedBoostIndicator.classList.remove('active');
+                shieldEffectIndicator.classList.remove('active');
+                ghostEffectIndicator.classList.remove('active');
+                snake.forEach(segment => {
+                    if (segment.element) {
+                        segment.element.classList.remove('shield-active', 'ghost-active');
+                    }
+                });
+
+                finalScoreElement.textContent = score;
+                finalLengthElement.textContent = snake.length;
+                finalLevelElement.textContent = level;
+                foodEatenElement.textContent = foodEaten;
+                powerUpsElement.textContent = powerUpsCollected;
+                timePlayedElement.textContent = formatTime(gameTime);
+
+                gameOverScreen.classList.add('active');
+            }
+
+            // Handle keyboard input
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'p' || e.key === 'P') {
+                    togglePause();
+                    e.preventDefault();
+                    return;
+                }
+                if (e.key === ' ' && isPaused) {
+                    togglePause();
+                    e.preventDefault();
+                    return;
+                }
+                if (!isGameActive || isPaused) return;
+                switch (e.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        if (direction !== 'down') nextDirection = 'up';
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        if (direction !== 'up') nextDirection = 'down';
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        if (direction !== 'right') nextDirection = 'left';
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        if (direction !== 'left') nextDirection = 'right';
+                        break;
+                }
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+
+            // Mobile controls
+            btnUp.addEventListener('click', () => {
+                if (direction !== 'down') nextDirection = 'up';
+            });
+            btnDown.addEventListener('click', () => {
+                if (direction !== 'up') nextDirection = 'down';
+            });
+            btnLeft.addEventListener('click', () => {
+                if (direction !== 'right') nextDirection = 'left';
+            });
+            btnRight.addEventListener('click', () => {
+                if (direction !== 'left') nextDirection = 'right';
+            });
+            btnPause.addEventListener('click', togglePause);
+            btnMenu.addEventListener('click', () => {
+                if (isGameActive) {
+                    isGameActive = false;
+                    clearInterval(gameInterval);
+                    startScreen.classList.add('active');
+                }
+            });
+
+            // Set up difficulty buttons
+            difficultyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    baseSpeed = parseInt(button.dataset.speed);
+                    currentSpeed = baseSpeed;
+                });
+            });
+
+            // Set up game mode buttons
+            gameModeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    gameModeButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    gameMode = button.dataset.mode;
+                });
+            });
+
+            // Start game button
+            startButton.addEventListener('click', () => {
+                startScreen.classList.remove('active');
+                initGame();
+            });
+
+            // Restart game button
+            restartButton.addEventListener('click', () => {
+                gameOverScreen.classList.remove('active');
+                initGame();
+            });
+
+            // Menu button
+            menuButton.addEventListener('click', () => {
+                gameOverScreen.classList.remove('active');
+                startScreen.classList.add('active');
+            });
+
+            // Mobile controls (touch swipe)
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            gameContainer.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+                e.preventDefault();
+            }, { passive: false });
+
+            gameContainer.addEventListener('touchend', (e) => {
+                if (!isGameActive || isPaused) return;
+                const touchEndX = e.changedTouches[0].screenX;
+                const touchEndY = e.changedTouches[0].screenY;
+                const diffX = touchEndX - touchStartX;
+                const diffY = touchEndY - touchStartY;
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (diffX > 0 && direction !== 'left') {
+                        nextDirection = 'right';
+                    } else if (diffX < 0 && direction !== 'right') {
+                        nextDirection = 'left';
+                    }
+                } else {
+                    if (diffY > 0 && direction !== 'up') {
+                        nextDirection = 'down';
+                    } else if (diffY < 0 && direction !== 'down') {
+                        nextDirection = 'up';
+                    }
+                }
+                e.preventDefault();
+            }, { passive: false });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                if (isGameActive) {
+                    const cellSize = calculateCellSize();
+                    snake.forEach(segment => {
+                        if (segment.element) {
+                            segment.element.style.width = `${cellSize}px`;
+                            segment.element.style.height = `${cellSize}px`;
+                            segment.element.style.left = `${segment.x * cellSize}px`;
+                            segment.element.style.top = `${segment.y * cellSize}px`;
+                        }
+                    });
+                    if (food && food.element) {
+                        food.element.style.width = `${cellSize * 0.7}px`;
+                        food.element.style.height = `${cellSize * 0.7}px`;
+                        food.element.style.left = `${food.x * cellSize + cellSize * 0.15}px`;
+                        food.element.style.top = `${food.y * cellSize + cellSize * 0.15}px`;
+                    }
+                    powerUps.forEach(powerUp => {
+                        if (powerUp.element) {
+                            powerUp.element.style.width = `${cellSize * 0.8}px`;
+                            powerUp.element.style.height = `${cellSize * 0.8}px`;
+                            powerUp.element.style.left = `${powerUp.x * cellSize + cellSize * 0.1}px`;
+                            powerUp.element.style.top = `${powerUp.y * cellSize + cellSize * 0.1}px`;
+                        }
+                    });
+                    obstacles.forEach(obstacle => {
+                        if (obstacle.element) {
+                            obstacle.element.style.width = `${cellSize}px`;
+                            obstacle.element.style.height = `${cellSize}px`;
+                            obstacle.element.style.left = `${obstacle.x * cellSize}px`;
+                            obstacle.element.style.top = `${obstacle.y * cellSize}px`;
+                        }
+                    });
+                    portals.forEach(portal => {
+                        if (portal.element) {
+                            portal.element.style.width = `${cellSize}px`;
+                            portal.element.style.height = `${cellSize}px`;
+                            portal.element.style.left = `${portal.x * cellSize}px`;
+                            portal.element.style.top = `${portal.y * cellSize}px`;
+                        }
+                    });
+                    createGrid();
+                }
+            });
+
+            // Check if device is mobile
+            function isMobileDevice() {
+                return (window.innerWidth <= 768 || 'ontouchstart' in window);
+            }
+
+            // Show/hide mobile controls based on device
+            if (isMobileDevice()) {
+                document.getElementById('mobile-controls').classList.add('active');
+                document.getElementById('desktop-controls').style.display = 'none';
+            } else {
+                document.getElementById('mobile-controls').classList.remove('active');
+                document.getElementById('desktop-controls').style.display = 'block';
+            }
+
+            // Initialize grid
+            createGrid();
+            startScreen.classList.add('active');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Play Game";
+}
+
+<div class="container mt-4 text-center">
+    <h2 class="text-white">Playing Game</h2>
+    <hr />
+
+    @if (ViewBag.IsPremium)
+    {
+        <h4 class="text-success">Premium Game</h4>
+        <p>Game ID: @ViewBag.GameId</p>
+        <iframe src="/games/premium/@ViewBag.GameId/index.html"
+                width="800" height="600" frameborder="0"></iframe>
+    }
+    else
+    {
+        <h4 class="text-info">Static Game: @ViewBag.GameAction</h4>
+        <iframe src="/games/static/@ViewBag.GameAction/index.html"
+                width="800" height="600" frameborder="0"></iframe>
+    }
+</div>

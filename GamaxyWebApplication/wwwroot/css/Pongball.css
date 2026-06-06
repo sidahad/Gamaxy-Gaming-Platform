@@ -1,0 +1,558 @@
+﻿/* Base Variables */
+:root {
+    --primary: #4361ee;
+    --primary-light: #4895ef;
+    --secondary: #3f37c9;
+    --accent: #f72585;
+    --dark: #0e0e14;
+    --light: #f8f9fa;
+    --success: #00ffcc;
+    --warning: #f5c518;
+    --danger: #ef233c;
+    --border-radius: 12px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+body {
+    font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+    background: var(--dark);
+    color: var(--light);
+    display: flex;
+    flex-direction: column;
+    touch-action: manipulation;
+}
+
+/* Game Page */
+.game-page {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 0;
+    position: relative;
+}
+
+/* Header Section */
+.header-section {
+    text-align: center;
+    padding: 0.5rem;
+    background: linear-gradient(to bottom, rgba(14, 14, 20, 0.9), rgba(14, 14, 20, 0.7));
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.game-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.5rem, 6vw, 2.5rem);
+    font-weight: 900;
+    margin: 5px 0;
+    background: linear-gradient(to right, var(--success), #00ccff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+    letter-spacing: 2px;
+    line-height: 1.2;
+}
+
+.game-subtitle {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.7rem, 2vw, 0.9rem);
+    color: var(--success);
+    letter-spacing: 2px;
+}
+
+/* Game Container */
+.game-container-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.game-container {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    height: calc(100vh - 200px);
+    max-height: 600px;
+    aspect-ratio: 8/5;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+#pong {
+    background-color: #0a0a1e;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--success);
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+}
+
+/* Scoreboard */
+.scoreboard {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: clamp(5px, 1.5vh, 10px) clamp(10px, 2vw, 20px);
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 255, 0.2);
+    margin-bottom: 10px;
+}
+
+.player-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(5px, 1vh, 10px) clamp(10px, 2vw, 20px);
+    border-radius: 8px;
+    transition: var(--transition);
+    flex: 1;
+}
+
+    .player-score.active {
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+.player-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.7rem, 2vw, 1.2rem);
+    margin-bottom: 5px;
+    color: var(--success);
+}
+
+.score {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: bold;
+    color: var(--light);
+}
+
+.vs {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    display: flex;
+    align-items: center;
+    color: var(--warning);
+    padding: 0 clamp(5px, 1vw, 10px);
+}
+
+/* Game Overlay */
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    border-radius: 10px;
+    padding: clamp(10px, 2vh, 20px);
+    text-align: center;
+}
+
+    .game-overlay.visible {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+.message {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.5rem, 5vw, 3rem);
+    color: var(--light);
+    text-align: center;
+    margin-bottom: clamp(15px, 3vh, 30px);
+    text-shadow: 0 0 10px var(--success), 0 0 20px var(--success);
+}
+
+/* Controls Info */
+.controls-info {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(5px, 1vh, 10px);
+    margin-top: clamp(10px, 2vh, 20px);
+}
+
+.control-info {
+    background: rgba(0, 0, 0, 0.4);
+    padding: clamp(5px, 1vh, 10px) clamp(10px, 2vw, 20px);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: clamp(5px, 1vw, 10px);
+    font-size: clamp(0.7rem, 1.8vw, 1rem);
+    justify-content: center;
+}
+
+.key {
+    background: rgba(255, 255, 255, 0.2);
+    padding: clamp(3px, 1vh, 5px) clamp(5px, 1.5vw, 10px);
+    border-radius: 5px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.6rem, 1.5vw, 0.9rem);
+    font-weight: bold;
+    min-width: 24px;
+    text-align: center;
+    color: var(--light);
+}
+
+/* Game Stats */
+.game-stats {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: clamp(10px, 2vh, 15px);
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.6rem, 1.8vw, 0.9rem);
+    color: var(--success);
+    flex-wrap: wrap;
+    gap: clamp(5px, 1vw, 10px);
+}
+
+.stat {
+    background: rgba(0, 0, 0, 0.4);
+    padding: clamp(3px, 1vh, 5px) clamp(8px, 2vw, 15px);
+    border-radius: 20px;
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Buttons */
+.btn {
+    background: linear-gradient(to bottom, #ff9a9e, #ff6b6b);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+    font-weight: bold;
+    padding: clamp(8px, 2vh, 12px) clamp(15px, 4vw, 30px);
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+    transition: var(--transition);
+    margin: clamp(5px, 1vh, 10px);
+    min-height: 44px;
+}
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 7px 20px rgba(255, 107, 107, 0.6);
+    }
+
+    .btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 3px 10px rgba(255, 107, 107, 0.4);
+    }
+
+/* Controls */
+.controls {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    color: var(--light);
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(10px, 2.5vw, 16px);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    margin-top: clamp(10px, 2vh, 20px);
+}
+
+/* Particles */
+.particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Power-Ups */
+.power-up {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    z-index: 6;
+    animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.speed-boost {
+    background: radial-gradient(circle, #ff6600, #ff0000);
+    box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+}
+
+.size-boost {
+    background: radial-gradient(circle, #66ff66, #00ff00);
+    box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+}
+
+/* Rating Section */
+.rating-section {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin: 1rem auto;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 2px solid var(--success);
+}
+
+.rating-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    margin-bottom: 0.5rem;
+    color: var(--success);
+}
+
+.rating-average, .rating-user, .rating-login {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    margin: 0.5rem 0;
+    color: var(--light);
+}
+
+    .rating-login a {
+        color: var(--success);
+        text-decoration: none;
+    }
+
+        .rating-login a:hover {
+            text-decoration: underline;
+        }
+
+.star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin: 0.5rem 0;
+}
+
+    .star-rating input[type="radio"] {
+        display: none;
+    }
+
+    .star-rating label {
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
+        color: #555;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: var(--warning);
+            text-shadow: 0 0 8px var(--warning);
+        }
+
+.btn-rate {
+    background: linear-gradient(to right, var(--success), #00ccff);
+    color: black;
+    border: none;
+    border-radius: 30px;
+    padding: 8px 20px;
+    margin-top: 0.5rem;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    font-size: clamp(0.8rem, 3vw, 0.9rem);
+    transition: var(--transition);
+}
+
+    .btn-rate:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
+    }
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .game-container {
+        max-height: 500px;
+    }
+
+    .game-title {
+        font-size: clamp(1.2rem, 5vw, 1.8rem);
+    }
+
+    .game-subtitle {
+        font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+    }
+
+    .rating-section {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+
+    .score {
+        font-size: clamp(1.2rem, 3.5vw, 2rem);
+    }
+
+    .player-name {
+        font-size: clamp(0.6rem, 1.8vw, 1rem);
+    }
+
+    .vs {
+        font-size: clamp(0.8rem, 2vw, 1.2rem);
+    }
+
+    .message {
+        font-size: clamp(1.2rem, 4vw, 2.5rem);
+    }
+
+    .btn {
+        font-size: clamp(0.7rem, 2vw, 1rem);
+        padding: clamp(6px, 1.5vh, 10px) clamp(12px, 3vw, 24px);
+    }
+
+    .controls {
+        font-size: clamp(8px, 2vw, 14px);
+    }
+
+    .game-stats {
+        font-size: clamp(0.5rem, 1.5vw, 0.8rem);
+    }
+
+    .stat {
+        min-width: 70px;
+    }
+
+    .control-info {
+        font-size: clamp(0.6rem, 1.5vw, 0.9rem);
+    }
+
+    .key {
+        font-size: clamp(0.5rem, 1.2vw, 0.8rem);
+    }
+}
+
+@media (max-height: 500px) {
+    .header-section {
+        padding: 0.3rem;
+    }
+
+    .game-title {
+        font-size: clamp(1.2rem, 5vw, 1.5rem);
+    }
+
+    .game-subtitle {
+        display: none;
+    }
+
+    .game-container {
+        max-height: 400px;
+    }
+
+    .message {
+        font-size: clamp(1rem, 3vw, 2rem);
+    }
+
+    .btn {
+        font-size: clamp(0.6rem, 1.8vw, 0.9rem);
+        padding: clamp(5px, 1vh, 8px) clamp(10px, 2.5vw, 20px);
+    }
+}
+
+@media (max-width: 480px) {
+    .scoreboard {
+        flex-direction: column;
+        gap: 5px;
+        text-align: center;
+    }
+
+    .player-score {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .vs {
+        order: -1;
+        padding: 5px 0;
+    }
+
+    .control-info {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .controls-info {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .rating-section {
+        padding: 0.8rem;
+        margin: 0.3rem;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    .header-section {
+        display: none;
+    }
+
+    .game-container {
+        max-height: 100%;
+    }
+
+    .message {
+        font-size: clamp(1rem, 3vw, 2rem);
+    }
+
+    .btn {
+        font-size: clamp(0.6rem, 1.8vw, 0.9rem);
+        padding: clamp(5px, 1vh, 8px) clamp(10px, 2.5vw, 20px);
+    }
+}

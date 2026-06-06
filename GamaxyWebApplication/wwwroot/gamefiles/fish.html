@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fishing Adventure</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            touch-action: manipulation;
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        .game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB, #ADD8E6);
+        }
+
+        .sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: linear-gradient(to bottom, #87CEEB, #ADD8E6);
+            z-index: 1;
+        }
+
+        .water {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to bottom, #1E90FF, #00008B);
+            z-index: 2;
+        }
+
+        .dock {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20vmin;
+            height: 2vmin;
+            background-color: #8B4513;
+            border-radius: 0.5vmin;
+            z-index: 3;
+        }
+
+        .fishing-rod {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1vmin;
+            height: 10vmin;
+            background-color: #8B4513;
+            z-index: 4;
+        }
+
+        .fishing-line {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0.2vmin;
+            background-color: #FFFFFF;
+            z-index: 4;
+            display: none;
+        }
+
+        .hook {
+            position: absolute;
+            width: 1.5vmin;
+            height: 1.5vmin;
+            border-radius: 50%;
+            background-color: #C0C0C0;
+            z-index: 5;
+            transform: translate(-50%, -50%);
+        }
+
+        .bait {
+            position: absolute;
+            width: 1vmin;
+            height: 1vmin;
+            border-radius: 50%;
+            background-color: #FF9800;
+            z-index: 5;
+            transform: translate(-50%, -50%);
+        }
+
+        .fish {
+            position: absolute;
+            width: 4vmin;
+            height: 2vmin;
+            background-color: transparent;
+            z-index: 3;
+            transition: transform 0.2s ease;
+        }
+
+        .fish svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .fish.interested {
+            filter: brightness(1.2);
+        }
+
+        .caught-fish {
+            position: absolute;
+            width: 4vmin;
+            height: 2vmin;
+            background-color: transparent;
+            z-index: 6;
+            transition: all 0.5s ease;
+        }
+
+        .caught-fish svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Responsive Controls */
+        .controls {
+            position: absolute;
+            bottom: 2vmin;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1vmin;
+            z-index: 10;
+            width: 90%;
+            max-width: 500px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 1.5vmin 3vmin;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2vmin;
+            min-width: 20vmin;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 0.5vmin;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            touch-action: manipulation;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* Responsive Scoreboard */
+        .scoreboard {
+            position: absolute;
+            top: 2vmin;
+            right: 2vmin;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 1vmin 2vmin;
+            border-radius: 1vmin;
+            z-index: 10;
+            box-shadow: 0 0.4vmin 0.8vmin rgba(0, 0, 0, 0.1);
+            font-size: 2vmin;
+            max-width: 30vmin;
+        }
+
+        .scoreboard h2 {
+            margin-bottom: 0.5vmin;
+            color: #333;
+            font-size: 2.2vmin;
+        }
+
+        .scoreboard p {
+            margin: 0.5vmin 0;
+            font-size: 2vmin;
+        }
+
+        /* Responsive Effects */
+        .splash {
+            position: absolute;
+            width: 5vmin;
+            height: 5vmin;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            z-index: 6;
+            animation: splash 0.5s forwards;
+            display: none;
+        }
+
+        @keyframes splash {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        .ripple {
+            position: absolute;
+            border: 0.2vmin solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: ripple 2s linear infinite;
+            z-index: 5;
+        }
+
+        @keyframes ripple {
+            0% { width: 0; height: 0; opacity: 1; }
+            100% { width: 10vmin; height: 10vmin; opacity: 0; }
+        }
+
+        .bubble {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            z-index: 3;
+            animation: bubble 4s linear infinite;
+        }
+
+        @keyframes bubble {
+            0% { transform: translateY(0) scale(1); opacity: 0.7; }
+            100% { transform: translateY(-10vmin) scale(1.5); opacity: 0; }
+        }
+
+        /* Responsive Panels */
+        .catch-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 2vmin;
+            border-radius: 1vmin;
+            text-align: center;
+            z-index: 20;
+            box-shadow: 0 0.4vmin 1.5vmin rgba(0, 0, 0, 0.2);
+            display: none;
+            width: 80%;
+            max-width: 50vmin;
+        }
+
+        .catch-message h2 {
+            color: #4CAF50;
+            margin-bottom: 1vmin;
+            font-size: 3vmin;
+        }
+
+        .catch-message p {
+            font-size: 2vmin;
+            margin-bottom: 1.5vmin;
+        }
+
+        .catch-message button {
+            padding: 1vmin 2vmin;
+            font-size: 2vmin;
+        }
+
+        /* Responsive Shop */
+        .shop-panel, .collection-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 2vmin;
+            border-radius: 1vmin;
+            z-index: 20;
+            box-shadow: 0 0.4vmin 1.5vmin rgba(0, 0, 0, 0.2);
+            display: none;
+            width: 90%;
+            max-width: 60vmin;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .shop-panel h2, .collection-panel h2 {
+            text-align: center;
+            margin-bottom: 1.5vmin;
+            color: #333;
+            font-size: 3vmin;
+        }
+
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1vmin;
+            border-bottom: 0.1vmin solid #ddd;
+            font-size: 2vmin;
+        }
+
+        .shop-item:last-child {
+            border-bottom: none;
+        }
+
+        .shop-item-info {
+            flex: 1;
+        }
+
+        .shop-item-name {
+            font-weight: bold;
+            margin-bottom: 0.5vmin;
+        }
+
+        .shop-item-desc {
+            font-size: 1.8vmin;
+            color: #666;
+        }
+
+        .shop-item-price {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-right: 1vmin;
+            white-space: nowrap;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1vmin;
+            right: 1vmin;
+            background: none;
+            border: none;
+            font-size: 3vmin;
+            cursor: pointer;
+            color: #333;
+            padding: 0.5vmin;
+        }
+
+        /* Responsive Collection */
+        .fish-collection {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(12vmin, 1fr));
+            gap: 1.5vmin;
+        }
+
+        .collection-item {
+            background-color: #f5f5f5;
+            border-radius: 1vmin;
+            padding: 1vmin;
+            text-align: center;
+            box-shadow: 0 0.2vmin 0.5vmin rgba(0,0,0,0.1);
+            font-size: 1.8vmin;
+        }
+
+        .collection-item.not-caught {
+            background-color: #e0e0e0;
+            opacity: 0.7;
+        }
+
+        .collection-item-image {
+            width: 6vmin;
+            height: 4vmin;
+            margin: 0 auto 1vmin;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .collection-item-name {
+            font-weight: bold;
+            margin-bottom: 0.5vmin;
+        }
+
+        .collection-item-count {
+            color: #666;
+        }
+
+        /* Responsive Zones and Bait Selector */
+        .fishing-zones, .bait-selector {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 1vmin;
+            border-radius: 1vmin;
+            z-index: 10;
+            box-shadow: 0 0.4vmin 0.8vmin rgba(0, 0, 0, 0.1);
+            font-size: 1.8vmin;
+            max-width: 25vmin;
+        }
+
+        .fishing-zones {
+            bottom: 15vmin;
+            left: 2vmin;
+        }
+
+        .bait-selector {
+            bottom: 8vmin;
+            left: 2vmin;
+        }
+
+        .fishing-zones h3, .bait-selector h3 {
+            margin-bottom: 0.5vmin;
+            color: #333;
+            font-size: 2vmin;
+        }
+
+        .zone-option {
+            padding: 0.5vmin 1vmin;
+            margin: 0.5vmin 0;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 0.5vmin;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 1.8vmin;
+        }
+
+        .zone-option:hover {
+            background-color: #45a049;
+        }
+
+        .zone-option.active {
+            background-color: #2E7D32;
+            font-weight: bold;
+        }
+
+        .bait-options {
+            display: flex;
+            gap: 1vmin;
+        }
+
+        .bait-option {
+            width: 3vmin;
+            height: 3vmin;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .bait-option.selected {
+            border: 0.2vmin solid #4CAF50;
+        }
+
+        .bait-count {
+            position: absolute;
+            bottom: -0.5vmin;
+            right: -0.5vmin;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            width: 1.8vmin;
+            height: 1.8vmin;
+            font-size: 1.2vmin;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Responsive Indicators */
+        .fish-indicator {
+            position: absolute;
+            width: 3vmin;
+            height: 3vmin;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            z-index: 4;
+            animation: pulse 1s infinite alternate;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        .game-message {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 1vmin 2vmin;
+            border-radius: 2vmin;
+            font-size: 2vmin;
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            max-width: 80%;
+            text-align: center;
+        }
+
+        /* Sun and Clouds */
+        .sun {
+            position: absolute;
+            width: 8vmin;
+            height: 8vmin;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            z-index: 1;
+            box-shadow: 0 0 3vmin #FFA500;
+            top: 5vmin;
+            right: 10vmin;
+        }
+
+        .cloud {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 5vmin;
+            z-index: 2;
+        }
+
+        /* Landscape orientation adjustments */
+        @media (orientation: landscape) {
+            .controls {
+                bottom: 1vmin;
+                gap: 0.5vmin;
+            }
+            
+            .fishing-zones {
+                bottom: 10vmin;
+            }
+            
+            .bait-selector {
+                bottom: 5vmin;
+            }
+            
+            button {
+                padding: 1vmin 2vmin;
+                font-size: 1.8vmin;
+                min-width: 15vmin;
+            }
+            
+            .scoreboard {
+                font-size: 1.8vmin;
+                padding: 0.8vmin 1.5vmin;
+            }
+            
+            .scoreboard h2 {
+                font-size: 2vmin;
+            }
+        }
+
+        /* Very small screens */
+        @media (max-height: 500px) {
+            .scoreboard {
+                top: 1vmin;
+                right: 1vmin;
+                padding: 0.5vmin 1vmin;
+                font-size: 1.6vmin;
+                max-width: 25vmin;
+            }
+            
+            .scoreboard h2 {
+                font-size: 1.8vmin;
+            }
+            
+            .controls {
+                bottom: 1vmin;
+            }
+            
+            .catch-message h2 {
+                font-size: 2.5vmin;
+            }
+            
+            .catch-message p {
+                font-size: 1.8vmin;
+            }
+            
+            .fishing-zones, .bait-selector {
+                font-size: 1.6vmin;
+                max-width: 20vmin;
+            }
+            
+            .zone-option {
+                padding: 0.3vmin 0.8vmin;
+                font-size: 1.6vmin;
+            }
+        }
+
+        /* Ultra-wide screens */
+        @media (min-aspect-ratio: 21/9) {
+            .dock {
+                width: 15vmin;
+            }
+            
+            .fishing-rod {
+                height: 15vmin;
+            }
+            
+            .fishing-line {
+                top: 40%;
+            }
+        }
+        
+        /* Adjustments for very tall screens */
+        @media (min-aspect-ratio: 3/4) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+                bottom: 5vmin;
+            }
+            
+            .fishing-zones {
+                bottom: 25vmin;
+            }
+            
+            .bait-selector {
+                bottom: 18vmin;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="sky"></div>
+        <div class="sun"></div>
+        <div class="water"></div>
+        <div class="dock"></div>
+        <div class="fishing-rod" id="fishing-rod"></div>
+        <div class="fishing-line" id="fishing-line"></div>
+
+        <div class="controls">
+            <button id="cast-btn">Cast Line</button>
+            <button id="reel-btn" disabled>Reel In</button>
+            <button id="shop-btn">Shop</button>
+            <button id="collection-btn">Collection</button>
+        </div>
+
+        <div class="scoreboard">
+            <h2>Fishing Stats</h2>
+            <p>Score: <span id="score">0</span></p>
+            <p>Coins: <span id="coins">50</span></p>
+            <p>Fish Caught: <span id="fish-count">0</span></p>
+        </div>
+
+        <div class="fishing-zones">
+            <h3>Fishing Zones</h3>
+            <div class="zone-option active" data-zone="shore">Shore</div>
+            <div class="zone-option" data-zone="lake">Lake</div>
+            <div class="zone-option" data-zone="deep">Deep Sea</div>
+        </div>
+
+        <div class="bait-selector">
+            <h3>Bait</h3>
+            <div class="bait-options">
+                <div class="bait-option selected" data-bait="worm" style="background-color: #8B4513;">
+                    <span class="bait-count">∞</span>
+                </div>
+                <div class="bait-option" data-bait="corn" style="background-color: #FFD700;">
+                    <span class="bait-count" id="corn-count">0</span>
+                </div>
+                <div class="bait-option" data-bait="lure" style="background-color: #FF4500;">
+                    <span class="bait-count" id="lure-count">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="catch-message" id="catch-message">
+            <h2>Nice Catch!</h2>
+            <p>You caught a <span id="fish-type">Small Fish</span></p>
+            <p>+<span id="points">10</span> points</p>
+            <p>+<span id="coins-earned">5</span> coins</p>
+            <button id="continue-btn">Continue Fishing</button>
+        </div>
+
+        <div class="shop-panel" id="shop-panel">
+            <button class="close-btn" id="close-shop-btn">×</button>
+            <h2>Fishing Shop</h2>
+            <div class="shop-item">
+                <div class="shop-item-info">
+                    <div class="shop-item-name">Better Rod</div>
+                    <div class="shop-item-desc">Longer rod for deeper fishing</div>
+                </div>
+                <div class="shop-item-price">100 coins</div>
+                <button class="shop-buy-btn" data-item="rod" data-price="100">Buy</button>
+            </div>
+            <div class="shop-item">
+                <div class="shop-item-info">
+                    <div class="shop-item-name">Corn Bait (5)</div>
+                    <div class="shop-item-desc">Attracts medium fish</div>
+                </div>
+                <div class="shop-item-price">20 coins</div>
+                <button class="shop-buy-btn" data-item="corn" data-price="20">Buy</button>
+            </div>
+            <div class="shop-item">
+                <div class="shop-item-info">
+                    <div class="shop-item-name">Lure Bait (3)</div>
+                    <div class="shop-item-desc">Attracts rare fish</div>
+                </div>
+                <div class="shop-item-price">50 coins</div>
+                <button class="shop-buy-btn" data-item="lure" data-price="50">Buy</button>
+            </div>
+        </div>
+
+        <div class="collection-panel" id="collection-panel">
+            <button class="close-btn" id="close-collection-btn">×</button>
+            <h2>Fish Collection</h2>
+            <div class="fish-collection" id="fish-collection-container">
+                <!-- Fish collection items will be added here -->
+            </div>
+        </div>
+
+        <div class="splash" id="splash"></div>
+        <div class="fish-indicator" id="fish-indicator"></div>
+        <div class="game-message" id="game-message"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game elements
+            const gameContainer = document.querySelector('.game-container');
+            const fishingLine = document.getElementById('fishing-line');
+            const fishingRod = document.getElementById('fishing-rod');
+            const castBtn = document.getElementById('cast-btn');
+            const reelBtn = document.getElementById('reel-btn');
+            const scoreElement = document.getElementById('score');
+            const coinsElement = document.getElementById('coins');
+            const fishCountElement = document.getElementById('fish-count');
+            const splashElement = document.getElementById('splash');
+            const catchMessage = document.getElementById('catch-message');
+            const fishTypeElement = document.getElementById('fish-type');
+            const pointsElement = document.getElementById('points');
+            const coinsEarnedElement = document.getElementById('coins-earned');
+            const continueBtn = document.getElementById('continue-btn');
+            const shopBtn = document.getElementById('shop-btn');
+            const shopPanel = document.getElementById('shop-panel');
+            const closeShopBtn = document.getElementById('close-shop-btn');
+            const collectionBtn = document.getElementById('collection-btn');
+            const collectionPanel = document.getElementById('collection-panel');
+            const closeCollectionBtn = document.getElementById('close-collection-btn');
+            const fishCollectionContainer = document.getElementById('fish-collection-container');
+            const zoneOptions = document.querySelectorAll('.zone-option');
+            const baitOptions = document.querySelectorAll('.bait-option');
+            const cornCountElement = document.getElementById('corn-count');
+            const lureCountElement = document.getElementById('lure-count');
+            const fishIndicator = document.getElementById('fish-indicator');
+            const gameMessage = document.getElementById('game-message');
+
+            // Game state
+            let score = 0;
+            let coins = 50;
+            let fishCaught = 0;
+            let isLineInWater = false;
+            let hookPosition = { x: 0, y: 0 };
+            let fishes = [];
+            let gameInterval;
+            let hookElement = null;
+            let baitElement = null;
+            let baitAttractionElement = null;
+            let waterHeight;
+            let waterTop;
+            let gameWidth;
+            let gameHeight;
+            let currentZone = 'shore';
+            let currentBait = 'worm';
+            let baitInventory = {
+                worm: Infinity,
+                corn: 0,
+                lure: 0
+            };
+            let upgrades = {
+                rod: 1
+            };
+            let fishCollection = {};
+            let canCatchFish = false;
+            let fishBitingTimeout = null;
+
+            // Fish types with their properties
+            const allFishTypes = [
+                // Shore fish
+                { id: "small_fish", name: "Small Fish", points: 10, coins: 5, color: "#FF9800", speed: 0.7, size: { width: 40, height: 20 }, probability: 0.5, zone: "shore", bait: ["worm", "corn", "lure"] },
+                { id: "bluegill", name: "Bluegill", points: 15, coins: 8, color: "#2196F3", speed: 0.8, size: { width: 45, height: 22 }, probability: 0.3, zone: "shore", bait: ["worm", "corn"] },
+                { id: "perch", name: "Perch", points: 20, coins: 10, color: "#FFC107", speed: 0.6, size: { width: 48, height: 24 }, probability: 0.15, zone: "shore", bait: ["worm", "corn"] },
+
+                // Lake fish
+                { id: "bass", name: "Bass", points: 25, coins: 12, color: "#4CAF50", speed: 0.5, size: { width: 50, height: 25 }, probability: 0.4, zone: "lake", bait: ["worm", "corn", "lure"] },
+                { id: "trout", name: "Trout", points: 35, coins: 18, color: "#E91E63", speed: 0.9, size: { width: 55, height: 22 }, probability: 0.3, zone: "lake", bait: ["corn", "lure"] },
+                { id: "pike", name: "Pike", points: 45, coins: 22, color: "#9E9E9E", speed: 0.7, size: { width: 65, height: 20 }, probability: 0.2, zone: "lake", bait: ["lure"] },
+
+                // Deep sea fish
+                { id: "tuna", name: "Tuna", points: 50, coins: 25, color: "#3F51B5", speed: 0.8, size: { width: 70, height: 35 }, probability: 0.4, zone: "deep", bait: ["lure"] },
+                { id: "swordfish", name: "Swordfish", points: 70, coins: 35, color: "#673AB7", speed: 1, size: { width: 80, height: 25 }, probability: 0.25, zone: "deep", bait: ["lure"] },
+                { id: "shark", name: "Shark", points: 100, coins: 50, color: "#607D8B", speed: 0.6, size: { width: 90, height: 40 }, probability: 0.1, zone: "deep", bait: ["lure"] }
+            ];
+
+            // Initialize the game
+            function initGame() {
+                updateGameDimensions();
+                createBubbles();
+                initFishCollection();
+                updateBaitDisplay();
+                createClouds();
+
+                window.addEventListener('resize', updateGameDimensions);
+
+                castBtn.addEventListener('click', castLine);
+                reelBtn.addEventListener('click', reelIn);
+                continueBtn.addEventListener('click', () => {
+                    catchMessage.style.display = 'none';
+                    castBtn.disabled = false;
+                });
+
+                shopBtn.addEventListener('click', () => {
+                    shopPanel.style.display = 'block';
+                });
+
+                closeShopBtn.addEventListener('click', () => {
+                    shopPanel.style.display = 'none';
+                });
+
+                collectionBtn.addEventListener('click', () => {
+                    updateCollectionDisplay();
+                    collectionPanel.style.display = 'block';
+                });
+
+                closeCollectionBtn.addEventListener('click', () => {
+                    collectionPanel.style.display = 'none';
+                });
+
+                // Shop buy buttons
+                document.querySelectorAll('.shop-buy-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const item = btn.getAttribute('data-item');
+                        const price = parseInt(btn.getAttribute('data-price'));
+
+                        if (coins >= price) {
+                            coins -= price;
+                            coinsElement.textContent = coins;
+
+                            if (item === 'rod') {
+                                upgrades.rod++;
+                                fishingRod.style.height = `${10 + (upgrades.rod - 1) * 2}vmin`;
+                                showGameMessage('Rod upgraded! You can now fish deeper.');
+                            } else if (item === 'corn') {
+                                baitInventory.corn += 5;
+                                updateBaitDisplay();
+                                showGameMessage('Purchased 5 corn bait!');
+                            } else if (item === 'lure') {
+                                baitInventory.lure += 3;
+                                updateBaitDisplay();
+                                showGameMessage('Purchased 3 lure bait!');
+                            }
+                        } else {
+                            showGameMessage('Not enough coins!');
+                        }
+                    });
+                });
+
+                // Zone selection
+                zoneOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        const zone = option.getAttribute('data-zone');
+                        currentZone = zone;
+
+                        // Update active class
+                        zoneOptions.forEach(opt => opt.classList.remove('active'));
+                        option.classList.add('active');
+                    });
+                });
+
+                // Bait selection
+                baitOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        const bait = option.getAttribute('data-bait');
+
+                        // Check if we have this bait
+                        if (bait !== 'worm' && baitInventory[bait] <= 0) {
+                            showGameMessage(`You don't have any ${bait} bait left! Buy some in the shop.`);
+                            return;
+                        }
+
+                        currentBait = bait;
+
+                        // Update selected class
+                        baitOptions.forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+                    });
+                });
+
+                // Start spawning fish
+                gameInterval = setInterval(gameLoop, 50);
+
+                // Give player some starting bait
+                baitInventory.corn = 3;
+                baitInventory.lure = 1;
+                updateBaitDisplay();
+
+                // Show welcome message
+                showGameMessage('Welcome to Fishing Adventure! Cast your line to start fishing.');
+            }
+
+            function createClouds() {
+                for (let i = 0; i < 5; i++) {
+                    const cloud = document.createElement('div');
+                    cloud.className = 'cloud';
+                    
+                    const size = Math.random() * 10 + 5;
+                    const left = Math.random() * 100;
+                    const top = Math.random() * 20 + 5;
+                    const opacity = Math.random() * 0.5 + 0.3;
+                    
+                    cloud.style.width = `${size}vmin`;
+                    cloud.style.height = `${size/2}vmin`;
+                    cloud.style.left = `${left}%`;
+                    cloud.style.top = `${top}%`;
+                    cloud.style.opacity = opacity;
+                    
+                    // Animation
+                    const duration = Math.random() * 30 + 30;
+                    cloud.style.animation = `moveCloud ${duration}s linear infinite`;
+                    
+                    document.querySelector('.sky').appendChild(cloud);
+                }
+                
+                // Add cloud animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes moveCloud {
+                        0% { transform: translateX(-15vmin); }
+                        100% { transform: translateX(100vw); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            function showGameMessage(message) {
+                gameMessage.textContent = message;
+                gameMessage.style.opacity = 1;
+
+                setTimeout(() => {
+                    gameMessage.style.opacity = 0;
+                }, 3000);
+            }
+
+            function updateGameDimensions() {
+                gameWidth = window.innerWidth;
+                gameHeight = window.innerHeight;
+                waterHeight = gameHeight * 0.6;
+                waterTop = gameHeight * 0.4;
+
+                // Update hook position if line is in water
+                if (isLineInWater && hookElement) {
+                    updateHookPosition();
+                }
+            }
+
+            function createBubbles() {
+                for (let i = 0; i < 10; i++) {
+                    setTimeout(() => {
+                        createBubble();
+                    }, Math.random() * 5000);
+                }
+            }
+
+            function createBubble() {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+
+                const size = Math.random() * 1 + 0.5;
+                const left = Math.random() * 100;
+                const bottom = Math.random() * 30;
+
+                bubble.style.width = `${size}vmin`;
+                bubble.style.height = `${size}vmin`;
+                bubble.style.left = `${left}%`;
+                bubble.style.bottom = `${bottom}%`;
+
+                document.querySelector('.water').appendChild(bubble);
+
+                // Remove bubble after animation completes
+                setTimeout(() => {
+                    if (bubble.parentNode) {
+                        bubble.parentNode.removeChild(bubble);
+                    }
+                    createBubble();
+                }, 4000);
+            }
+
+            function initFishCollection() {
+                allFishTypes.forEach(fish => {
+                    fishCollection[fish.id] = {
+                        caught: false,
+                        count: 0,
+                        fish: fish
+                    };
+                });
+            }
+
+            function updateCollectionDisplay() {
+                fishCollectionContainer.innerHTML = '';
+
+                Object.values(fishCollection).forEach(item => {
+                    const collectionItem = document.createElement('div');
+                    collectionItem.className = `collection-item ${!item.caught ? 'not-caught' : ''}`;
+
+                    const itemImage = document.createElement('div');
+                    itemImage.className = 'collection-item-image';
+
+                    if (item.caught) {
+                        itemImage.innerHTML = `
+                            <svg viewBox="0 0 40 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5,10 C5,5 15,0 25,5 L35,10 L25,15 C15,20 5,15 5,10 Z" fill="${item.fish.color}" />
+                                <circle cx="30" cy="7" r="2" fill="black" />
+                                <path d="M5,10 L0,5 L0,15 Z" fill="${item.fish.color}" />
+                            </svg>
+                        `;
+                    } else {
+                        itemImage.innerHTML = '?';
+                        itemImage.style.fontSize = '2.4vmin';
+                        itemImage.style.color = '#999';
+                    }
+
+                    const itemName = document.createElement('div');
+                    itemName.className = 'collection-item-name';
+                    itemName.textContent = item.caught ? item.fish.name : '???';
+
+                    const itemCount = document.createElement('div');
+                    itemCount.className = 'collection-item-count';
+                    itemCount.textContent = item.caught ? `Caught: ${item.count}` : 'Not caught yet';
+
+                    collectionItem.appendChild(itemImage);
+                    collectionItem.appendChild(itemName);
+                    collectionItem.appendChild(itemCount);
+
+                    fishCollectionContainer.appendChild(collectionItem);
+                });
+            }
+
+            function updateBaitDisplay() {
+                cornCountElement.textContent = baitInventory.corn;
+                lureCountElement.textContent = baitInventory.lure;
+            }
+
+            function castLine() {
+                if (isLineInWater) return;
+
+                // Check if we have the selected bait
+                if (currentBait !== 'worm' && baitInventory[currentBait] <= 0) {
+                    showGameMessage(`You don't have any ${currentBait} bait left! Select another bait or buy some in the shop.`);
+                    return;
+                }
+
+                // Use up bait
+                if (currentBait !== 'worm') {
+                    baitInventory[currentBait]--;
+                    updateBaitDisplay();
+                }
+
+                isLineInWater = true;
+                castBtn.disabled = true;
+                reelBtn.disabled = false;
+                canCatchFish = false;
+
+                // Show fishing line
+                fishingLine.style.display = 'block';
+
+                // Calculate line length based on rod upgrade and zone
+                let maxDepth;
+                switch (currentZone) {
+                    case 'shore':
+                        maxDepth = 0.3;
+                        break;
+                    case 'lake':
+                        maxDepth = 0.6;
+                        break;
+                    case 'deep':
+                        maxDepth = 1;
+                        break;
+                    default:
+                        maxDepth = 0.5;
+                }
+
+                // Adjust depth based on rod level
+                maxDepth = Math.min(maxDepth * upgrades.rod, 1);
+
+                const lineHeight = waterHeight * maxDepth;
+                fishingLine.style.height = `${lineHeight}px`;
+
+                // Create hook at the end of the line
+                hookElement = document.createElement('div');
+                hookElement.className = 'hook';
+                gameContainer.appendChild(hookElement);
+
+                // Create bait
+                baitElement = document.createElement('div');
+                baitElement.className = 'bait';
+
+                // Set bait color based on type
+                switch (currentBait) {
+                    case 'worm':
+                        baitElement.style.backgroundColor = '#8B4513';
+                        break;
+                    case 'corn':
+                        baitElement.style.backgroundColor = '#FFD700';
+                        break;
+                    case 'lure':
+                        baitElement.style.backgroundColor = '#FF4500';
+                        break;
+                }
+
+                gameContainer.appendChild(baitElement);
+
+                // Create bait attraction zone
+                baitAttractionElement = document.createElement('div');
+                baitAttractionElement.className = 'bait-attraction';
+
+                // Set attraction radius based on bait type
+                let attractionRadius;
+                switch (currentBait) {
+                    case 'worm':
+                        attractionRadius = 100;
+                        break;
+                    case 'corn':
+                        attractionRadius = 150;
+                        break;
+                    case 'lure':
+                        attractionRadius = 200;
+                        break;
+                    default:
+                        attractionRadius = 100;
+                }
+
+                baitAttractionElement.style.width = `${attractionRadius * 2}px`;
+                baitAttractionElement.style.height = `${attractionRadius * 2}px`;
+                gameContainer.appendChild(baitAttractionElement);
+
+                // Set hook position
+                hookPosition.x = gameWidth / 2;
+                hookPosition.y = waterTop + lineHeight;
+                updateHookPosition();
+
+                // Create splash effect
+                createSplashEffect(gameWidth / 2, waterTop);
+
+                // Allow catching fish after a short delay
+                setTimeout(() => {
+                    canCatchFish = true;
+                    showGameMessage('Your bait is in the water. Wait for fish to bite!');
+                }, 1000);
+            }
+
+            function updateHookPosition() {
+                if (hookElement) {
+                    hookElement.style.left = `${hookPosition.x}px`;
+                    hookElement.style.top = `${hookPosition.y}px`;
+                }
+
+                if (baitElement) {
+                    baitElement.style.left = `${hookPosition.x}px`;
+                    baitElement.style.top = `${hookPosition.y + 10}px`;
+                }
+
+                if (baitAttractionElement) {
+                    baitAttractionElement.style.left = `${hookPosition.x - parseInt(baitAttractionElement.style.width) / 2}px`;
+                    baitAttractionElement.style.top = `${hookPosition.y - parseInt(baitAttractionElement.style.height) / 2}px`;
+                }
+            }
+
+            function reelIn() {
+                if (!isLineInWater) return;
+
+                // Clear any pending fish biting timeout
+                if (fishBitingTimeout) {
+                    clearTimeout(fishBitingTimeout);
+                    fishBitingTimeout = null;
+                }
+
+                // Hide fish indicator
+                fishIndicator.style.display = 'none';
+
+                // Check if a fish is caught
+                const caughtFish = checkForCatch();
+
+                if (caughtFish) {
+                    // Show caught fish animation
+                    showCaughtFish(caughtFish);
+
+                    // Update score and coins
+                    score += caughtFish.points;
+                    coins += caughtFish.coins;
+                    fishCaught++;
+
+                    scoreElement.textContent = score;
+                    coinsElement.textContent = coins;
+                    fishCountElement.textContent = fishCaught;
+
+                    // Update fish collection
+                    if (fishCollection[caughtFish.id]) {
+                        const collectionItem = fishCollection[caughtFish.id];
+                        collectionItem.caught = true;
+                        collectionItem.count++;
+                    }
+
+                    // Show catch message
+                    fishTypeElement.textContent = caughtFish.name;
+                    pointsElement.textContent = caughtFish.points;
+                    coinsEarnedElement.textContent = caughtFish.coins;
+                    catchMessage.style.display = 'block';
+
+                    // Remove the fish from the array
+                    const index = fishes.indexOf(caughtFish);
+                    if (index > -1) {
+                        fishes.splice(index, 1);
+                    }
+
+                    // Remove fish element
+                    if (caughtFish.element && caughtFish.element.parentNode) {
+                        caughtFish.element.parentNode.removeChild(caughtFish.element);
+                    }
+                } else {
+                    // No fish caught, enable cast button again
+                    castBtn.disabled = false;
+                    showGameMessage('No fish caught. Try again!');
+                }
+
+                // Hide fishing line, hook and bait
+                fishingLine.style.display = 'none';
+
+                if (hookElement && hookElement.parentNode) {
+                    hookElement.parentNode.removeChild(hookElement);
+                    hookElement = null;
+                }
+
+                if (baitElement && baitElement.parentNode) {
+                    baitElement.parentNode.removeChild(baitElement);
+                    baitElement = null;
+                }
+
+                if (baitAttractionElement && baitAttractionElement.parentNode) {
+                    baitAttractionElement.parentNode.removeChild(baitAttractionElement);
+                    baitAttractionElement = null;
+                }
+
+                isLineInWater = false;
+                canCatchFish = false;
+                reelBtn.disabled = true;
+            }
+
+            function checkForCatch() {
+                if (!canCatchFish) return null;
+
+                // Check if any fish is near the hook
+                for (const fish of fishes) {
+                    // Skip fish that aren't interested
+                    if (!fish.interested) continue;
+
+                    // Calculate distance between hook and fish center
+                    const fishCenterX = fish.x + fish.size.width / 2;
+                    const fishCenterY = fish.y + fish.size.height / 2;
+
+                    const distance = Math.sqrt(
+                        Math.pow(hookPosition.x - fishCenterX, 2) +
+                        Math.pow(hookPosition.y - fishCenterY, 2)
+                    );
+
+                    // If fish is close enough to the hook, it's caught
+                    if (distance < fish.size.width / 2 + 25) {
+                        return fish;
+                    }
+                }
+
+                return null;
+            }
+
+            function showCaughtFish(fish) {
+                const caughtFishElement = document.createElement('div');
+                caughtFishElement.className = 'caught-fish';
+
+                // Copy the fish SVG
+                caughtFishElement.innerHTML = fish.element.innerHTML;
+
+                // Position at the hook
+                caughtFishElement.style.left = `${hookPosition.x - fish.size.width / 2}px`;
+                caughtFishElement.style.top = `${hookPosition.y - fish.size.height / 2}px`;
+
+                gameContainer.appendChild(caughtFishElement);
+
+                // Animate fish being reeled in
+                setTimeout(() => {
+                    caughtFishElement.style.top = `${waterTop - 50}px`;
+                    caughtFishElement.style.transform = 'rotate(90deg)';
+
+                    setTimeout(() => {
+                        if (caughtFishElement.parentNode) {
+                            caughtFishElement.parentNode.removeChild(caughtFishElement);
+                        }
+                    }, 500);
+                }, 100);
+            }
+
+            function createSplashEffect(x, y) {
+                splashElement.style.left = `${x - 25}px`;
+                splashElement.style.top = `${y - 25}px`;
+                splashElement.style.display = 'block';
+
+                // Reset animation
+                splashElement.style.animation = 'none';
+                splashElement.offsetHeight; // Trigger reflow
+                splashElement.style.animation = 'splash 0.5s forwards';
+
+                setTimeout(() => {
+                    splashElement.style.display = 'none';
+                }, 500);
+
+                // Create ripple effect
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                ripple.style.left = `${x - 50}px`;
+                ripple.style.top = `${y - 50}px`;
+                gameContainer.appendChild(ripple);
+
+                setTimeout(() => {
+                    if (ripple.parentNode) {
+                        ripple.parentNode.removeChild(ripple);
+                    }
+                }, 2000);
+            }
+
+            function showFishIndicator() {
+                if (!isLineInWater || !canCatchFish) return;
+
+                // Check if any fish is interested in the bait
+                let interestedFish = fishes.find(fish => fish.interested);
+
+                if (interestedFish) {
+                    // Show indicator near the hook
+                    fishIndicator.style.display = 'block';
+                    fishIndicator.style.left = `${hookPosition.x - 15}px`;
+                    fishIndicator.style.top = `${hookPosition.y - 15}px`;
+
+                    // Show message
+                    showGameMessage('A fish is biting! Reel in now!');
+                } else {
+                    fishIndicator.style.display = 'none';
+                }
+            }
+
+            function spawnFish() {
+                // Limit the number of fish on screen
+                if (fishes.length >= 10) return;
+
+                // Filter fish types based on current zone
+                const availableFish = allFishTypes.filter(fish => fish.zone === currentZone);
+
+                if (availableFish.length === 0) return;
+
+                // Determine which fish to spawn based on probability
+                const rand = Math.random();
+                let cumulativeProbability = 0;
+                let selectedFishType;
+
+                // Normalize probabilities
+                const totalProbability = availableFish.reduce((sum, fish) => sum + fish.probability, 0);
+
+                for (const fishType of availableFish) {
+                    cumulativeProbability += fishType.probability / totalProbability;
+                    if (rand < cumulativeProbability) {
+                        selectedFishType = fishType;
+                        break;
+                    }
+                }
+
+                if (!selectedFishType) {
+                    selectedFishType = availableFish[0]; // Default to first available fish
+                }
+
+                // Create fish element
+                const fishElement = document.createElement('div');
+                fishElement.className = 'fish';
+
+                // Random position in water based on zone
+                let minDepth, maxDepth;
+                switch (currentZone) {
+                    case 'shore':
+                        minDepth = 0;
+                        maxDepth = 0.3;
+                        break;
+                    case 'lake':
+                        minDepth = 0.2;
+                        maxDepth = 0.6;
+                        break;
+                    case 'deep':
+                        minDepth = 0.5;
+                        maxDepth = 1;
+                        break;
+                    default:
+                        minDepth = 0;
+                        maxDepth = 0.5;
+                }
+
+                const fishY = waterTop + (waterHeight * minDepth) + Math.random() * (waterHeight * (maxDepth - minDepth));
+
+                // Determine direction (left to right or right to left)
+                const direction = Math.random() > 0.5 ? 1 : -1;
+                const fishX = direction > 0 ? -selectedFishType.size.width : gameWidth;
+
+                fishElement.style.top = `${fishY}px`;
+                fishElement.style.left = `${fishX}px`;
+                fishElement.style.width = `${selectedFishType.size.width}px`;
+                fishElement.style.height = `${selectedFishType.size.height}px`;
+
+                // Create fish SVG
+                const fishColor = selectedFishType.color;
+                fishElement.innerHTML = `
+                    <svg viewBox="0 0 40 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="${direction > 0 ?
+                            'M5,10 C5,5 15,0 25,5 L35,10 L25,15 C15,20 5,15 5,10 Z' :
+                            'M35,10 C35,5 25,0 15,5 L5,10 L15,15 C25,20 35,15 35,10 Z'}"
+                            fill="${fishColor}" />
+                        <circle cx="${direction > 0 ? '30' : '10'}" cy="7" r="2" fill="black" />
+                        <path d="${direction > 0 ?
+                            'M5,10 L0,5 L0,15 Z' :
+                            'M35,10 L40,5 L40,15 Z'}"
+                            fill="${fishColor}" />
+                    </svg>
+                `;
+
+                gameContainer.appendChild(fishElement);
+
+                // Create fish object
+                const fish = {
+                    id: selectedFishType.id,
+                    element: fishElement,
+                    x: fishX,
+                    y: fishY,
+                    direction: direction,
+                    speed: selectedFishType.speed,
+                    size: selectedFishType.size,
+                    name: selectedFishType.name,
+                    points: selectedFishType.points,
+                    coins: selectedFishType.coins,
+                    bait: selectedFishType.bait,
+                    interested: false,
+                    targetX: null,
+                    targetY: null
+                };
+
+                fishes.push(fish);
+            }
+
+            function updateFishes() {
+                const fishesToRemove = [];
+                let anyFishInterested = false;
+
+                for (const fish of fishes) {
+                    // Check if fish is interested in the bait
+                    if (isLineInWater && canCatchFish && fish.bait.includes(currentBait)) {
+                        // Calculate distance between hook and fish
+                        const fishCenterX = fish.x + fish.size.width / 2;
+                        const fishCenterY = fish.y + fish.size.height / 2;
+
+                        const distance = Math.sqrt(
+                            Math.pow(hookPosition.x - fishCenterX, 2) +
+                            Math.pow(hookPosition.y - fishCenterY, 2)
+                        );
+
+                        // Get attraction radius based on bait type
+                        let attractionRadius;
+                        switch (currentBait) {
+                            case 'worm':
+                                attractionRadius = 100;
+                                break;
+                            case 'corn':
+                                attractionRadius = 150;
+                                break;
+                            case 'lure':
+                                attractionRadius = 200;
+                                break;
+                            default:
+                                attractionRadius = 100;
+                        }
+
+                        // If fish is within attraction radius, it becomes interested
+                        if (distance < attractionRadius) {
+                            fish.interested = true;
+                            fish.targetX = hookPosition.x - fish.size.width / 2;
+                            fish.targetY = hookPosition.y - fish.size.height / 2;
+                            fish.element.classList.add('interested');
+                            anyFishInterested = true;
+                        } else {
+                            fish.interested = false;
+                            fish.targetX = null;
+                            fish.targetY = null;
+                            fish.element.classList.remove('interested');
+                        }
+                    } else {
+                        fish.interested = false;
+                        fish.targetX = null;
+                        fish.targetY = null;
+                        fish.element.classList.remove('interested');
+                    }
+
+                    // Move fish
+                    if (fish.interested && fish.targetX !== null && fish.targetY !== null) {
+                        // Move towards the hook
+                        const fishCenterX = fish.x + fish.size.width / 2;
+                        const fishCenterY = fish.y + fish.size.height / 2;
+
+                        const targetCenterX = fish.targetX + fish.size.width / 2;
+                        const targetCenterY = fish.targetY + fish.size.height / 2;
+
+                        const dx = targetCenterX - fishCenterX;
+                        const dy = targetCenterY - fishCenterY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance > 5) {
+                            fish.x += (dx / distance) * fish.speed * 1.5;
+                            fish.y += (dy / distance) * fish.speed * 1.5;
+
+                            // Update fish direction based on movement
+                            if (dx > 0) {
+                                fish.direction = 1;
+                                fish.element.innerHTML = `
+                                    <svg viewBox="0 0 40 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M5,10 C5,5 15,0 25,5 L35,10 L25,15 C15,20 5,15 5,10 Z" fill="${fish.element.querySelector('path').getAttribute('fill')}" />
+                                        <circle cx="30" cy="7" r="2" fill="black" />
+                                        <path d="M5,10 L0,5 L0,15 Z" fill="${fish.element.querySelector('path').getAttribute('fill')}" />
+                                    </svg>
+                                `;
+                            } else {
+                                fish.direction = -1;
+                                fish.element.innerHTML = `
+                                    <svg viewBox="0 0 40 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M35,10 C35,5 25,0 15,5 L5,10 L15,15 C25,20 35,15 35,10 Z" fill="${fish.element.querySelector('path').getAttribute('fill')}" />
+                                        <circle cx="10" cy="7" r="2" fill="black" />
+                                        <path d="M35,10 L40,5 L40,15 Z" fill="${fish.element.querySelector('path').getAttribute('fill')}" />
+                                    </svg>
+                                `;
+                            }
+                        }
+                    } else {
+                        // Normal movement
+                        fish.x += fish.direction * fish.speed;
+                    }
+
+                    // Update fish position
+                    fish.element.style.left = `${fish.x}px`;
+                    fish.element.style.top = `${fish.y}px`;
+
+                    // Remove fish if it's out of bounds
+                    if ((fish.direction > 0 && fish.x > gameWidth) ||
+                        (fish.direction < 0 && fish.x < -fish.size.width)) {
+                        fishesToRemove.push(fish);
+                    }
+                }
+
+                // Show fish indicator if any fish is interested
+                if (anyFishInterested) {
+                    if (!fishBitingTimeout) {
+                        fishBitingTimeout = setTimeout(() => {
+                            showFishIndicator();
+                        }, 1000);
+                    }
+                } else {
+                    if (fishBitingTimeout) {
+                        clearTimeout(fishBitingTimeout);
+                        fishBitingTimeout = null;
+                    }
+                    fishIndicator.style.display = 'none';
+                }
+
+                // Remove fishes that are out of bounds
+                for (const fish of fishesToRemove) {
+                    const index = fishes.indexOf(fish);
+                    if (index > -1) {
+                        fishes.splice(index, 1);
+                    }
+
+                    if (fish.element && fish.element.parentNode) {
+                        fish.element.parentNode.removeChild(fish.element);
+                    }
+                }
+            }
+
+            function gameLoop() {
+                // Randomly spawn fish
+                if (Math.random() < 0.02) {
+                    spawnFish();
+                }
+
+                // Update fish positions
+                updateFishes();
+            }
+
+            // Start the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

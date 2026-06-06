@@ -1,0 +1,1296 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "GameName";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Candy Drop - 3D Physics Puzzle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
+    <link href="~/css/CutTheRope.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+
+        <!-- Main game container -->
+        <div id="game-container" class="w-full h-screen bg-gradient-to-b from-blue-300 to-purple-300">
+            <!-- Game canvas will be inserted here -->
+        </div>
+
+        <!-- Game UI overlay -->
+        <div class="game-ui">
+            <!-- Top UI Bar -->
+            <div class="flex justify-between items-center p-4">
+                <div class="score-container">
+                    <span class="font-bold text-lg">Score: </span>
+                    <span id="score" class="font-bold text-lg">0</span>
+                </div>
+
+                <div class="level-indicator">
+                    <span class="font-bold">Level: </span>
+                    <span id="level" class="font-bold">1</span>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+                Swipe across ropes to cut them! Guide the candy to the monster.
+            </div>
+
+            <!-- Bottom UI Bar -->
+            <div class="absolute bottom-4 left-0 w-full flex justify-center">
+                <button id="restart-button" class="game-button">
+                    Restart Level
+                </button>
+            </div>
+
+            <!-- Level Complete Modal (Hidden by default) -->
+            <div id="level-complete" class="hidden fixed inset-0 flex items-center justify-center">
+                <div class="level-complete text-center text-white">
+                    <h2 class="text-3xl font-bold mb-4">Level Complete!</h2>
+                    <div class="stars-container my-6">
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                    </div>
+                    <p class="text-xl mb-6">Score: <span id="level-score">0</span></p>
+                    <div class="flex justify-center gap-4">
+                        <button id="retry-level" class="game-button">Retry</button>
+                        <button id="next-level" class="game-button bg-green-500 hover:bg-green-600">Next Level</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+          /**
+         * Candy Drop - A Cut the Rope inspired physics puzzle game
+         *
+         * This game uses Three.js for rendering and Cannon.js for physics
+         * The goal is to cut ropes and guide candy to a hungry monster
+         */
+
+        // ===== GAME STATE =====
+        const gameState = {
+            score: 0,
+            currentLevel: 1,
+            maxLevels: 3,
+            gameActive: true,
+            candyDelivered: false,
+            ropesCut: 0,
+            timeElapsed: 0,
+            stars: 0,
+
+            // Input tracking
+            lastMousePosition: { x: 0, y: 0 },
+            mouseVelocity: { x: 0, y: 0 },
+            mouseDown: false,
+            touchActive: false,
+
+            // Settings
+            cutVelocityThreshold: 2.5, // How fast mouse needs to move to cut rope
+            instructionsVisible: true
+        };
+
+        // ===== PHYSICS SETTINGS =====
+        const physicsSettings = {
+            gravity: -9.82,
+            timeStep: 1/60,
+            candyMass: 1,
+            ropeTension: 10,
+            ropeSegments: 8,
+            bubbleForce: 15
+        };
+
+        // ===== GAME OBJECTS =====
+        let scene, camera, renderer, world;
+        let candy, monster, ropes = [], bubbles = [], fans = [];
+        let raycaster, mouse;
+        let clock = new THREE.Clock();
+        let gameContainer = document.getElementById('game-container');
+
+        // ===== INITIALIZE GAME =====
+        initGame();
+
+        /**
+         * Initialize the game
+         */
+        function initGame() {
+            // Initialize Three.js scene
+            initScene();
+
+            // Initialize physics world
+            initPhysics();
+
+            // Load level
+            loadLevel(gameState.currentLevel);
+
+            // Set up event listeners
+            setupEventListeners();
+
+            // Start game loop
+            animate();
+
+            // Hide instructions after 5 seconds
+            setTimeout(() => {
+                const instructions = document.querySelector('.instructions');
+                instructions.style.opacity = '0';
+                instructions.style.transition = 'opacity 1s';
+                gameState.instructionsVisible = false;
+            }, 5000);
+        }
+
+        /**
+         * Initialize the Three.js scene, camera, and renderer
+         */
+        function initScene() {
+            // Create scene with sky blue background
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+
+            // Add ambient light for general illumination
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            // Add directional light (simulates sun)
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            scene.add(directionalLight);
+
+            // Set up camera with perspective for 3D feel
+            camera = new THREE.PerspectiveCamera(
+                60,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(0, 0, 15);
+            camera.lookAt(0, 0, 0);
+
+            // Create renderer with shadows enabled
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            gameContainer.appendChild(renderer.domElement);
+
+            // Initialize raycaster for mouse interaction
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+        }
+
+        /**
+         * Initialize the Cannon.js physics world
+         */
+        function initPhysics() {
+            // Create physics world with gravity
+            world = new CANNON.World();
+            world.gravity.set(0, physicsSettings.gravity, 0);
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.solver.iterations = 10;
+        }
+
+
+        function loadLevel(levelNum) {
+            // Clear previous level objects
+            clearLevel();
+
+            // Reset game state for new level
+            gameState.candyDelivered = false;
+            gameState.ropesCut = 0;
+            gameState.timeElapsed = 0;
+
+            // Update UI
+            document.getElementById('level').textContent = levelNum;
+
+            // Create level based on level number
+            switch(levelNum) {
+                case 1:
+                    createLevel1();
+                    break;
+                case 2:
+                    createLevel2();
+                    break;
+                case 3:
+                    createLevel3();
+                    break;
+                default:
+                    createLevel1();
+            }
+        }
+
+        /**
+         * Clear all objects from the current level
+         */
+        function clearLevel() {
+            // Remove all ropes
+            ropes.forEach(rope => {
+                rope.segments.forEach(segment => {
+                    scene.remove(segment.mesh);
+                    world.remove(segment.body);
+                });
+            });
+            ropes = [];
+
+            // Remove candy if exists
+            if (candy) {
+                scene.remove(candy.mesh);
+                world.remove(candy.body);
+                candy = null;
+            }
+
+            // Remove monster if exists
+            if (monster) {
+                scene.remove(monster.mesh);
+                monster = null;
+            }
+
+            // Remove bubbles
+            bubbles.forEach(bubble => {
+                scene.remove(bubble.mesh);
+                world.remove(bubble.body);
+            });
+            bubbles = [];
+
+            // Remove fans
+            fans.forEach(fan => {
+                scene.remove(fan.mesh);
+            });
+            fans = [];
+        }
+
+        /**
+         * Create level 1 - Simple introduction with one rope
+         */
+        function createLevel1() {
+            // Create background elements
+            createBackground();
+
+            // Create monster at bottom
+            createMonster(0, -6, 0);
+
+            // Create candy hanging from a rope
+            createCandy(0, 5, 0);
+
+            // Create rope attached to candy
+            createRope(new THREE.Vector3(0, 8, 0), candy.body);
+
+            // Add a bubble to help guide the candy
+            createBubble(3, 0, 0, 1.5);
+        }
+
+        /**
+         * Create level 2 - Two ropes and a fan
+         */
+        function createLevel2() {
+            // Create background elements
+            createBackground();
+
+            // Create monster at bottom right
+            createMonster(4, -6, 0);
+
+            // Create candy hanging from two ropes
+            createCandy(-2, 5, 0);
+
+            // Create ropes attached to candy
+            createRope(new THREE.Vector3(-4, 8, 0), candy.body);
+            createRope(new THREE.Vector3(0, 8, 0), candy.body);
+
+            // Add bubbles
+            createBubble(2, 0, 0, 1.5);
+            createBubble(4, -3, 0, 1.5);
+
+            // Add a fan to blow the candy
+            createFan(-4, 0, 0, Math.PI / 2);
+        }
+
+        /**
+         * Create level 3 - Three ropes and multiple fans
+         */
+        function createLevel3() {
+            // Create background elements
+            createBackground();
+
+            // Create monster at bottom left
+            createMonster(-4, -6, 0);
+
+            // Create candy hanging from three ropes
+            createCandy(2, 5, 0);
+
+            // Create ropes attached to candy
+            createRope(new THREE.Vector3(0, 8, 0), candy.body);
+            createRope(new THREE.Vector3(4, 8, 0), candy.body);
+            createRope(new THREE.Vector3(2, 8, 0), candy.body);
+
+            // Add bubbles
+            createBubble(-2, 0, 0, 1.5);
+            createBubble(-4, -3, 0, 1.5);
+
+            // Add fans
+            createFan(4, 0, 0, -Math.PI / 2);
+            createFan(0, -4, 0, 0);
+        }
+
+        /**
+         * Create background elements for the level
+         */
+        function createBackground() {
+            // Create a platform for the monster
+            const platformGeometry = new THREE.BoxGeometry(20, 1, 5);
+            const platformMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+            platform.position.y = -8;
+            platform.receiveShadow = true;
+            scene.add(platform);
+
+            // Add a static body for the platform in the physics world
+            const platformShape = new CANNON.Box(new CANNON.Vec3(10, 0.5, 2.5));
+            const platformBody = new CANNON.Body({ mass: 0 });
+            platformBody.addShape(platformShape);
+            platformBody.position.set(0, -8, 0);
+            world.addBody(platformBody);
+
+            // Add decorative clouds in the background
+            for (let i = 0; i < 5; i++) {
+                const cloudGeometry = new THREE.SphereGeometry(1 + Math.random(), 8, 8);
+                const cloudMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
+                const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
+                cloud.position.set(
+                    (Math.random() - 0.5) * 20,
+                    8 + (Math.random() - 0.5) * 4,
+                    -5 - Math.random() * 5
+                );
+                scene.add(cloud);
+            }
+        }
+
+        function createCandy(x, y, z) {
+            // Create candy mesh - a red sphere
+            const candyGeometry = new THREE.SphereGeometry(0.8, 16, 16);
+            const candyMaterial = new THREE.MeshPhongMaterial({
+                color: 0xFF4500,
+                shininess: 100
+            });
+            const candyMesh = new THREE.Mesh(candyGeometry, candyMaterial);
+            candyMesh.castShadow = true;
+            scene.add(candyMesh);
+
+            // Create candy physics body
+            const candyShape = new CANNON.Sphere(0.8);
+            const candyBody = new CANNON.Body({
+                mass: physicsSettings.candyMass,
+                position: new CANNON.Vec3(x, y, z)
+            });
+            candyBody.addShape(candyShape);
+            world.addBody(candyBody);
+
+            // Store candy object
+            candy = {
+                mesh: candyMesh,
+                body: candyBody
+            };
+
+            // Add collision event for candy
+            candyBody.addEventListener('collide', candyCollision);
+        }
+
+        function createMonster(x, y, z) {
+            // Create monster group to hold all parts
+            const monsterGroup = new THREE.Group();
+
+            // Create monster body (green sphere)
+            const bodyGeometry = new THREE.SphereGeometry(1.2, 16, 16);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x00AA00 });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            monsterGroup.add(body);
+
+            // Create monster eyes (white spheres)
+            const eyeGeometry = new THREE.SphereGeometry(0.3, 12, 12);
+            const eyeMaterial = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
+            const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            leftEye.position.set(-0.5, 0.5, 0.8);
+            monsterGroup.add(leftEye);
+
+            const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            rightEye.position.set(0.5, 0.5, 0.8);
+            monsterGroup.add(rightEye);
+
+            // Create pupils (black spheres)
+            const pupilGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+            const pupilMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+            const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+            leftPupil.position.set(-0.5, 0.5, 1.1);
+            monsterGroup.add(leftPupil);
+
+            const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+            rightPupil.position.set(0.5, 0.5, 1.1);
+            monsterGroup.add(rightPupil);
+
+            // Create mouth (half sphere)
+            const mouthGeometry = new THREE.SphereGeometry(0.5, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+            const mouthMaterial = new THREE.MeshPhongMaterial({
+                color: 0xFF0000,
+                side: THREE.DoubleSide
+            });
+            const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+            mouth.position.set(0, 0, 0.8);
+            mouth.rotation.x = Math.PI;
+            monsterGroup.add(mouth);
+
+            // Position monster
+            monsterGroup.position.set(x, y, z);
+            scene.add(monsterGroup);
+
+            // Store monster object with animation properties
+            monster = {
+                mesh: monsterGroup,
+                mouthOpen: false,
+                eyeDirection: new THREE.Vector3(),
+                leftPupil: leftPupil,
+                rightPupil: rightPupil,
+                mouth: mouth,
+                originalPosition: new THREE.Vector3(x, y, z),
+                jumpHeight: 0
+            };
+        }
+
+
+        function createRope(startPoint, attachBody) {
+            const segments = [];
+            const segmentLength = 0.5;
+            const numSegments = physicsSettings.ropeSegments;
+            const constraints = [];
+
+            let prevBody = null;
+
+            // Create rope segments
+            for (let i = 0; i < numSegments; i++) {
+                // Create segment mesh - thicker for better visibility and interaction
+                const segmentGeometry = new THREE.CylinderGeometry(0.15, 0.15, segmentLength, 8);
+                const segmentMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+                const segmentMesh = new THREE.Mesh(segmentGeometry, segmentMaterial);
+                segmentMesh.castShadow = true;
+                scene.add(segmentMesh);
+
+                // Create segment physics body
+                const segmentShape = new CANNON.Box(new CANNON.Vec3(0.15, segmentLength/2, 0.15));
+                const segmentBody = new CANNON.Body({
+                    mass: i === 0 ? 0 : 0.1, // First segment is fixed
+                    position: new CANNON.Vec3(
+                        startPoint.x,
+                        startPoint.y - i * segmentLength,
+                        startPoint.z
+                    )
+                });
+                segmentBody.addShape(segmentShape);
+                world.addBody(segmentBody);
+
+                // Store segment
+                segments.push({
+                    mesh: segmentMesh,
+                    body: segmentBody,
+                    index: i
+                });
+
+                // Connect to previous segment with constraint
+                if (prevBody) {
+                    const constraint = new CANNON.PointToPointConstraint(
+                        prevBody,
+                        new CANNON.Vec3(0, -segmentLength/2, 0),
+                        segmentBody,
+                        new CANNON.Vec3(0, segmentLength/2, 0),
+                        physicsSettings.ropeTension
+                    );
+                    world.addConstraint(constraint);
+                    constraints.push({
+                        constraint: constraint,
+                        bodyA: prevBody,
+                        bodyB: segmentBody,
+                        indexA: i-1,
+                        indexB: i
+                    });
+                }
+
+                prevBody = segmentBody;
+            }
+
+            // Connect last segment to the attached body (candy)
+            if (attachBody) {
+                const lastSegment = segments[segments.length - 1];
+                const constraint = new CANNON.PointToPointConstraint(
+                    lastSegment.body,
+                    new CANNON.Vec3(0, -segmentLength/2, 0),
+                    attachBody,
+                    new CANNON.Vec3(0, 0.8, 0),
+                    physicsSettings.ropeTension
+                );
+                world.addConstraint(constraint);
+                constraints.push({
+                    constraint: constraint,
+                    bodyA: lastSegment.body,
+                    bodyB: attachBody,
+                    indexA: segments.length - 1,
+                    indexB: -1 // Special index for candy
+                });
+            }
+
+            // Store rope
+            const rope = {
+                segments: segments,
+                constraints: constraints,
+                cut: false,
+                startPoint: startPoint.clone()
+            };
+
+            ropes.push(rope);
+
+            return rope;
+        }
+
+        function createBubble(x, y, z, radius = 1) {
+            // Create bubble mesh - blue transparent sphere
+            const bubbleGeometry = new THREE.SphereGeometry(radius, 24, 24);
+            const bubbleMaterial = new THREE.MeshPhongMaterial({
+                color: 0x88CCFF,
+                transparent: true,
+                opacity: 0.6,
+                shininess: 90
+            });
+            const bubbleMesh = new THREE.Mesh(bubbleGeometry, bubbleMaterial);
+            bubbleMesh.position.set(x, y, z);
+            scene.add(bubbleMesh);
+
+            // Create bubble physics body (static, non-colliding "trigger")
+            const bubbleShape = new CANNON.Sphere(radius);
+            const bubbleBody = new CANNON.Body({
+                mass: 0,
+                position: new CANNON.Vec3(x, y, z)
+            });
+            bubbleBody.addShape(bubbleShape);
+            bubbleBody.collisionResponse = false; // Ghost body for trigger
+            world.addBody(bubbleBody);
+
+            // Store bubble
+            bubbles.push({
+                mesh: bubbleMesh,
+                body: bubbleBody,
+                radius: radius,
+                active: true
+            });
+        }
+
+
+        function createFan(x, y, z, rotation = 0) {
+            // Create fan group
+            const fanGroup = new THREE.Group();
+
+            // Create fan base
+            const baseGeometry = new THREE.BoxGeometry(1, 1, 0.5);
+            const baseMaterial = new THREE.MeshPhongMaterial({ color: 0x444444 });
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            fanGroup.add(base);
+
+            // Create fan blades
+            const bladeGeometry = new THREE.BoxGeometry(2, 0.3, 0.1);
+            const bladeMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+
+            for (let i = 0; i < 3; i++) {
+                const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+                blade.rotation.z = i * Math.PI * 2 / 3;
+                fanGroup.add(blade);
+            }
+
+            // Position and rotate fan
+            fanGroup.position.set(x, y, z);
+            fanGroup.rotation.z = rotation;
+            scene.add(fanGroup);
+
+            // Store fan with properties
+            fans.push({
+                mesh: fanGroup,
+                position: new THREE.Vector3(x, y, z),
+                direction: new THREE.Vector3(Math.cos(rotation), Math.sin(rotation), 0).normalize(),
+                power: 10,
+                range: 5,
+                blades: fanGroup.children.slice(1) // All children except base
+            });
+        }
+
+
+        function cutRope(ropeIndex, segmentIndex) {
+            const rope = ropes[ropeIndex];
+
+            // Skip if rope is already cut
+            if (rope.cut) return;
+
+            // Find the constraint to remove
+            let constraintToRemove = null;
+            let constraintIndex = -1;
+
+            for (let i = 0; i < rope.constraints.length; i++) {
+                const c = rope.constraints[i];
+                if (c.indexA === segmentIndex || c.indexB === segmentIndex) {
+                    constraintToRemove = c.constraint;
+                    constraintIndex = i;
+                    break;
+                }
+            }
+
+            if (constraintToRemove) {
+                // Remove the constraint from the physics world
+                world.removeConstraint(constraintToRemove);
+
+                // Remove the constraint from our list
+                rope.constraints.splice(constraintIndex, 1);
+
+                // Mark rope as cut
+                rope.cut = true;
+                gameState.ropesCut++;
+
+                // Create visual effect for rope cutting
+                createCutEffect(rope.segments[segmentIndex].mesh.position);
+
+                // Play rope snap sound (would be implemented with actual audio)
+                console.log("Rope snap sound");
+            }
+        }
+
+        function createCutEffect(position) {
+            // Create a visual effect at the cut point
+            const cutTrail = document.createElement('div');
+            cutTrail.className = 'cut-trail';
+            cutTrail.style.width = '20px';
+            cutTrail.style.height = '20px';
+
+            // Convert 3D position to screen coordinates
+            const screenPosition = toScreenPosition(position);
+            cutTrail.style.left = `${screenPosition.x}px`;
+            cutTrail.style.top = `${screenPosition.y}px`;
+
+            document.body.appendChild(cutTrail);
+
+            // Animate and remove
+            let size = 20;
+            let opacity = 1;
+
+            const animateCut = () => {
+                size -= 1;
+                opacity -= 0.05;
+
+                if (size > 0 && opacity > 0) {
+                    cutTrail.style.width = `${size}px`;
+                    cutTrail.style.height = `${size}px`;
+                    cutTrail.style.opacity = opacity;
+                    requestAnimationFrame(animateCut);
+                } else {
+                    document.body.removeChild(cutTrail);
+                }
+            };
+
+            requestAnimationFrame(animateCut);
+        }
+
+
+        function toScreenPosition(position) {
+            const vector = new THREE.Vector3(position.x, position.y, position.z);
+            vector.project(camera);
+
+            return {
+                x: (vector.x * 0.5 + 0.5) * window.innerWidth,
+                y: (-(vector.y * 0.5) + 0.5) * window.innerHeight
+            };
+        }
+
+
+        function popBubble(bubbleIndex) {
+            const bubble = bubbles[bubbleIndex];
+
+            // Skip if bubble is already popped
+            if (!bubble.active) return;
+
+            // Mark bubble as inactive
+            bubble.active = false;
+
+            // Play bubble pop sound (would be implemented with actual audio)
+            console.log("Bubble pop sound");
+
+            // Apply upward force to candy if it's inside the bubble
+            if (candy) {
+                const distance = new CANNON.Vec3().copy(candy.body.position).vsub(bubble.body.position).length();
+                if (distance < bubble.radius + 0.8) { // Candy radius is 0.8
+                    candy.body.applyImpulse(
+                        new CANNON.Vec3(0, physicsSettings.bubbleForce, 0),
+                        candy.body.position
+                    );
+                }
+            }
+
+            // Animate bubble popping
+            const startTime = Date.now();
+            const duration = 300; // ms
+
+            function animatePop() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                const newScale = 1 + progress * 0.5;
+                const newOpacity = 0.6 * (1 - progress);
+
+                bubble.mesh.scale.set(newScale, newScale, newScale);
+                bubble.mesh.material.opacity = newOpacity;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animatePop);
+                } else {
+                    // Remove bubble from scene
+                    scene.remove(bubble.mesh);
+                    world.remove(bubble.body);
+                    bubbles.splice(bubbleIndex, 1);
+                }
+            }
+
+            animatePop();
+        }
+
+
+        function candyCollision(event) {
+            // Play bounce sound on significant impacts
+            if (event.contact.getImpactVelocityAlongNormal() > 2) {
+                console.log("Candy bounce sound");
+            }
+
+            // Check if candy collided with monster
+            if (monster && !gameState.candyDelivered) {
+                const candyPos = candy.body.position;
+                const monsterPos = monster.mesh.position;
+                const distance = Math.sqrt(
+                    Math.pow(candyPos.x - monsterPos.x, 2) +
+                    Math.pow(candyPos.y - monsterPos.y, 2) +
+                    Math.pow(candyPos.z - monsterPos.z, 2)
+                );
+
+                // If candy is close to monster, consider it delivered
+                if (distance < 2) {
+                    deliverCandy();
+                }
+            }
+        }
+
+        /**
+         * Handle candy delivery to monster
+         */
+        function deliverCandy() {
+            if (gameState.candyDelivered) return;
+
+            // Mark candy as delivered
+            gameState.candyDelivered = true;
+
+            // Play monster eat sound (would be implemented with actual audio)
+            console.log("Monster eat sound");
+
+            // Animate monster (happy jump)
+            animateMonsterEat();
+
+            // Update score
+            updateScore(100);
+
+            // Show level complete after a short delay
+            setTimeout(() => {
+                if (gameState.gameActive) {
+                    showLevelComplete();
+                }
+            }, 1500);
+        }
+
+        /**
+         * Animate monster eating the candy
+         */
+        function animateMonsterEat() {
+            // Make monster jump up and down
+            monster.jumpHeight = 1;
+
+            // Open mouth wider
+            monster.mouth.scale.set(1.5, 1.5, 1.5);
+
+            // Hide candy
+            scene.remove(candy.mesh);
+        }
+
+        function updateScore(points) {
+            gameState.score += points;
+            document.getElementById('score').textContent = gameState.score;
+        }
+
+        /**
+         * Show the level complete UI
+         */
+        function showLevelComplete() {
+            // Calculate stars based on performance
+            calculateStars();
+
+            // Update UI
+            document.getElementById('level-score').textContent = gameState.score;
+            document.getElementById('level-complete').classList.remove('hidden');
+
+            // Show earned stars
+            const starElements = document.querySelectorAll('.star');
+            for (let i = 0; i < starElements.length; i++) {
+                if (i < gameState.stars) {
+                    starElements[i].classList.add('earned');
+                } else {
+                    starElements[i].classList.remove('earned');
+                }
+            }
+
+            // Play level complete sound (would be implemented with actual audio)
+            console.log("Level complete sound");
+        }
+
+        /**
+         * Calculate stars earned based on performance
+         */
+        function calculateStars() {
+            // Calculate stars based on time and ropes cut
+            if (gameState.timeElapsed < 10) {
+                gameState.stars = 3;
+            } else if (gameState.timeElapsed < 20) {
+                gameState.stars = 2;
+            } else {
+                gameState.stars = 1;
+            }
+        }
+
+        /**
+         * Set up all event listeners
+         */
+        function setupEventListeners() {
+            // Mouse events for cutting ropes
+            window.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+
+            // Touch events for mobile
+            window.addEventListener('touchstart', onTouchStart);
+            window.addEventListener('touchmove', onTouchMove);
+            window.addEventListener('touchend', onTouchEnd);
+
+            // Window resize
+            window.addEventListener('resize', onWindowResize);
+
+            // UI buttons
+            document.getElementById('restart-button').addEventListener('click', restartLevel);
+            document.getElementById('retry-level').addEventListener('click', restartLevel);
+            document.getElementById('next-level').addEventListener('click', nextLevel);
+        }
+
+        function onMouseDown(event) {
+            gameState.mouseDown = true;
+
+            // Store initial mouse position
+            gameState.lastMousePosition.x = event.clientX;
+            gameState.lastMousePosition.y = event.clientY;
+
+            // Convert mouse position to normalized device coordinates
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Check for bubble taps
+            checkBubbleTap();
+        }
+
+        function onMouseMove(event) {
+            if (!gameState.mouseDown) return;
+
+            // Calculate mouse velocity
+            gameState.mouseVelocity.x = event.clientX - gameState.lastMousePosition.x;
+            gameState.mouseVelocity.y = event.clientY - gameState.lastMousePosition.y;
+
+            // Update last position
+            gameState.lastMousePosition.x = event.clientX;
+            gameState.lastMousePosition.y = event.clientY;
+
+            // Convert mouse position to normalized device coordinates
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Check for rope cuts if mouse is moving fast enough
+            const mouseSpeed = Math.sqrt(
+                Math.pow(gameState.mouseVelocity.x, 2) +
+                Math.pow(gameState.mouseVelocity.y, 2)
+            );
+
+            if (mouseSpeed > gameState.cutVelocityThreshold) {
+                checkRopeCut();
+            }
+        }
+
+        /**
+         * Handle mouse up event
+         */
+        function onMouseUp() {
+            gameState.mouseDown = false;
+        }
+
+        function onTouchStart(event) {
+            // Prevent default to avoid scrolling
+            event.preventDefault();
+
+            gameState.touchActive = true;
+
+            // Get touch position
+            const touch = event.touches[0];
+            gameState.lastMousePosition.x = touch.clientX;
+            gameState.lastMousePosition.y = touch.clientY;
+
+            // Convert touch position to normalized device coordinates
+            mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+
+            // Check for bubble taps
+            checkBubbleTap();
+        }
+
+
+        function onTouchMove(event) {
+            // Prevent default to avoid scrolling
+            event.preventDefault();
+
+            if (!gameState.touchActive) return;
+
+            // Get touch position
+            const touch = event.touches[0];
+
+            // Calculate touch velocity
+            gameState.mouseVelocity.x = touch.clientX - gameState.lastMousePosition.x;
+            gameState.mouseVelocity.y = touch.clientY - gameState.lastMousePosition.y;
+
+            // Update last position
+            gameState.lastMousePosition.x = touch.clientX;
+            gameState.lastMousePosition.y = touch.clientY;
+
+            // Convert touch position to normalized device coordinates
+            mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+
+            // Check for rope cuts if touch is moving fast enough
+            const touchSpeed = Math.sqrt(
+                Math.pow(gameState.mouseVelocity.x, 2) +
+                Math.pow(gameState.mouseVelocity.y, 2)
+            );
+
+            if (touchSpeed > gameState.cutVelocityThreshold) {
+                checkRopeCut();
+            }
+        }
+
+        /**
+         * Handle touch end event
+         */
+        function onTouchEnd() {
+            gameState.touchActive = false;
+        }
+
+        /**
+         * Check if a rope should be cut
+         */
+        function checkRopeCut() {
+            // Update raycaster
+            raycaster.setFromCamera(mouse, camera);
+
+            // Get all objects that intersect with the ray
+            const intersects = raycaster.intersectObjects(scene.children);
+
+            // Check for rope segment intersections
+            for (let i = 0; i < intersects.length; i++) {
+                const intersect = intersects[i];
+                const object = intersect.object;
+
+                // Find which rope segment this object belongs to
+                for (let r = 0; r < ropes.length; r++) {
+                    const rope = ropes[r];
+                    if (rope.cut) continue;
+
+                    for (let s = 0; s < rope.segments.length; s++) {
+                        const segment = rope.segments[s];
+                        if (segment.mesh === object) {
+                            cutRope(r, s);
+                            return; // Only cut one rope at a time
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * Check if a bubble should be popped
+         */
+        function checkBubbleTap() {
+            // Update raycaster
+            raycaster.setFromCamera(mouse, camera);
+
+            // Get all objects that intersect with the ray
+            const intersects = raycaster.intersectObjects(scene.children);
+
+            // Check for bubble intersections
+            for (let i = 0; i < intersects.length; i++) {
+                const intersect = intersects[i];
+                const object = intersect.object;
+
+                // Find which bubble this object belongs to
+                for (let b = 0; b < bubbles.length; b++) {
+                    const bubble = bubbles[b];
+                    if (!bubble.active) continue;
+
+                    if (bubble.mesh === object) {
+                        popBubble(b);
+                        return; // Only pop one bubble at a time
+                    }
+                }
+            }
+        }
+
+        /**
+         * Handle window resize
+         */
+        function onWindowResize() {
+            // Update camera aspect ratio
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            // Update renderer size
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        /**
+         * Restart the current level
+         */
+        function restartLevel() {
+            // Hide level complete modal
+            document.getElementById('level-complete').classList.add('hidden');
+
+            // Reload current level
+            loadLevel(gameState.currentLevel);
+        }
+
+        /**
+         * Go to the next level
+         */
+        function nextLevel() {
+            // Hide level complete modal
+            document.getElementById('level-complete').classList.add('hidden');
+
+            // Increment level
+            gameState.currentLevel++;
+
+            // Check if we've completed all levels
+            if (gameState.currentLevel > gameState.maxLevels) {
+                // Loop back to first level for demo purposes
+                gameState.currentLevel = 1;
+            }
+
+            // Load next level
+            loadLevel(gameState.currentLevel);
+        }
+
+        /**
+         * Main animation loop
+         */
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Get delta time
+            const delta = clock.getDelta();
+
+            // Update physics
+            world.step(physicsSettings.timeStep);
+
+            // Update game time
+            if (gameState.gameActive && !gameState.candyDelivered) {
+                gameState.timeElapsed += delta;
+            }
+
+            // Update rope segments
+            ropes.forEach(rope => {
+                rope.segments.forEach(segment => {
+                    // Update mesh position and rotation from physics body
+                    segment.mesh.position.copy(segment.body.position);
+                    segment.mesh.quaternion.copy(segment.body.quaternion);
+                });
+            });
+
+            // Update candy position
+            if (candy && candy.body) {
+                candy.mesh.position.copy(candy.body.position);
+                candy.mesh.quaternion.copy(candy.body.quaternion);
+
+                // Apply fan forces to candy
+                applyFanForces();
+            }
+
+            // Animate monster
+            animateMonster(delta);
+
+            // Render scene
+            renderer.render(scene, camera);
+        }
+
+        /**
+         * Apply forces from fans to the candy
+         */
+        function applyFanForces() {
+            fans.forEach(fan => {
+                // Calculate distance from fan to candy
+                const fanPos = fan.position;
+                const candyPos = candy.body.position;
+                const direction = fan.direction;
+
+                // Project candy position onto fan direction line
+                const fanToCandyVec = new THREE.Vector3(
+                    candyPos.x - fanPos.x,
+                    candyPos.y - fanPos.y,
+                    candyPos.z - fanPos.z
+                );
+
+                // Calculate distance along fan direction
+                const distanceAlongDirection = fanToCandyVec.dot(direction);
+
+                // Calculate perpendicular distance from fan direction line
+                const projectionVec = direction.clone().multiplyScalar(distanceAlongDirection);
+                const perpendicularVec = fanToCandyVec.clone().sub(projectionVec);
+                const perpendicularDistance = perpendicularVec.length();
+
+                // Apply force if candy is in fan's range and in front of the fan
+                if (distanceAlongDirection > 0 &&
+                    distanceAlongDirection < fan.range &&
+                    perpendicularDistance < 2) {
+
+                    // Calculate force strength based on distance
+                    const forceStrength = fan.power * (1 - distanceAlongDirection / fan.range);
+
+                    // Apply force to candy
+                    candy.body.applyForce(
+                        new CANNON.Vec3(
+                            direction.x * forceStrength,
+                            direction.y * forceStrength,
+                            direction.z * forceStrength
+                        ),
+                        candy.body.position
+                    );
+                }
+
+                // Animate fan blades
+                fan.blades.forEach(blade => {
+                    blade.rotation.z += 0.1;
+                });
+            });
+        }
+
+
+        function animateMonster(delta) {
+            if (!monster) return;
+
+            // Make monster look at candy
+            if (candy && !gameState.candyDelivered) {
+                const candyPos = candy.body.position;
+                monster.eyeDirection.set(
+                    candyPos.x - monster.mesh.position.x,
+                    candyPos.y - monster.mesh.position.y,
+                    0
+                ).normalize();
+
+                // Move pupils to look at candy
+                const eyeOffset = 0.2;
+                monster.leftPupil.position.x = -0.5 + monster.eyeDirection.x * eyeOffset;
+                monster.leftPupil.position.y = 0.5 + monster.eyeDirection.y * eyeOffset;
+
+                monster.rightPupil.position.x = 0.5 + monster.eyeDirection.x * eyeOffset;
+                monster.rightPupil.position.y = 0.5 + monster.eyeDirection.y * eyeOffset;
+
+                // Occasionally open/close mouth
+                if (Math.random() < 0.01) {
+                    monster.mouthOpen = !monster.mouthOpen;
+                    monster.mouth.scale.set(
+                        monster.mouthOpen ? 1.2 : 1,
+                        monster.mouthOpen ? 1.2 : 1,
+                        monster.mouthOpen ? 1.2 : 1
+                    );
+                }
+            }
+
+            // Handle jump animation when candy is delivered
+            if (monster.jumpHeight > 0) {
+                // Simple jump animation
+                const jumpSpeed = 5;
+                monster.mesh.position.y = monster.originalPosition.y +
+                    Math.abs(Math.sin(Date.now() / 200 * jumpSpeed)) * monster.jumpHeight;
+
+                // Gradually reduce jump height
+                monster.jumpHeight -= delta * 0.5;
+                if (monster.jumpHeight < 0) monster.jumpHeight = 0;
+            }
+        }
+
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9678897f25f49092',t:'MTc1MzkxNzEwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
+

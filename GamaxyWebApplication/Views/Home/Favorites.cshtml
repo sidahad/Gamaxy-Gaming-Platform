@@ -1,0 +1,70 @@
+﻿@using System.Linq
+@model List<GamaxyWebApplication.Models.Favourite>
+@{
+    ViewData["Title"] = "My Favorites";
+    Layout = "_layout";
+}
+@Html.AntiForgeryToken() <!-- Add CSRF token -->
+<div class="container py-5 bg-black">
+    <h2 class="text-center mb-4" style="font-family: Concert One, sans-serif; color: #ffffff; background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%, #008dff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        My Favorite Games
+    </h2>
+    @if (Model.Any())
+    {
+        <ul id="masonry8" class="row list-unstyled">
+            @foreach (var favorite in Model)
+            {
+                <div class="col-lg-3 col-md-6 col-sm-12 m-b50 wow fadeInLeft" data-wow-duration="2s" data-wow-delay="0.3s">
+                    <div class="dlab-box service-box-3">
+                        <div class="dlab-media radius-sm dlab-img-overlay1 zoom dlab-img-effect">
+                            <a asp-controller="Home" asp-action="@favorite.GameAction"><img src="~/gamer/img/@(favorite.GameAction).jfif" style="height: 180px;" alt="@favorite.GameName"></a>
+                        </div>
+                        <div class="dlab-info">
+                            <h4 class="title" style="background-image: linear-gradient(to right, #008dff 0%, #D400FF 50%,#008dff 100%);"><a asp-controller="Home" asp-action="@favorite.GameAction">@favorite.GameName</a></h4>
+                            <button class="btn btn-danger remove-from-favorite" data-game-action="@favorite.GameAction">Remove from Favorites</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-center" style="color: #ffffff;">You haven't added any games to your favorites yet.</p>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.remove-from-favorite').click(function () {
+            var button = $(this);
+            var gameAction = button.data('game-action');
+
+            $.ajax({
+                url: '@Url.Action("RemoveFromFavorites", "Home")', // Use Url.Action for correct URL
+                type: 'POST',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() // Add CSRF token
+                },
+                data: { gameAction: gameAction },
+                success: function (response) {
+                    console.log('Response:', response); // Debug response
+                    if (response.success) {
+                        button.closest('.col-lg-3').remove();
+                        alert('Game removed from favorites.');
+                        if ($('#masonry8').children().length === 0) {
+                            $('#masonry8').after('<p class="text-center" style="color: #ffffff;">You haven\'t added any games to your favorites yet.</p>');
+                        }
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error:', xhr, status, error); // Debug error
+                    alert('An error occurred while removing from favorites.');
+                }
+            });
+        });
+    });
+</script>

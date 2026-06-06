@@ -1,0 +1,197 @@
+﻿@model List<GamaxyWebApplication.Models.Game>
+
+@{
+    ViewData["Title"] = "My Uploaded Games (Launching History)";
+}
+<div class="container-fluid d-flex justify-content-center align-items-center gamaxy-uploaded" style="padding-bottom:100px;">
+    <div class="cardrr p-4 shadow-lg rounded border-0 body">
+        <!-- Upload Method Selection -->
+        <section class="p-4">
+            <div class="mb-3">
+                <div class="container mt-4">
+                    <h2 class="uploaded-title"> My Uploaded Games</h2>
+
+                    @if (ViewBag.NoGames != null)
+                    {
+                        <div class="alert alert-warning uploaded-alert">@ViewBag.NoGames</div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table uploaded-table">
+                                <thead>
+                                    <tr>
+                                        <th>Gamer Id</th>
+                                        <th>Thumbnail</th>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Uploaded Date</th>
+                                        <th>Price</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var game in Model)
+                                    {
+                                        <tr>
+                                            <td>@game.GamerId</td>
+                                            <td>
+                                                <img src="@game.ImagePath" alt="@game.Title" class="game-thumb" />
+                                            </td>
+                                            <td>@game.Title</td>
+                                            <td>
+                                                <span class="badge category-badge">
+                                                    @game.Category?.CategoryName
+                                                </span>
+                                            </td>
+                                            <td>@game.UploadedDate.ToString("dd MMM yyyy")</td>
+                                            <td>
+                                                @(game.Price.HasValue ? game.Price.Value.ToString("C") : "Free")
+                                            </td>
+                                            <td class="action-buttons">
+                                                <a class="btn-play" asp-action="Play" asp-route-gameId="@game.GameId">▶ Play</a>
+                                                <form asp-action="MoveToRecycleBin" method="post" style="display:inline;">
+                                                    <input type="hidden" name="id" value="@game.GameId" />
+                                                    <button type="submit" class="btn-recycle">🗑 Recycle</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<style>
+    /* Gamaxy Uploaded Games Styling */
+    .gamaxy-uploaded {
+        background: #000;
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .uploaded-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        background: linear-gradient(to right, #008dff, #D400FF);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .uploaded-alert {
+        font-size: 16px;
+        border-radius: 10px;
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border: 1px solid #ffc107;
+        text-align: center;
+    }
+
+    /* Neon Table */
+    .uploaded-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(20, 20, 30, 0.95);
+        box-shadow: 0 0 15px rgba(0,141,255,0.25);
+    }
+
+        .uploaded-table thead {
+            background: linear-gradient(to right, #008dff, #D400FF);
+            color: white;
+            text-align: center;
+        }
+
+        .uploaded-table th,
+        .uploaded-table td {
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 15px;
+            color: #ddd;
+        }
+
+        .uploaded-table tbody tr {
+            transition: 0.3s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+            .uploaded-table tbody tr:hover {
+                background: rgba(0, 141, 255, 0.1);
+                transform: scale(1.01);
+            }
+
+    /* Game Thumbnail */
+    .game-thumb {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid rgba(0,141,255,0.4);
+        transition: 0.3s;
+    }
+
+        .game-thumb:hover {
+            transform: scale(1.1);
+            border-color: #D400FF;
+        }
+
+    /* Category Badge */
+    .category-badge {
+        background: linear-gradient(45deg, #008dff, #D400FF);
+        color: white;
+        font-size: 12px;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 0 8px rgba(0,141,255,0.5);
+    }
+
+    /* Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .btn-play {
+        background: linear-gradient(45deg, #00ff9d, #00c4ff);
+        padding: 6px 14px;
+        border-radius: 8px;
+        color: white;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: 0.3s;
+        border: none;
+    }
+
+        .btn-play:hover {
+            background: linear-gradient(45deg, #00c4ff, #00ff9d);
+            box-shadow: 0 0 12px rgba(0,255,200,0.6);
+            transform: scale(1.05);
+        }
+
+    .btn-recycle {
+        background: linear-gradient(45deg, #ff004c, #ff0055);
+        border: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        color: white;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .btn-recycle:hover {
+            background: linear-gradient(45deg, #ff3366, #ff004c);
+            box-shadow: 0 0 12px rgba(255,0,76,0.6);
+            transform: scale(1.05);
+        }
+</style>

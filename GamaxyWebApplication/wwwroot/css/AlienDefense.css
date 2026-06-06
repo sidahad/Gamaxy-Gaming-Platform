@@ -1,0 +1,965 @@
+﻿/* Base Variables */
+:root {
+    --primary: #4361ee;
+    --primary-light: #4895ef;
+    --secondary: #3f37c9;
+    --accent: #f72585;
+    --dark: #0e0e14;
+    --light: #f8f9fa;
+    --success: #00ffcc;
+    --warning: #f5c518;
+    --danger: #ef233c;
+    --border-radius: 12px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+body {
+    font-family: 'Orbitron', sans-serif;
+    /*    background-color: var(--dark);*/
+    background: #0a0a1e;
+    color: var(--light);
+    display: flex;
+    flex-direction: column;
+    touch-action: manipulation;
+}
+
+/* Game Page */
+.game-page {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 0;
+    position: relative;
+}
+
+/* Header Section */
+.header-section {
+    text-align: center;
+    padding: 0.5rem;
+    background: linear-gradient(to bottom, rgba(14, 14, 20, 0.9), rgba(14, 14, 20, 0.7));
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.game-title {
+    font-size: clamp(1.5rem, 6vw, 2.5rem);
+    font-weight: 900;
+    margin: 5px 0;
+    background: linear-gradient(to right, var(--success), #00ccff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+    letter-spacing: 2px;
+    line-height: 1.2;
+}
+
+.game-subtitle {
+    font-size: clamp(0.7rem, 2vw, 0.9rem);
+    color: var(--success);
+    letter-spacing: 2px;
+}
+
+/* Game Container */
+.game-container {
+    position: relative;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1000px;
+    height: calc(100vh - 120px);
+    max-height: 600px;
+    overflow: hidden;
+}
+
+#alien-defense-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+    #alien-defense-container canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        margin: 0 auto;
+        background: #000;
+        border: 2px solid var(--success);
+        box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+    }
+
+/* Rating Section */
+.rating-section {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin: 1rem auto;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 2px solid var(--success);
+}
+
+.rating-title {
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    margin-bottom: 0.5rem;
+    color: var(--success);
+}
+
+.rating-average, .rating-user, .rating-login {
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    margin: 0.5rem 0;
+    color: var(--light);
+}
+
+    .rating-login a {
+        color: var(--success);
+        text-decoration: none;
+    }
+
+        .rating-login a:hover {
+            text-decoration: underline;
+        }
+
+.star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin: 0.5rem 0;
+}
+
+    .star-rating input[type="radio"] {
+        display: none;
+    }
+
+    .star-rating label {
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
+        color: #555;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: var(--warning);
+            text-shadow: 0 0 8px var(--warning);
+        }
+
+.btn-rate {
+    background: linear-gradient(to right, var(--success), #00ccff);
+    color: black;
+    border: none;
+    border-radius: 30px;
+    padding: 8px 20px;
+    margin-top: 0.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: clamp(0.8rem, 3vw, 0.9rem);
+    transition: var(--transition);
+    font-family: 'Orbitron', sans-serif;
+}
+
+    .btn-rate:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
+    }
+
+/* UI Elements */
+#alien-defense-container #ui,
+#alien-defense-container #highScoreDisplay,
+#alien-defense-container #instructions,
+#alien-defense-container #menuBtn,
+#alien-defense-container #menuPopup,
+#alien-defense-container #gameOverScreen,
+#alien-defense-container #powerUpMessage {
+    position: absolute;
+    z-index: 10;
+    text-shadow: 0 0 8px rgba(0, 255, 204, 0.8);
+}
+
+#alien-defense-container #ui {
+    top: 5px;
+    left: 5px;
+    font-size: clamp(0.7rem, 3vw, 0.9rem);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--success);
+    box-shadow: 0 0 8px var(--success);
+}
+
+#alien-defense-container #highScoreDisplay {
+    top: 5px;
+    right: 5px;
+    font-size: clamp(0.7rem, 3vw, 0.9rem);
+    color: var(--warning);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--warning);
+    box-shadow: 0 0 8px var(--warning);
+}
+
+#alien-defense-container #instructions {
+    bottom: 5px;
+    left: 5px;
+    font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+    color: #00b7eb;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    border: 2px solid #00b7eb;
+}
+
+#alien-defense-container #menuBtn {
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 255, 204, 0.15);
+    border: 2px solid var(--success);
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: clamp(0.7rem, 3vw, 0.8rem);
+    font-weight: bold;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+    #alien-defense-container #menuBtn:hover {
+        background: rgba(0, 255, 204, 0.4);
+        transform: scale(1.08);
+    }
+
+#alien-defense-container #menuPopup {
+    display: none;
+    top: 50px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid var(--success);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    width: 150px;
+    box-shadow: var(--shadow);
+}
+
+    #alien-defense-container #menuPopup button {
+        background: rgba(0, 0, 0, 0.7);
+        color: var(--success);
+        border: 1px solid var(--success);
+        margin: 5px 0;
+        padding: 8px;
+        width: 100%;
+        border-radius: 6px;
+        font-size: clamp(0.7rem, 3vw, 0.8rem);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        #alien-defense-container #menuPopup button:hover {
+            background: rgba(0, 255, 204, 0.3);
+            transform: scale(1.05);
+        }
+
+/* Game Over Screen */
+#alien-defense-container #gameOverScreen {
+    display: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 5, 5, 0.96);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    text-align: center;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    padding: 10px;
+}
+
+    #alien-defense-container #gameOverScreen.show {
+        display: flex;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    #alien-defense-container #gameOverScreen .title {
+        color: var(--danger);
+        text-shadow: 0 0 15px var(--danger);
+        margin-bottom: 15px;
+        animation: popIn 0.6s ease forwards;
+    }
+
+    #alien-defense-container #gameOverScreen .final-score {
+        font-size: clamp(0.8rem, 3vw, 1rem);
+        margin-bottom: 15px;
+    }
+
+    #alien-defense-container #gameOverScreen button {
+        background: linear-gradient(to right, var(--success), #00ccff);
+        color: black;
+        border: none;
+        padding: 8px 20px;
+        font-size: clamp(0.8rem, 3vw, 0.9rem);
+        border-radius: 30px;
+        cursor: pointer;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        transition: var(--transition);
+        font-family: 'Orbitron', sans-serif;
+    }
+
+        #alien-defense-container #gameOverScreen button:hover {
+            transform: scale(1.05);
+        }
+
+/* Leaderboard */
+#alien-defense-container .leaderboard {
+    width: 90%;
+    max-width: 400px;
+    border-collapse: collapse;
+    margin: 10px auto;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: var(--border-radius);
+    font-size: clamp(0.7rem, 3vw, 0.9rem);
+}
+
+    #alien-defense-container .leaderboard th,
+    #alien-defense-container .leaderboard td {
+        padding: 8px;
+        border: 1px solid var(--success);
+        text-align: center;
+    }
+
+    #alien-defense-container .leaderboard th {
+        background: rgba(0, 255, 204, 0.2);
+        color: var(--success);
+    }
+
+    #alien-defense-container .leaderboard td {
+        color: var(--light);
+    }
+
+#leaderboardBody tr {
+    opacity: 0;
+    transform: translateX(-20px);
+    animation: slideIn 0.5s forwards;
+}
+
+    #leaderboardBody tr:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    #leaderboardBody tr:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    #leaderboardBody tr:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    #leaderboardBody tr:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    #leaderboardBody tr:nth-child(5) {
+        animation-delay: 0.5s;
+    }
+
+/* Power-Up Message */
+#alien-defense-container #powerUpMessage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--warning);
+    font-size: clamp(0.9rem, 4vw, 1.2rem);
+    font-weight: bold;
+    text-shadow: 0 0 10px var(--warning);
+    display: none;
+}
+
+/* Name Input Container */
+#alien-defense-container .name-input-container {
+    margin: 10px 0;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+#alien-defense-container #playerNameInput {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 2px solid var(--success);
+    background: rgba(0, 0, 0, 0.7);
+    color: var(--light);
+    outline: none;
+    width: 180px;
+    text-align: center;
+    font-size: clamp(0.8rem, 3vw, 0.9rem);
+    font-family: 'Orbitron', sans-serif;
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.3);
+    transition: var(--transition);
+}
+
+    #alien-defense-container #playerNameInput:focus {
+        border-color: #00b7eb;
+        box-shadow: 0 0 12px rgba(0, 183, 235, 0.5);
+    }
+
+#alien-defense-container #submitScoreBtn {
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--success);
+    border: 2px solid var(--success);
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    border-radius: 6px;
+    font-size: clamp(0.8rem, 3vw, 0.9rem);
+    font-weight: bold;
+    font-family: 'Orbitron', sans-serif;
+}
+
+    #alien-defense-container #submitScoreBtn:hover {
+        background: rgba(0, 255, 204, 0.3);
+        transform: scale(1.05);
+    }
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .game-container {
+        max-height: 500px;
+    }
+
+    #alien-defense-container canvas {
+        height: 100%;
+    }
+
+    #alien-defense-container #ui,
+    #alien-defense-container #highScoreDisplay {
+        font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+    }
+
+    #alien-defense-container #instructions {
+        font-size: clamp(0.5rem, 2vw, 0.6rem);
+    }
+
+    #alien-defense-container #menuBtn {
+        font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+        padding: 4px 8px;
+    }
+
+    #alien-defense-container #menuPopup {
+        width: 120px;
+        top: 40px;
+    }
+
+        #alien-defense-container #menuPopup button {
+            font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+            padding: 6px;
+        }
+
+    #alien-defense-container #gameOverScreen {
+        font-size: clamp(1.2rem, 5vw, 1.5rem);
+    }
+
+    .rating-section {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+}
+
+@media (max-height: 500px) {
+    .header-section {
+        padding: 0.3rem;
+    }
+
+    .game-title {
+        font-size: clamp(1.2rem, 5vw, 1.5rem);
+    }
+
+    .game-subtitle {
+        display: none;
+    }
+
+    .game-container {
+        max-height: 400px;
+    }
+
+    #alien-defense-container #gameOverScreen {
+        font-size: clamp(1rem, 4vw, 1.2rem);
+    }
+
+        #alien-defense-container #gameOverScreen .final-score {
+            font-size: clamp(0.7rem, 3vw, 0.8rem);
+        }
+
+        #alien-defense-container #gameOverScreen button {
+            padding: 6px 15px;
+            font-size: clamp(0.7rem, 3vw, 0.8rem);
+        }
+}
+
+@media (max-width: 400px) {
+    #alien-defense-container .leaderboard {
+        font-size: 0.7rem;
+    }
+
+    #alien-defense-container #playerNameInput {
+        width: 150px;
+        font-size: 0.8rem;
+    }
+
+    #alien-defense-container #submitScoreBtn {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+
+    .star-rating label {
+        font-size: 1.2rem;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    .header-section {
+        display: none;
+    }
+
+    .game-container {
+        max-height: 100%;
+    }
+
+    #alien-defense-container #gameOverScreen {
+        font-size: 1.2rem;
+    }
+
+        #alien-defense-container #gameOverScreen .final-score {
+            font-size: 0.8rem;
+        }
+
+        #alien-defense-container #gameOverScreen button {
+            padding: 5px 12px;
+            font-size: 0.8rem;
+        }
+}
+
+/*#alien-defense-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #0a0a0f, #000);
+    font-family: 'Orbitron', sans-serif;
+}*/
+
+/* Canvas */
+/*#alien-defense-container canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 100vh;
+        margin: 0 auto;
+        background: #000;
+        border: 2px solid #0ff;
+        box-shadow: 0 0 25px rgba(0,255,255,0.4);
+    }*/
+
+/* UI Elements */
+/*#alien-defense-container #ui,
+    #alien-defense-container #highScoreDisplay,
+    #alien-defense-container #instructions,
+    #alien-defense-container #menuBtn,
+    #alien-defense-container #menuPopup,
+    #alien-defense-container #gameOverScreen,
+    #alien-defense-container #powerUpMessage {
+        position: absolute;
+        z-index: 10;
+        text-shadow: 0 0 8px rgba(0,255,0,0.8);
+    }
+
+    #alien-defense-container #ui {
+        top: 15px;
+        left: 20px;
+        font-size: 1.2rem;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 6px 12px;
+        border-radius: 8px;
+    }
+
+    #alien-defense-container #highScoreDisplay {
+        top: 15px;
+        right: 150px;
+        font-size: 1.2rem;
+        color: #ff9800;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 6px 12px;
+        border-radius: 8px;
+    }
+
+    #alien-defense-container #instructions {
+        bottom: 15px;
+        left: 20px;
+        font-size: 0.9rem;
+        color: #00b7eb;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 6px 12px;
+        border-radius: 8px;
+    }
+
+    #alien-defense-container #menuBtn {
+        top: 15px;
+        right: 20px;
+        background: rgba(0,255,0,0.15);
+        border: 2px solid #0f0;
+        padding: 10px 18px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+        #alien-defense-container #menuBtn:hover {
+            background: rgba(0,255,0,0.4);
+            transform: scale(1.08);
+        }
+
+    #alien-defense-container #menuPopup {
+        display: none;
+        top: 80px;
+        right: 20px;
+        background: rgba(0,0,0,0.9);
+        border: 2px solid #00ff00;
+        padding: 20px;
+        border-radius: 12px;
+        width: 200px;
+        box-shadow: 0 0 25px rgba(0,255,0,0.5);
+    }
+
+        #alien-defense-container #menuPopup button {
+            background: rgba(0,0,0,0.7);
+            color: #0f0;
+            border: 1px solid #0f0;
+            margin: 8px 0;
+            padding: 10px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+            #alien-defense-container #menuPopup button:hover {
+                background: rgba(0,255,0,0.3);
+                transform: scale(1.05);
+            }*/
+
+/* Game Over Screen with animation */
+/*#alien-defense-container #gameOverScreen {
+        display: none;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(5, 5, 5, 0.96);
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        font-size: 2.5rem;
+        text-align: center;
+        z-index: 20;
+        opacity: 0;
+        animation: fadeIn 0.8s ease forwards;
+    }
+
+        #alien-defense-container #gameOverScreen .title {
+            color: #ff3366;
+            text-shadow: 0 0 15px #ff3366;
+            margin-bottom: 20px;
+            animation: popIn 0.6s ease forwards;
+        }
+
+        #alien-defense-container #gameOverScreen button {
+            background: linear-gradient(to right, #00ffcc, #00ccff);
+            color: black;
+            border: none;
+            margin-top: 20px;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0,255,255,0.4);
+            transition: transform 0.3s;
+        }
+
+            #alien-defense-container #gameOverScreen button:hover {
+                transform: scale(1.05);
+            }*/
+
+/* Leaderboard */
+/*#alien-defense-container .leaderboard {
+        width: 90%;
+        max-width: 500px;
+        border-collapse: collapse;
+        margin: 20px auto;
+    }
+
+        #alien-defense-container .leaderboard th,
+        #alien-defense-container .leaderboard td {
+            padding: 8px;
+            border: 1px solid #00ffcc;
+            text-align: center;
+        }
+
+        #alien-defense-container .leaderboard th {
+            color: #00ffcc;
+        }
+
+        #alien-defense-container .leaderboard td {
+            color: #fff;
+        }*/
+
+/* Power-Up Message */
+/*#alien-defense-container #powerUpMessage {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ffd700;
+        font-size: 1.4rem;
+        font-weight: bold;
+        text-shadow: 0 0 10px #ffd700;
+        display: none;
+    }*/
+
+/* Animations */
+/*@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}*/
+
+/* Responsive */
+/*@media (max-width: 768px) {
+    #alien-defense-container canvas {
+        height: 65vh;
+    }
+
+    #alien-defense-container #ui,
+    #alien-defense-container #highScoreDisplay {
+        font-size: 1rem;
+    }
+
+    #alien-defense-container #instructions {
+        font-size: 0.8rem;
+    }
+
+    #alien-defense-container #gameOverScreen {
+        font-size: 1.8rem;
+    }
+}
+
+#gameOverScreen .name-input-container {
+    margin: 15px 0;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+#playerNameInput {
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid #00ff00;
+    background: #111;
+    color: #00ff00;
+    outline: none;
+    width: 180px;
+    text-align: center;
+}
+
+#submitScoreBtn {
+    background: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 5px;
+}
+
+    #submitScoreBtn:hover {
+        background: rgba(0, 255, 0, 0.3);
+        transform: scale(1.05);
+    }*/
+
+/* Game Over screen fade-in */
+/*#gameOverScreen {
+    display: none;
+    opacity: 0;
+    transform: translateY(-30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}*/
+
+/* When visible */
+/*#gameOverScreen.show {
+        display: flex;
+        opacity: 1;
+        transform: translateY(0);
+    }*/
+
+/* Leaderboard rows slide-in */
+/*#leaderboardBody tr {
+    opacity: 0;
+    transform: translateX(-20px);
+    animation: slideIn 0.5s forwards;
+}
+
+    #leaderboardBody tr:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    #leaderboardBody tr:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    #leaderboardBody tr:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    #leaderboardBody tr:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    #leaderboardBody tr:nth-child(5) {
+        animation-delay: 0.5s;
+    }
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}*/
+
+/* Input field styling */
+/*.name-input-container {
+    margin: 15px 0;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+#playerNameInput {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 2px solid #00ff00;
+    background: #111;
+    color: #00ff00;
+    outline: none;
+    width: 200px;
+    font-size: 16px;
+    text-align: center;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+    transition: all 0.3s;
+}
+
+    #playerNameInput:focus {
+        border-color: #00b7eb;
+        box-shadow: 0 0 12px rgba(0, 183, 235, 0.5);
+    }
+
+#submitScoreBtn {
+    background: rgba(0, 0, 0, 0.85);
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+    #submitScoreBtn:hover {
+        background: rgba(0, 255, 0, 0.3);
+        transform: scale(1.05);
+    }*/

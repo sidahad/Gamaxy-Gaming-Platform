@@ -1,0 +1,1426 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "GameName";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FighterVerse</title>
+    <link rel="stylesheet" href="~/css/fightinggame.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="game-page">
+        <div class="header-section">
+            <h1 class="game-title">@Model.GameName</h1>
+        </div>
+        <div class="game-container-wrapper">
+            <div class="game-container">
+                <canvas id="gameCanvas"></canvas>
+
+                <div class="health-container">
+                    <div class="player-health">
+                        <div class="player-name" id="player-name">Ryu</div>
+                        <div class="health-bar">
+                            <div class="health-fill" id="player-health-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <div class="enemy-health">
+                        <div class="enemy-name" id="enemy-name">Ken</div>
+                        <div class="health-bar">
+                            <div class="health-fill" id="enemy-health-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="special-meter-container">
+                    <div>
+                        <div class="special-text">SPECIAL</div>
+                        <div class="special-meter">
+                            <div class="special-fill" id="player-special-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="special-text">SPECIAL</div>
+                        <div class="special-meter">
+                            <div class="special-fill" id="enemy-special-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timer" id="timer">99</div>
+                <button class="pause-btn" id="pauseBtn">Pause</button>
+
+                <div class="combo-display player-combo" id="player-combo"></div>
+                <div class="combo-display enemy-combo" id="enemy-combo"></div>
+                <div class="round-announcement" id="round-announcement"></div>
+
+                <!-- Start Screen -->
+                <div class="screen" id="startScreen">
+                    <h1>FIGHTERVERSE</h1>
+                    <div class="character-select">
+                        <div class="character" data-character="ryu">
+                            <div class="character-portrait" style="background-color: red;"></div>
+                            <div class="character-name">Ryu</div>
+                        </div>
+                        <div class="character" data-character="ken">
+                            <div class="character-portrait" style="background-color: yellow;"></div>
+                            <div class="character-name">Ken</div>
+                        </div>
+                        <div class="character" data-character="chun">
+                            <div class="character-portrait" style="background-color: green;"></div>
+                            <div class="character-name">Chun-Li</div>
+                        </div>
+                    </div>
+                    <button class="btn" id="pveBtn">VS CPU</button>
+                    <button class="btn" id="pvpBtn">VS Player</button>
+                    <div class="controls">
+                        <p><strong>Player 1:</strong> W (jump), A (left), D (right), F (punch), G (kick), H (special)</p>
+                        <p><strong>Player 2:</strong> ↑ (jump), ← (left), → (right), J (punch), K (kick), L (special)</p>
+                    </div>
+                </div>
+
+                <!-- Pause Screen -->
+                <div class="screen hidden" id="pauseScreen">
+                    <h1>PAUSED</h1>
+                    <button class="btn" id="resumeBtn">Resume</button>
+                    <button class="btn" id="restartBtn">Restart</button>
+                    <button class="btn" id="menuBtn">Main Menu</button>
+                </div>
+
+                <!-- End Screen -->
+                <div class="screen hidden" id="endScreen">
+                    <div class="winner-message" id="winnerMessage"></div>
+                    <button class="btn" id="playAgainBtn">Play Again</button>
+                    <button class="btn" id="mainMenuBtn">Main Menu</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="rating-section">
+            <h2 class="rating-title">Rate This Game</h2>
+            <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+            @if (Model.UserId.HasValue)
+            {
+                <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                <form id="ratingForm" method="post" asp-action="RateGame">
+                    <input type="hidden" name="gameName" value="@Model.GameName" />
+                    <div class="star-rating">
+                        <input type="radio" id="star5" name="rating" value="5" />
+                        <label for="star5">★</label>
+                        <input type="radio" id="star4" name="rating" value="4" />
+                        <label for="star4">★</label>
+                        <input type="radio" id="star3" name="rating" value="3" />
+                        <label for="star3">★</label>
+                        <input type="radio" id="star2" name="rating" value="2" />
+                        <label for="star2">★</label>
+                        <input type="radio" id="star1" name="rating" value="1" />
+                        <label for="star1">★</label>
+                    </div>
+                    <button type="submit" class="btn-rate">Submit Rating</button>
+                </form>
+            }
+            else
+            {
+                <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+            }
+        </div>
+    </div>
+
+    <script>
+        // Existing JavaScript code (unchanged)
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        // Game constants
+        const GRAVITY = 0.6;
+        const JUMP_FORCE = -15;
+        const MOVE_SPEED = 5;
+        const ATTACK_COOLDOWN = 300; // ms
+        const ROUND_TIME = 99; // seconds
+        const ROUND_COUNT = 3;
+        const AI_REACTION_TIME = 500; // ms
+        const SPECIAL_METER_MAX = 100;
+        const SPECIAL_GAIN_ATTACK = 10;
+        const SPECIAL_GAIN_HIT = 15;
+        const SPECIAL_COST = 100;
+
+        // Game state
+        let gameMode = null; // 'pve' or 'pvp'
+        let gameState = 'start'; // 'start', 'playing', 'paused', 'end'
+        let lastTime = 0;
+        let aiDecisionTimer = 0;
+        let aiNextAction = null;
+        let roundTime = ROUND_TIME;
+        let timerInterval = null;
+        let currentRound = 1;
+        let playerWins = 0;
+        let enemyWins = 0;
+        let selectedCharacter = 'ryu';
+        let comboTimers = { player: 0, enemy: 0 };
+        let comboCounts = { player: 0, enemy: 0 };
+
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1000;
+        canvas.height = 600;
+
+        // UI elements
+        const startScreen = document.getElementById('startScreen');
+        const pauseScreen = document.getElementById('pauseScreen');
+        const endScreen = document.getElementById('endScreen');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const playerHealthFill = document.getElementById('player-health-fill');
+        const enemyHealthFill = document.getElementById('enemy-health-fill');
+        const playerName = document.getElementById('player-name');
+        const enemyName = document.getElementById('enemy-name');
+        const winnerMessage = document.getElementById('winnerMessage');
+        const timerDisplay = document.getElementById('timer');
+        const playerComboDisplay = document.getElementById('player-combo');
+        const enemyComboDisplay = document.getElementById('enemy-combo');
+        const roundAnnouncement = document.getElementById('round-announcement');
+        const playerSpecialFill = document.getElementById('player-special-fill');
+        const enemySpecialFill = document.getElementById('enemy-special-fill');
+
+        // Button event listeners
+        document.getElementById('pveBtn').addEventListener('click', () => startGame('pve'));
+        document.getElementById('pvpBtn').addEventListener('click', () => startGame('pvp'));
+        document.getElementById('resumeBtn').addEventListener('click', resumeGame);
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
+        document.getElementById('menuBtn').addEventListener('click', goToMainMenu);
+        document.getElementById('playAgainBtn').addEventListener('click', restartGame);
+        document.getElementById('mainMenuBtn').addEventListener('click', goToMainMenu);
+        pauseBtn.addEventListener('click', togglePause);
+
+        // Character selection
+        document.querySelectorAll('.character').forEach(char => {
+            char.addEventListener('click', () => {
+                document.querySelectorAll('.character').forEach(c => c.classList.remove('selected'));
+                char.classList.add('selected');
+                selectedCharacter = char.dataset.character;
+            });
+        });
+
+        // Select default character
+        document.querySelector('[data-character="ryu"]').classList.add('selected');
+
+        // Create sprite data
+        const spriteData = {
+            ryu: {
+                idle: createSpriteFrames(4, '#3498db', 'male'),
+                walk: createSpriteFrames(6, '#3498db', 'male', true),
+                jump: createSpriteFrames(3, '#3498db', 'male', false, true),
+                punch: createSpriteFrames(3, '#3498db', 'male', false, false, 'punch'),
+                kick: createSpriteFrames(4, '#3498db', 'male', false, false, 'kick'),
+                special: createSpriteFrames(5, '#3498db', 'male', false, false, 'special'),
+                hit: createSpriteFrames(2, '#3498db', 'male', false, false, 'hit'),
+                defeated: createSpriteFrames(1, '#3498db', 'male', false, false, 'defeated')
+            },
+            ken: {
+                idle: createSpriteFrames(4, '#e74c3c', 'male'),
+                walk: createSpriteFrames(6, '#e74c3c', 'male', true),
+                jump: createSpriteFrames(3, '#e74c3c', 'male', false, true),
+                punch: createSpriteFrames(3, '#e74c3c', 'male', false, false, 'punch'),
+                kick: createSpriteFrames(4, '#e74c3c', 'male', false, false, 'kick'),
+                special: createSpriteFrames(5, '#e74c3c', 'male', false, false, 'special'),
+                hit: createSpriteFrames(2, '#e74c3c', 'male', false, false, 'hit'),
+                defeated: createSpriteFrames(1, '#e74c3c', 'male', false, false, 'defeated')
+            },
+            chun: {
+                idle: createSpriteFrames(4, '#2ecc71', 'female'),
+                walk: createSpriteFrames(6, '#2ecc71', 'female', true),
+                jump: createSpriteFrames(3, '#2ecc71', 'female', false, true),
+                punch: createSpriteFrames(3, '#2ecc71', 'female', false, false, 'punch'),
+                kick: createSpriteFrames(4, '#2ecc71', 'female', false, false, 'kick'),
+                special: createSpriteFrames(5, '#2ecc71', 'female', false, false, 'special'),
+                hit: createSpriteFrames(2, '#2ecc71', 'female', false, false, 'hit'),
+                defeated: createSpriteFrames(1, '#2ecc71', 'female', false, false, 'defeated')
+            }
+        };
+
+        // Function to create sprite frames
+        function createSpriteFrames(frameCount, color, gender, isWalking = false, isJumping = false, action = null) {
+            const frames = [];
+
+            for (let i = 0; i < frameCount; i++) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 200;
+                canvas.height = 200;
+
+                // Draw the character based on frame
+                drawCharacterFrame(ctx, i, frameCount, color, gender, isWalking, isJumping, action);
+
+                // Convert to data URL and add to frames
+                frames.push(canvas.toDataURL());
+            }
+
+            return frames;
+        }
+
+        function drawCharacterFrame(ctx, frameIndex, totalFrames, color, gender, isWalking, isJumping, action) {
+            // Clear canvas
+            ctx.clearRect(0, 0, 200, 200);
+
+            // Set colors
+            const skinColor = gender === 'male' ? '#e0ac69' : '#f1c27d';
+            const hairColor = gender === 'male' ? '#4a2e0b' : '#8b4513';
+            const outfitColor = color;
+            const outlineColor = '#000';
+
+            // Base position
+            let baseY = 50;
+            if (isJumping) {
+                // Adjust position for jump animation
+                if (frameIndex === 0) baseY = 70;
+                else if (frameIndex === 1) baseY = 30;
+                else baseY = 70;
+            }
+
+            // Draw based on action
+            if (action === 'defeated') {
+                // Defeated pose (lying down)
+                ctx.save();
+                ctx.translate(100, 150);
+                ctx.rotate(Math.PI / 2);
+                ctx.translate(-100, -100);
+
+                // Body
+                ctx.fillStyle = outfitColor;
+                ctx.fillRect(70, 80, 60, 80);
+
+                // Head
+                ctx.fillStyle = skinColor;
+                ctx.beginPath();
+                ctx.arc(100, 60, 25, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = outlineColor;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Face (X eyes)
+                ctx.strokeStyle = outlineColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(90, 55);
+                ctx.lineTo(100, 65);
+                ctx.moveTo(100, 55);
+                ctx.lineTo(90, 65);
+                ctx.moveTo(110, 55);
+                ctx.lineTo(120, 65);
+                ctx.moveTo(120, 55);
+                ctx.lineTo(110, 65);
+                ctx.stroke();
+
+                // Mouth (frown)
+                ctx.beginPath();
+                ctx.arc(105, 75, 10, 0, Math.PI, true);
+                ctx.stroke();
+
+                // Arms and legs (sprawled)
+                ctx.fillStyle = outfitColor;
+                ctx.fillRect(50, 90, 20, 50);  // Left arm
+                ctx.fillRect(130, 90, 20, 50); // Right arm
+                ctx.fillRect(70, 160, 25, 60); // Left leg
+                ctx.fillRect(105, 160, 25, 60); // Right leg
+
+                ctx.restore();
+                return;
+            }
+
+            // Body
+            ctx.fillStyle = outfitColor;
+            ctx.fillRect(70, baseY + 30, 60, 80);
+            ctx.strokeStyle = outlineColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(70, baseY + 30, 60, 80);
+
+            // Head
+            ctx.fillStyle = skinColor;
+            ctx.beginPath();
+            ctx.arc(100, baseY, 25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Hair
+            ctx.fillStyle = hairColor;
+            if (gender === 'male') {
+                ctx.fillRect(80, baseY - 20, 40, 15);
+            } else {
+                // Female hairstyle
+                ctx.beginPath();
+                ctx.moveTo(75, baseY);
+                ctx.quadraticCurveTo(70, baseY - 30, 100, baseY - 30);
+                ctx.quadraticCurveTo(130, baseY - 30, 125, baseY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // Eyes
+            ctx.fillStyle = '#000';
+
+            if (action === 'hit') {
+                // X eyes when hit
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(90, baseY - 5);
+                ctx.lineTo(95, baseY);
+                ctx.moveTo(95, baseY - 5);
+                ctx.lineTo(90, baseY);
+                ctx.moveTo(105, baseY - 5);
+                ctx.lineTo(110, baseY);
+                ctx.moveTo(110, baseY - 5);
+                ctx.lineTo(105, baseY);
+                ctx.stroke();
+            } else {
+                // Normal eyes
+                ctx.fillRect(90, baseY - 5, 5, 5);
+                ctx.fillRect(105, baseY - 5, 5, 5);
+            }
+
+            // Mouth
+            if (action === 'special') {
+                // Open mouth for special attack
+                ctx.beginPath();
+                ctx.arc(100, baseY + 10, 5, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (action === 'hit') {
+                // Grimace when hit
+                ctx.beginPath();
+                ctx.arc(100, baseY + 10, 8, 0, Math.PI, true);
+                ctx.stroke();
+            } else {
+                // Normal mouth
+                ctx.beginPath();
+                ctx.moveTo(95, baseY + 10);
+                ctx.lineTo(105, baseY + 10);
+                ctx.stroke();
+            }
+
+            // Arms
+            let leftArmX = 50;
+            let rightArmX = 130;
+            let armY = baseY + 40;
+            let armWidth = 20;
+            let armHeight = 50;
+
+            if (action === 'punch') {
+                // Punching animation
+                if (frameIndex === 0) {
+                    // Wind up
+                    rightArmX = 120;
+                    armY = baseY + 30;
+                } else if (frameIndex === 1) {
+                    // Extended punch
+                    rightArmX = 130;
+                    armWidth = 50;
+                    armY = baseY + 30;
+                } else {
+                    // Retract
+                    rightArmX = 125;
+                    armY = baseY + 35;
+                }
+            } else if (action === 'kick') {
+                // Keep arms in normal position for kick
+            } else if (action === 'special') {
+                // Special attack pose
+                if (frameIndex === 0) {
+                    // Wind up
+                    leftArmX = 60;
+                    rightArmX = 120;
+                    armY = baseY + 30;
+                } else if (frameIndex <= 2) {
+                    // Charging
+                    leftArmX = 55;
+                    rightArmX = 125;
+                    armY = baseY + 25;
+                } else {
+                    // Release
+                    leftArmX = 40;
+                    rightArmX = 140;
+                    armY = baseY + 20;
+                }
+            } else if (isWalking) {
+                // Walking arm swing
+                const swingAmount = Math.sin((frameIndex / totalFrames) * Math.PI * 2) * 10;
+                leftArmX += swingAmount;
+                rightArmX -= swingAmount;
+            }
+
+            // Draw arms
+            ctx.fillStyle = outfitColor;
+            ctx.fillRect(leftArmX, armY, armWidth, armHeight);
+            ctx.strokeRect(leftArmX, armY, armWidth, armHeight);
+
+            ctx.fillRect(rightArmX, armY, armWidth, armHeight);
+            ctx.strokeRect(rightArmX, armY, armWidth, armHeight);
+
+            // Legs
+            let leftLegX = 70;
+            let rightLegX = 110;
+            let legY = baseY + 110;
+            let legWidth = 20;
+            let legHeight = 50;
+
+            if (action === 'kick') {
+                // Kicking animation
+                if (frameIndex === 0) {
+                    // Wind up
+                    rightLegX = 105;
+                    legY = baseY + 100;
+                } else if (frameIndex === 1) {
+                    // Extend kick
+                    rightLegX = 120;
+                    legY = baseY + 90;
+                    legWidth = 50;
+                } else if (frameIndex === 2) {
+                    // Hold kick
+                    rightLegX = 120;
+                    legY = baseY + 90;
+                    legWidth = 40;
+                } else {
+                    // Retract
+                    rightLegX = 110;
+                    legY = baseY + 100;
+                }
+            } else if (isWalking) {
+                // Walking leg movement
+                const stepAmount = Math.sin((frameIndex / totalFrames) * Math.PI * 2) * 10;
+                leftLegX += stepAmount;
+                rightLegX -= stepAmount;
+
+                if (stepAmount > 0) {
+                    legY = baseY + 110 - Math.abs(stepAmount) * 0.5;
+                }
+            } else if (isJumping) {
+                // Jumping leg position
+                legY = baseY + 100;
+                leftLegX = 75;
+                rightLegX = 105;
+                legHeight = 40;
+            }
+
+            // Draw legs
+            ctx.fillStyle = outfitColor;
+            ctx.fillRect(leftLegX, legY, legWidth, legHeight);
+            ctx.strokeRect(leftLegX, legY, legWidth, legHeight);
+
+            ctx.fillRect(rightLegX, legY, legWidth, legHeight);
+            ctx.strokeRect(rightLegX, legY, legWidth, legHeight);
+
+            // Special effects
+            if (action === 'special' && frameIndex >= 3) {
+                // Energy ball for special attack
+                const gradient = ctx.createRadialGradient(
+                    rightArmX + armWidth + 20, armY + 25, 5,
+                    rightArmX + armWidth + 20, armY + 25, 30
+                );
+                gradient.addColorStop(0, 'white');
+                gradient.addColorStop(0.3, color);
+                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(rightArmX + armWidth + 20, armY + 25, 30, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (action === 'punch' && frameIndex === 1) {
+                // Punch impact effect
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.beginPath();
+                ctx.arc(rightArmX + armWidth + 10, armY + 25, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (action === 'kick' && frameIndex === 1) {
+                // Kick impact effect
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.beginPath();
+                ctx.arc(rightLegX + legWidth + 10, legY + 25, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (action === 'hit') {
+                // Hit effect
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+                ctx.fillRect(70, baseY, 60, 110);
+
+                // Impact stars
+                ctx.fillStyle = 'yellow';
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i / 5) * Math.PI * 2;
+                    const x = 100 + Math.cos(angle) * 40;
+                    const y = baseY + 50 + Math.sin(angle) * 40;
+                    drawStar(ctx, x, y, 5, 10, 5);
+                }
+            }
+        }
+
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            let step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Create image objects from sprite data
+        function createImageFromDataURL(dataURL) {
+            const img = new Image();
+            img.src = dataURL;
+            return img;
+        }
+
+        const characterSprites = {};
+
+        for (const character in spriteData) {
+            characterSprites[character] = {};
+            for (const action in spriteData[character]) {
+                characterSprites[character][action] = spriteData[character][action].map(createImageFromDataURL);
+            }
+        }
+
+        // Fighter class
+        class Fighter {
+            constructor(x, y, width, height, character, facingRight = true) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.character = character;
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.isJumping = false;
+                this.isAttacking = false;
+                this.attackType = null; // 'punch', 'kick', or 'special'
+                this.attackCooldown = 0;
+                this.health = 100;
+                this.specialMeter = 0;
+                this.facingRight = facingRight;
+                this.attackBox = {
+                    width: 0,
+                    height: 0,
+                    offsetX: 0,
+                    offsetY: 0
+                };
+                this.lastHitTime = 0;
+                this.state = 'idle'; // idle, walk, jump, punch, kick, special, hit, defeated
+                this.frameIndex = 0;
+                this.frameTimer = 0;
+                this.frameDuration = 100; // ms per frame
+                this.comboCount = 0;
+                this.lastAttackTime = 0;
+                this.comboResetTime = 1000; // ms
+            }
+
+            update(deltaTime) {
+                // Apply gravity
+                this.velocityY += GRAVITY;
+
+                // Update position
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+
+                // Check floor collision
+                if (this.y + this.height > canvas.height - 50) {
+                    this.y = canvas.height - 50 - this.height;
+                    this.velocityY = 0;
+                    this.isJumping = false;
+                }
+
+                // Check wall collisions
+                if (this.x < 0) this.x = 0;
+                if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
+
+                // Update attack cooldown
+                if (this.attackCooldown > 0) {
+                    this.attackCooldown -= deltaTime;
+                }
+
+                // Update combo timer
+                if (this.comboCount > 0 && Date.now() - this.lastAttackTime > this.comboResetTime) {
+                    this.comboCount = 0;
+                }
+
+                // Update animation frame
+                this.frameTimer += deltaTime;
+                if (this.frameTimer >= this.frameDuration) {
+                    this.frameTimer = 0;
+
+                    // Get max frames for current state
+                    let maxFrames = 1;
+                    switch (this.state) {
+                        case 'idle': maxFrames = characterSprites[this.character].idle.length; break;
+                        case 'walk': maxFrames = characterSprites[this.character].walk.length; break;
+                        case 'jump': maxFrames = characterSprites[this.character].jump.length; break;
+                        case 'punch': maxFrames = characterSprites[this.character].punch.length; break;
+                        case 'kick': maxFrames = characterSprites[this.character].kick.length; break;
+                        case 'special': maxFrames = characterSprites[this.character].special.length; break;
+                        case 'hit': maxFrames = characterSprites[this.character].hit.length; break;
+                        case 'defeated': maxFrames = characterSprites[this.character].defeated.length; break;
+                    }
+
+                    this.frameIndex = (this.frameIndex + 1) % maxFrames;
+
+                    // Reset attack state when animation completes
+                    if (this.isAttacking && this.frameIndex === 0) {
+                        this.isAttacking = false;
+                        this.attackType = null;
+                    }
+                }
+
+                // Update state
+                if (this.health <= 0) {
+                    this.state = 'defeated';
+                    this.frameIndex = 0; // Stay on first frame of defeated animation
+                } else if (this.isAttacking) {
+                    this.state = this.attackType;
+                    // Update attack box based on attack type
+                    if (this.attackType === 'punch') {
+                        this.attackBox = {
+                            width: 60,
+                            height: 40,
+                            offsetX: this.facingRight ? 60 : -120,
+                            offsetY: 40
+                        };
+                    } else if (this.attackType === 'kick') {
+                        this.attackBox = {
+                            width: 80,
+                            height: 30,
+                            offsetX: this.facingRight ? 60 : -140,
+                            offsetY: 80
+                        };
+                    } else if (this.attackType === 'special') {
+                        this.attackBox = {
+                            width: 100,
+                            height: 60,
+                            offsetX: this.facingRight ? 60 : -160,
+                            offsetY: 50
+                        };
+                    }
+                } else if (Date.now() - this.lastHitTime < 300) {
+                    this.state = 'hit';
+                } else if (this.isJumping) {
+                    this.state = 'jump';
+                } else if (this.velocityX !== 0) {
+                    this.state = 'walk';
+                } else {
+                    this.state = 'idle';
+                }
+            }
+
+            draw(ctx) {
+                // Get the appropriate sprite based on state and frame
+                let sprites;
+                let frameIndex = this.frameIndex;
+
+                switch (this.state) {
+                    case 'idle': sprites = characterSprites[this.character].idle; break;
+                    case 'walk': sprites = characterSprites[this.character].walk; break;
+                    case 'jump': sprites = characterSprites[this.character].jump; break;
+                    case 'punch': sprites = characterSprites[this.character].punch; break;
+                    case 'kick': sprites = characterSprites[this.character].kick; break;
+                    case 'special': sprites = characterSprites[this.character].special; break;
+                    case 'hit': sprites = characterSprites[this.character].hit; break;
+                    case 'defeated': sprites = characterSprites[this.character].defeated; break;
+                    default: sprites = characterSprites[this.character].idle;
+                }
+
+                // Ensure frame index is valid
+                if (frameIndex >= sprites.length) {
+                    frameIndex = sprites.length - 1;
+                }
+
+                const sprite = sprites[frameIndex];
+
+                if (sprite) {
+                    ctx.save();
+
+                    // Apply flip if facing left
+                    if (!this.facingRight) {
+                        ctx.translate(this.x + this.width, this.y);
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(sprite, 0, 0, this.width, this.height);
+                    } else {
+                        ctx.drawImage(sprite, this.x, this.y, this.width, this.height);
+                    }
+
+                    ctx.restore();
+
+                    // Draw special attack effect
+                    if (this.state === 'special' && frameIndex >= 3) {
+                        const effectX = this.facingRight ?
+                            this.x + this.width + 20 :
+                            this.x - 80;
+
+                        const gradient = ctx.createRadialGradient(
+                            effectX, this.y + 70, 10,
+                            effectX, this.y + 70, 40
+                        );
+
+                        let color;
+                        switch (this.character) {
+                            case 'ryu': color = '#3498db'; break;
+                            case 'ken': color = '#e74c3c'; break;
+                            case 'chun': color = '#2ecc71'; break;
+                            default: color = '#3498db';
+                        }
+
+                        gradient.addColorStop(0, 'white');
+                        gradient.addColorStop(0.3, color);
+                        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+                        ctx.fillStyle = gradient;
+                        ctx.beginPath();
+                        ctx.arc(effectX, this.y + 70, 40, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // Draw attack hitbox for debugging
+                // if (this.isAttacking) {
+                //     const attackBox = this.getAttackBox();
+                //     ctx.strokeStyle = 'red';
+                //     ctx.strokeRect(attackBox.x, attackBox.y, attackBox.width, attackBox.height);
+                // }
+            }
+
+            jump() {
+                if (!this.isJumping && !this.isAttacking) {
+                    this.velocityY = JUMP_FORCE;
+                    this.isJumping = true;
+                    this.frameIndex = 0; // Reset animation frame
+                }
+            }
+
+            moveLeft() {
+                if (!this.isAttacking) {
+                    this.velocityX = -MOVE_SPEED;
+                    this.facingRight = false;
+                }
+            }
+
+            moveRight() {
+                if (!this.isAttacking) {
+                    this.velocityX = MOVE_SPEED;
+                    this.facingRight = true;
+                }
+            }
+
+            stopMoving() {
+                this.velocityX = 0;
+            }
+
+            attack(type) {
+                if (this.attackCooldown <= 0 && !this.isAttacking && this.health > 0) {
+                    // Check if special attack has enough meter
+                    if (type === 'special' && this.specialMeter < SPECIAL_COST) {
+                        return false;
+                    }
+
+                    this.isAttacking = true;
+                    this.attackType = type;
+                    this.frameIndex = 0; // Reset animation frame
+
+                    // Set cooldown based on attack type
+                    if (type === 'punch') {
+                        this.attackCooldown = ATTACK_COOLDOWN;
+                        this.specialMeter += SPECIAL_GAIN_ATTACK;
+                    } else if (type === 'kick') {
+                        this.attackCooldown = ATTACK_COOLDOWN * 1.5;
+                        this.specialMeter += SPECIAL_GAIN_ATTACK;
+                    } else if (type === 'special') {
+                        this.attackCooldown = ATTACK_COOLDOWN * 2;
+                        this.specialMeter -= SPECIAL_COST;
+                    }
+
+                    // Cap special meter
+                    if (this.specialMeter > SPECIAL_METER_MAX) {
+                        this.specialMeter = SPECIAL_METER_MAX;
+                    }
+
+                    // Update combo
+                    const now = Date.now();
+                    if (now - this.lastAttackTime < this.comboResetTime) {
+                        this.comboCount++;
+                    } else {
+                        this.comboCount = 1;
+                    }
+                    this.lastAttackTime = now;
+
+                    return true;
+                }
+                return false;
+            }
+
+            takeDamage(amount) {
+                this.health -= amount;
+                this.lastHitTime = Date.now();
+                this.specialMeter += SPECIAL_GAIN_HIT;
+
+                // Cap special meter
+                if (this.specialMeter > SPECIAL_METER_MAX) {
+                    this.specialMeter = SPECIAL_METER_MAX;
+                }
+
+                if (this.health < 0) this.health = 0;
+            }
+
+            getAttackBox() {
+                return {
+                    x: this.facingRight ? this.x + this.attackBox.offsetX : this.x + this.width + this.attackBox.offsetX,
+                    y: this.y + this.attackBox.offsetY,
+                    width: this.attackBox.width,
+                    height: this.attackBox.height
+                };
+            }
+        }
+
+        // Create players
+        let player = new Fighter(100, 300, 150, 150, 'ryu', true);
+        let enemy = new Fighter(750, 300, 150, 150, 'ken', false);
+
+        // Input handling
+        const keys = {
+            w: false,
+            a: false,
+            d: false,
+            f: false,
+            g: false,
+            h: false,
+            arrowup: false,
+            arrowleft: false,
+            arrowright: false,
+            j: false,
+            k: false,
+            l: false
+        };
+
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (keys.hasOwnProperty(key)) {
+                keys[key] = true;
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (keys.hasOwnProperty(key)) {
+                keys[key] = false;
+                e.preventDefault();
+            }
+        });
+
+        // Game functions
+        function startGame(mode) {
+            gameMode = mode;
+            gameState = 'playing';
+            startScreen.classList.add('hidden');
+            pauseScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+
+            // Reset game state
+            roundTime = ROUND_TIME;
+            currentRound = 1;
+            playerWins = 0;
+            enemyWins = 0;
+
+            // Reset players
+            player = new Fighter(100, 300, 150, 150, selectedCharacter, true);
+            enemy = new Fighter(750, 300, 150, 150, 'ken', false);
+
+            // Update UI for game mode
+            playerName.textContent = getCharacterName(selectedCharacter);
+            if (mode === 'pvp') {
+                enemyName.textContent = 'Ken';
+            } else {
+                enemyName.textContent = 'Ken (CPU)';
+            }
+
+            // Start timer
+            startTimer();
+
+            // Start game loop
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+
+            // Announce round
+            announceRound();
+        }
+
+        function getCharacterName(character) {
+            switch (character) {
+                case 'ryu': return 'Ryu';
+                case 'ken': return 'Ken';
+                case 'chun': return 'Chun-Li';
+                default: return 'Fighter';
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (gameState === 'playing') {
+                    roundTime--;
+                    timerDisplay.textContent = roundTime.toString().padStart(2, '0');
+
+                    if (roundTime <= 0) {
+                        clearInterval(timerInterval);
+                        endRound();
+                    }
+                }
+            }, 1000);
+        }
+
+        function announceRound() {
+            roundAnnouncement.textContent = `ROUND ${currentRound}`;
+            roundAnnouncement.style.opacity = 1;
+
+            setTimeout(() => {
+                roundAnnouncement.style.opacity = 0;
+            }, 2000);
+        }
+
+        function endRound() {
+            // Determine round winner
+            let roundWinner;
+
+            if (player.health > enemy.health) {
+                roundWinner = 'player';
+                playerWins++;
+            } else if (enemy.health > player.health) {
+                roundWinner = 'enemy';
+                enemyWins++;
+            } else {
+                // Draw - both get a point
+                roundWinner = 'draw';
+                playerWins++;
+                enemyWins++;
+            }
+
+            // Check if match is over
+            if (playerWins >= Math.ceil(ROUND_COUNT / 2) || enemyWins >= Math.ceil(ROUND_COUNT / 2)) {
+                endMatch();
+            } else {
+                // Start next round
+                currentRound++;
+                roundTime = ROUND_TIME;
+
+                // Reset players
+                player = new Fighter(100, 300, 150, 150, selectedCharacter, true);
+                enemy = new Fighter(750, 300, 150, 150, 'ken', false);
+
+                // Update UI
+                updateHealthBars();
+                updateSpecialMeters();
+
+                // Start timer
+                startTimer();
+
+                // Announce round
+                announceRound();
+            }
+        }
+
+        function endMatch() {
+            clearInterval(timerInterval);
+            gameState = 'end';
+            endScreen.classList.remove('hidden');
+
+            if (playerWins > enemyWins) {
+                winnerMessage.textContent = `${getCharacterName(selectedCharacter)} WINS!`;
+            } else {
+                winnerMessage.textContent = gameMode === 'pvp' ? 'Ken WINS!' : 'CPU WINS!';
+            }
+        }
+
+        function resumeGame() {
+            gameState = 'playing';
+            pauseScreen.classList.add('hidden');
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function restartGame() {
+            clearInterval(timerInterval);
+            startGame(gameMode);
+        }
+
+        function goToMainMenu() {
+            clearInterval(timerInterval);
+            gameState = 'start';
+            startScreen.classList.remove('hidden');
+            pauseScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+
+            // Reset health bars
+            playerHealthFill.style.width = '100%';
+            enemyHealthFill.style.width = '100%';
+            playerSpecialFill.style.width = '0%';
+            enemySpecialFill.style.width = '0%';
+        }
+
+        function togglePause() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+                pauseScreen.classList.remove('hidden');
+            } else if (gameState === 'paused') {
+                resumeGame();
+            }
+        }
+
+        function handleInput() {
+            // Player 1 controls
+            if (keys.w) player.jump();
+            if (keys.a) player.moveLeft();
+            else if (keys.d) player.moveRight();
+            else player.stopMoving();
+
+            if (keys.f && !player.isAttacking) player.attack('punch');
+            if (keys.g && !player.isAttacking) player.attack('kick');
+            if (keys.h && !player.isAttacking) player.attack('special');
+
+            // Player 2 / Enemy controls (in PvP mode)
+            if (gameMode === 'pvp') {
+                if (keys.arrowup) enemy.jump();
+                if (keys.arrowleft) enemy.moveLeft();
+                else if (keys.arrowright) enemy.moveRight();
+                else enemy.stopMoving();
+
+                if (keys.j && !enemy.isAttacking) enemy.attack('punch');
+                if (keys.k && !enemy.isAttacking) enemy.attack('kick');
+                if (keys.l && !enemy.isAttacking) enemy.attack('special');
+            }
+        }
+
+        function updateAI(deltaTime) {
+            if (gameMode !== 'pve') return;
+
+            aiDecisionTimer += deltaTime;
+
+            // Make a new decision every AI_REACTION_TIME ms
+            if (aiDecisionTimer >= AI_REACTION_TIME) {
+                aiDecisionTimer = 0;
+
+                // Calculate distance to player
+                const distanceToPlayer = Math.abs(enemy.x - player.x);
+                const isPlayerInRange = distanceToPlayer < 200;
+
+                // Random decision making with some strategy
+                const decision = Math.random();
+
+                if (isPlayerInRange) {
+                    // In attack range
+                    if (enemy.specialMeter >= SPECIAL_COST && decision < 0.2) {
+                        // Use special if available
+                        aiNextAction = 'special';
+                    } else if (decision < 0.6) {
+                        // Attack
+                        aiNextAction = decision < 0.3 ? 'punch' : 'kick';
+                    } else if (decision < 0.8) {
+                        // Jump
+                        aiNextAction = 'jump';
+                    } else {
+                        // Back away
+                        aiNextAction = player.x < enemy.x ? 'moveRight' : 'moveLeft';
+                    }
+                } else {
+                    // Not in attack range
+                    if (decision < 0.7) {
+                        // Move toward player
+                        aiNextAction = player.x < enemy.x ? 'moveLeft' : 'moveRight';
+                    } else if (decision < 0.9) {
+                        // Jump
+                        aiNextAction = 'jump';
+                    } else {
+                        // Idle
+                        aiNextAction = 'idle';
+                    }
+                }
+            }
+
+            // Execute AI action
+            if (aiNextAction === 'punch') {
+                if (enemy.attack('punch')) aiNextAction = null;
+            } else if (aiNextAction === 'kick') {
+                if (enemy.attack('kick')) aiNextAction = null;
+            } else if (aiNextAction === 'special') {
+                if (enemy.attack('special')) aiNextAction = null;
+            } else if (aiNextAction === 'jump') {
+                enemy.jump();
+                aiNextAction = null;
+            } else if (aiNextAction === 'moveLeft') {
+                enemy.moveLeft();
+            } else if (aiNextAction === 'moveRight') {
+                enemy.moveRight();
+            } else if (aiNextAction === 'idle') {
+                enemy.stopMoving();
+            }
+
+            // Always face the player
+            if (player.x < enemy.x) {
+                enemy.facingRight = false;
+            } else {
+                enemy.facingRight = true;
+            }
+        }
+
+        function checkCollisions() {
+            // Check player attack hit enemy
+            if (player.isAttacking && player.frameIndex === 1) { // Check on specific frame
+                const playerAttackBox = player.getAttackBox();
+
+                if (
+                    playerAttackBox.x < enemy.x + enemy.width &&
+                    playerAttackBox.x + playerAttackBox.width > enemy.x &&
+                    playerAttackBox.y < enemy.y + enemy.height &&
+                    playerAttackBox.y + playerAttackBox.height > enemy.y &&
+                    enemy.health > 0
+                ) {
+                    // Calculate damage based on attack type
+                    let damage = 5;
+                    if (player.attackType === 'kick') damage = 8;
+                    else if (player.attackType === 'special') damage = 15;
+
+                    // Apply combo multiplier
+                    if (player.comboCount > 1) {
+                        damage *= 1 + (player.comboCount * 0.1);
+                    }
+
+                    enemy.takeDamage(damage);
+                    updateHealthBars();
+                    updateSpecialMeters();
+                    showCombo('player', player.comboCount);
+
+                    // Check for round end
+                    if (enemy.health <= 0) {
+                        setTimeout(() => endRound(), 1000);
+                    }
+                }
+            }
+
+            // Check enemy attack hit player
+            if (enemy.isAttacking && enemy.frameIndex === 1) { // Check on specific frame
+                const enemyAttackBox = enemy.getAttackBox();
+
+                if (
+                    enemyAttackBox.x < player.x + player.width &&
+                    enemyAttackBox.x + enemyAttackBox.width > player.x &&
+                    enemyAttackBox.y < player.y + player.height &&
+                    enemyAttackBox.y + enemyAttackBox.height > player.y &&
+                    player.health > 0
+                ) {
+                    // Calculate damage based on attack type
+                    let damage = 5;
+                    if (enemy.attackType === 'kick') damage = 8;
+                    else if (enemy.attackType === 'special') damage = 15;
+
+                    // Apply combo multiplier
+                    if (enemy.comboCount > 1) {
+                        damage *= 1 + (enemy.comboCount * 0.1);
+                    }
+
+                    player.takeDamage(damage);
+                    updateHealthBars();
+                    updateSpecialMeters();
+                    showCombo('enemy', enemy.comboCount);
+
+                    // Check for round end
+                    if (player.health <= 0) {
+                        setTimeout(() => endRound(), 1000);
+                    }
+                }
+            }
+        }
+
+        function showCombo(fighter, count) {
+            if (count <= 1) return;
+
+            const display = fighter === 'player' ? playerComboDisplay : enemyComboDisplay;
+            display.textContent = `${count} HIT COMBO!`;
+            display.style.opacity = 1;
+
+            clearTimeout(comboTimers[fighter]);
+            comboTimers[fighter] = setTimeout(() => {
+                display.style.opacity = 0;
+            }, 1500);
+        }
+
+        function updateHealthBars() {
+            playerHealthFill.style.width = `${player.health}%`;
+            enemyHealthFill.style.width = `${enemy.health}%`;
+        }
+
+        function updateSpecialMeters() {
+            playerSpecialFill.style.width = `${player.specialMeter}%`;
+            enemySpecialFill.style.width = `${enemy.specialMeter}%`;
+        }
+
+        function drawBackground() {
+            // Draw sky gradient
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height - 50);
+            skyGradient.addColorStop(0, '#87CEEB');
+            skyGradient.addColorStop(1, '#1E90FF');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height - 50);
+
+            // Draw sun
+            ctx.fillStyle = '#FDB813';
+            ctx.beginPath();
+            ctx.arc(800, 100, 60, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw mountains
+            ctx.fillStyle = '#6B8E23';
+            ctx.beginPath();
+            ctx.moveTo(0, 300);
+            ctx.lineTo(200, 200);
+            ctx.lineTo(400, 250);
+            ctx.lineTo(600, 180);
+            ctx.lineTo(800, 250);
+            ctx.lineTo(1000, 200);
+            ctx.lineTo(1000, canvas.height - 50);
+            ctx.lineTo(0, canvas.height - 50);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw ground
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+
+            // Draw dojo in background
+            drawDojo(ctx, canvas.width / 2 - 150, 150, 300, 200);
+
+            // Draw some trees
+            drawTree(ctx, 100, canvas.height - 150, 100, 100);
+            drawTree(ctx, canvas.width - 150, canvas.height - 180, 120, 130);
+
+            // Draw some clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            drawCloud(ctx, 200, 100, 80, 40);
+            drawCloud(ctx, 600, 80, 100, 50);
+        }
+
+        function drawDojo(ctx, x, y, width, height) {
+            // Draw dojo base
+            ctx.fillStyle = '#4A2E0B';
+            ctx.fillRect(x, y, width, height);
+
+            // Draw roof
+            ctx.fillStyle = '#8B0000';
+            ctx.beginPath();
+            ctx.moveTo(x - 20, y);
+            ctx.lineTo(x + width / 2, y - 50);
+            ctx.lineTo(x + width + 20, y);
+            ctx.lineTo(x + width, y);
+            ctx.lineTo(x, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw pillars
+            ctx.fillStyle = '#4A2E0B';
+            ctx.fillRect(x, y, 20, height);
+            ctx.fillRect(x + width - 20, y, 20, height);
+
+            // Draw door
+            ctx.fillStyle = '#F5F5DC';
+            ctx.fillRect(x + width / 2 - 40, y + 40, 80, height - 40);
+            ctx.strokeStyle = '#000';
+            ctx.strokeRect(x + width / 2 - 40, y + 40, 80, height - 40);
+        }
+
+        function drawTree(ctx, x, y, width, height) {
+            // Draw trunk
+            ctx.fillStyle = '#4A2E0B';
+            ctx.fillRect(x + width / 2 - 10, y + height / 2, 20, height / 2);
+
+            // Draw foliage
+            ctx.fillStyle = '#228B22';
+            ctx.beginPath();
+            ctx.arc(x + width / 2, y + height / 4, width / 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawCloud(ctx, x, y, width, height) {
+            ctx.beginPath();
+            ctx.arc(x, y, height / 2, Math.PI, Math.PI * 2);
+            ctx.arc(x + width / 3, y - height / 4, height / 2, Math.PI, Math.PI * 2);
+            ctx.arc(x + 2 * width / 3, y - height / 4, height / 2, Math.PI, Math.PI * 2);
+            ctx.arc(x + width, y, height / 2, Math.PI, Math.PI * 2);
+            ctx.arc(x + 2 * width / 3, y + height / 4, height / 2, 0, Math.PI);
+            ctx.arc(x + width / 3, y + height / 4, height / 2, 0, Math.PI);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function gameLoop(timestamp) {
+            if (gameState !== 'playing') return;
+
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // Update game
+            handleInput();
+            updateAI(deltaTime);
+            player.update(deltaTime);
+            enemy.update(deltaTime);
+            checkCollisions();
+
+            // Draw game
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            player.draw(ctx);
+            enemy.draw(ctx);
+
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>

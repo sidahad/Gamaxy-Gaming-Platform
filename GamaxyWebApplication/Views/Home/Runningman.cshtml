@@ -1,0 +1,636 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Subway Surfers Pro - Vertical";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Subway Surfers Pro - Vertical</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/Runningman.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">SUBWAY SURFERS PRO</h1>
+                <div class="game-subtitle">ULTIMATE ESCAPE RUNNER</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container" id="gameContainer">
+                    <div class="start-screen" id="startScreen">
+                        <h1 class="start-title">🚇 ESCAPE RUNNER</h1>
+                        <p class="start-subtitle">The Ultimate Escape Running Experience</p>
+                        <button class="btn start-btn" onclick="startGame()">START RUNNING</button>
+                    </div>
+
+                    <div class="tunnel"></div>
+                    <div class="tracks">
+                        <div class="rail-container">
+                            <div class="rail"></div>
+                            <div class="rail"></div>
+                            <div class="rail"></div>
+                        </div>
+                        <div class="rail-ties"></div>
+                    </div>
+
+                    <div class="player" id="player"></div>
+
+                    <div class="ui">
+                        <div class="score">Score: <span id="score">0</span></div>
+                        <div class="distance">Distance: <span id="distance">0</span>m</div>
+                        <div class="speed">Speed: <span id="speed">1.0</span>x</div>
+                        <div class="combo" id="combo" style="display: none;">Combo: <span id="comboCount">0</span>x</div>
+                    </div>
+
+                    <div class="powerup-status" id="powerupStatus"></div>
+
+                    <div class="game-over" id="gameOver">
+                        <h2>🏆 GAME OVER</h2>
+                        <p>Final Score: <span id="finalScore">0</span></p>
+                        <p>Distance: <span id="finalDistance">0</span>m</p>
+                        <p>Max Combo: <span id="maxCombo">0</span>x</p>
+                        <button class="btn restart-btn" onclick="restartGame()">RUN AGAIN</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div>← → Switch Lanes</div>
+                <div>↑ or SPACE Jump</div>
+                <div>↓ Slide</div>
+            </div>
+
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        class SubwaySurfersPro {
+            constructor() {
+                this.player = document.getElementById('player');
+                this.gameContainer = document.getElementById('gameContainer');
+                this.powerupStatus = document.getElementById('powerupStatus');
+
+                this.gameState = {
+                    running: false,
+                    score: 0,
+                    distance: 0,
+                    speed: 1.0,
+                    currentLane: 1,
+                    isJumping: false,
+                    isSliding: false,
+                    combo: 0,
+                    maxCombo: 0,
+                    powerups: {
+                        magnet: { active: false, timer: 0 },
+                        speed: { active: false, timer: 0 },
+                        shield: { active: false, timer: 0 },
+                        multiplier: { active: false, timer: 0 }
+                    }
+                };
+
+                this.lanes = [
+                    this.gameContainer.clientWidth * 0.3,
+                    this.gameContainer.clientWidth * 0.5,
+                    this.gameContainer.clientWidth * 0.7
+                ];
+
+                this.obstacles = [];
+                this.coins = [];
+                this.powerups = [];
+                this.particles = [];
+
+                this.lastObstacleSpawn = 0;
+                this.lastCoinSpawn = 0;
+                this.lastPowerupSpawn = 0;
+                this.lastParticleSpawn = 0;
+
+                this.setupEventListeners();
+                this.setupResizeHandler();
+                this.gameLoop();
+            }
+
+            setupEventListeners() {
+                document.addEventListener('keydown', (e) => {
+                    this.handleInput(e.code);
+                });
+            }
+
+            setupResizeHandler() {
+                const updateLanes = () => {
+                    this.lanes = [
+                        this.gameContainer.clientWidth * 0.3,
+                        this.gameContainer.clientWidth * 0.5,
+                        this.gameContainer.clientWidth * 0.7
+                    ];
+                    this.updatePlayerPosition();
+                };
+                window.addEventListener('resize', () => {
+                    clearTimeout(this.resizeTimeout);
+                    this.resizeTimeout = setTimeout(updateLanes, 100);
+                });
+                window.addEventListener('orientationchange', () => {
+                    clearTimeout(this.resizeTimeout);
+                    this.resizeTimeout = setTimeout(updateLanes, 100);
+                });
+                updateLanes();
+            }
+
+            handleInput(key) {
+                if (!this.gameState.running) return;
+
+                switch(key) {
+                    case 'ArrowLeft':
+                        this.moveLeft();
+                        break;
+                    case 'ArrowRight':
+                        this.moveRight();
+                        break;
+                    case 'ArrowUp':
+                    case 'Space':
+                        this.jump();
+                        break;
+                    case 'ArrowDown':
+                        this.slide();
+                        break;
+                }
+            }
+
+            moveLeft() {
+                if (this.gameState.currentLane > 0) {
+                    this.gameState.currentLane--;
+                    this.updatePlayerPosition();
+                    this.createParticles();
+                }
+            }
+
+            moveRight() {
+                if (this.gameState.currentLane < 2) {
+                    this.gameState.currentLane++;
+                    this.updatePlayerPosition();
+                    this.createParticles();
+                }
+            }
+
+            updatePlayerPosition() {
+                this.player.style.left = (this.lanes[this.gameState.currentLane] - 30) + 'px';
+            }
+
+            jump() {
+                if (!this.gameState.isJumping && !this.gameState.isSliding) {
+                    this.gameState.isJumping = true;
+                    this.player.classList.add('jumping');
+                    this.createParticles();
+
+                    setTimeout(() => {
+                        this.gameState.isJumping = false;
+                        this.player.classList.remove('jumping');
+                    }, 600);
+                }
+            }
+
+            slide() {
+                if (!this.gameState.isSliding && !this.gameState.isJumping) {
+                    this.gameState.isSliding = true;
+                    this.player.classList.add('sliding');
+                    this.createParticles();
+
+                    setTimeout(() => {
+                        this.gameState.isSliding = false;
+                        this.player.classList.remove('sliding');
+                    }, 800);
+                }
+            }
+
+            createParticles() {
+                const now = Date.now();
+                if (now - this.lastParticleSpawn > 60) {
+                    for (let i = 0; i < 6; i++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'particle';
+                        particle.style.left = (this.lanes[this.gameState.currentLane] + Math.random() * 50 - 25) + 'px';
+                        particle.style.bottom = (130 + Math.random() * 60) + 'px';
+
+                        this.gameContainer.appendChild(particle);
+                        this.particles.push(particle);
+
+                        setTimeout(() => {
+                            particle.remove();
+                            this.particles = this.particles.filter(p => p !== particle);
+                        }, 1200);
+                    }
+                    this.lastParticleSpawn = now;
+                }
+            }
+
+            spawnObstacle() {
+                const now = Date.now();
+                const spawnRate = Math.max(1500, 3000 - (this.gameState.speed * 120));
+
+                if (now - this.lastObstacleSpawn > spawnRate) {
+                    const obstacle = document.createElement('div');
+                    const types = ['train', 'barrier'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+
+                    obstacle.className = `obstacle ${type}`;
+
+                    const lane = Math.floor(Math.random() * 3);
+                    obstacle.style.left = (this.lanes[lane] - 50) + 'px';
+                    obstacle.style.top = '-100px';
+                    obstacle.style.transform = 'scale(0.3)';
+
+                    this.gameContainer.appendChild(obstacle);
+                    this.obstacles.push({
+                        element: obstacle,
+                        lane: lane,
+                        y: -100,
+                        type: type,
+                        scale: 0.3
+                    });
+
+                    this.lastObstacleSpawn = now;
+                }
+            }
+
+            spawnCoin() {
+                const now = Date.now();
+                if (now - this.lastCoinSpawn > 900) {
+                    const coin = document.createElement('div');
+                    const isGolden = Math.random() < 0.12; // 12% chance for golden coin
+                    coin.className = isGolden ? 'coin golden' : 'coin';
+
+                    const lane = Math.floor(Math.random() * 3);
+                    coin.style.left = (this.lanes[lane] - 17) + 'px';
+                    coin.style.top = '-50px';
+                    coin.style.transform = 'scale(0.4)';
+
+                    this.gameContainer.appendChild(coin);
+                    this.coins.push({
+                        element: coin,
+                        lane: lane,
+                        y: -50,
+                        value: isGolden ? 50 : 10,
+                        isGolden: isGolden,
+                        scale: 0.4
+                    });
+
+                    this.lastCoinSpawn = now;
+                }
+            }
+
+            spawnPowerup() {
+                const now = Date.now();
+                if (now - this.lastPowerupSpawn > 9000) {
+                    const powerup = document.createElement('div');
+                    const types = ['magnet', 'speed', 'shield', 'multiplier'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+
+                    powerup.className = `powerup ${type}`;
+
+                    const lane = Math.floor(Math.random() * 3);
+                    powerup.style.left = (this.lanes[lane] - 25) + 'px';
+                    powerup.style.top = '-60px';
+                    powerup.style.transform = 'scale(0.3)';
+
+                    this.gameContainer.appendChild(powerup);
+                    this.powerups.push({
+                        element: powerup,
+                        lane: lane,
+                        y: -60,
+                        type: type,
+                        scale: 0.3
+                    });
+
+                    this.lastPowerupSpawn = now;
+                }
+            }
+
+            updateObstacles() {
+                const moveSpeed = 4 + (this.gameState.speed * 1.8);
+
+                this.obstacles.forEach((obstacle, index) => {
+                    obstacle.y += moveSpeed;
+                    obstacle.scale = Math.min(1.2, 0.3 + (obstacle.y / this.gameContainer.clientHeight) * 0.9);
+
+                    obstacle.element.style.top = obstacle.y + 'px';
+                    obstacle.element.style.transform = `scale(${obstacle.scale})`;
+
+                    if (obstacle.y > this.gameContainer.clientHeight + 100) {
+                        obstacle.element.remove();
+                        this.obstacles.splice(index, 1);
+                        return;
+                    }
+
+                    if (this.checkCollision(obstacle)) {
+                        let canAvoid = false;
+
+                        if (obstacle.type === 'train' && this.gameState.isJumping) {
+                            canAvoid = true;
+                            this.showScorePopup('+PERFECT!', this.lanes[this.gameState.currentLane], 250);
+                            this.gameState.score += 30;
+                        } else if (obstacle.type === 'barrier' && this.gameState.isSliding) {
+                            canAvoid = true;
+                            this.showScorePopup('+PERFECT!', this.lanes[this.gameState.currentLane], 250);
+                            this.gameState.score += 30;
+                        }
+
+                        if (!canAvoid && !this.gameState.powerups.shield.active) {
+                            this.gameOver();
+                        } else if (!canAvoid && this.gameState.powerups.shield.active) {
+                            this.showScorePopup('PROTECTED!', this.lanes[this.gameState.currentLane], 250);
+                            this.gameContainer.classList.add('shake');
+                            setTimeout(() => this.gameContainer.classList.remove('shake'), 300);
+                        }
+
+                        obstacle.element.remove();
+                        this.obstacles.splice(index, 1);
+                    }
+                });
+            }
+
+            updateCoins() {
+                const moveSpeed = 4 + (this.gameState.speed * 1.8);
+
+                this.coins.forEach((coin, index) => {
+                    coin.y += moveSpeed;
+                    coin.scale = Math.min(1.0, 0.4 + (coin.y / this.gameContainer.clientHeight) * 0.6);
+
+                    coin.element.style.top = coin.y + 'px';
+                    coin.element.style.transform = `scale(${coin.scale})`;
+
+                    if (this.gameState.powerups.magnet.active) {
+                        const playerX = this.lanes[this.gameState.currentLane];
+                        const coinX = this.lanes[coin.lane];
+                        const distance = Math.abs(playerX - coinX);
+
+                        if (distance < 180 && coin.y > this.gameContainer.clientHeight * 0.3) {
+                            const newX = coinX + (playerX - coinX) * 0.15;
+                            coin.element.style.left = (newX - 17) + 'px';
+                        }
+                    }
+
+                    if (coin.y > this.gameContainer.clientHeight + 60) {
+                        coin.element.remove();
+                        this.coins.splice(index, 1);
+                        return;
+                    }
+
+                    if (this.checkCollision(coin)) {
+                        let points = coin.value;
+                        if (this.gameState.powerups.multiplier.active) {
+                            points *= 2;
+                        }
+
+                        this.gameState.score += points;
+                        this.gameState.combo++;
+
+                        if (this.gameState.combo > this.gameState.maxCombo) {
+                            this.gameState.maxCombo = this.gameState.combo;
+                        }
+
+                        this.showScorePopup(`+${points}`, this.lanes[coin.lane], 200);
+
+                        coin.element.remove();
+                        this.coins.splice(index, 1);
+                    }
+                });
+            }
+
+            updatePowerups() {
+                const moveSpeed = 4 + (this.gameState.speed * 1.8);
+
+                this.powerups.forEach((powerup, index) => {
+                    powerup.y += moveSpeed;
+                    powerup.scale = Math.min(1.0, 0.3 + (powerup.y / this.gameContainer.clientHeight) * 0.7);
+
+                    powerup.element.style.top = powerup.y + 'px';
+                    powerup.element.style.transform = `scale(${powerup.scale})`;
+
+                    if (powerup.y > this.gameContainer.clientHeight + 70) {
+                        powerup.element.remove();
+                        this.powerups.splice(index, 1);
+                        return;
+                    }
+
+                    if (this.checkCollision(powerup)) {
+                        this.activatePowerup(powerup.type);
+                        powerup.element.remove();
+                        this.powerups.splice(index, 1);
+                    }
+                });
+            }
+
+            activatePowerup(type) {
+                this.gameState.powerups[type].active = true;
+                this.gameState.powerups[type].timer = Date.now() + 10000;
+
+                this.player.classList.add(type);
+                this.showScorePopup(`${type.toUpperCase()} ACTIVATED!`, this.lanes[this.gameState.currentLane], 180);
+
+                setTimeout(() => {
+                    this.gameState.powerups[type].active = false;
+                    this.player.classList.remove(type);
+                }, 10000);
+            }
+
+            updatePowerupStatus() {
+                let statusHTML = '';
+                Object.keys(this.gameState.powerups).forEach(type => {
+                    if (this.gameState.powerups[type].active) {
+                        const timeLeft = Math.max(0, this.gameState.powerups[type].timer - Date.now());
+                        statusHTML += `<div class="powerup-item ${type}">${type.toUpperCase()}: ${Math.ceil(timeLeft/1000)}s</div>`;
+                    }
+                });
+                this.powerupStatus.innerHTML = statusHTML;
+            }
+
+            checkCollision(object) {
+                if (Math.abs(object.lane - this.gameState.currentLane) > 0.5) return false;
+
+                const playerY = this.gameContainer.clientHeight - 200;
+                const objectY = object.y;
+
+                return (objectY >= playerY - 50 && objectY <= playerY + 80);
+            }
+
+            showScorePopup(text, x, y) {
+                const popup = document.createElement('div');
+                popup.className = 'score-popup';
+                popup.textContent = text;
+                popup.style.left = x + 'px';
+                popup.style.bottom = y + 'px';
+
+                this.gameContainer.appendChild(popup);
+
+                setTimeout(() => {
+                    popup.remove();
+                }, 1800);
+            }
+
+            updateGameState() {
+                this.gameState.distance += this.gameState.speed;
+                this.gameState.score += Math.floor(this.gameState.speed);
+
+                if (this.gameState.distance % 600 === 0 && this.gameState.distance > 0) {
+                    this.gameState.speed += 0.06;
+                }
+
+                if (Date.now() % 120 === 0 && this.gameState.combo > 0) {
+                    // Combo decay logic could go here
+                }
+            }
+
+            updateUI() {
+                document.getElementById('score').textContent = Math.floor(this.gameState.score);
+                document.getElementById('distance').textContent = Math.floor(this.gameState.distance);
+                document.getElementById('speed').textContent = this.gameState.speed.toFixed(1);
+
+                const comboElement = document.getElementById('combo');
+                if (this.gameState.combo > 1) {
+                    comboElement.style.display = 'block';
+                    document.getElementById('comboCount').textContent = this.gameState.combo;
+                } else {
+                    comboElement.style.display = 'none';
+                }
+
+                this.updatePowerupStatus();
+            }
+
+            gameLoop() {
+                if (this.gameState.running) {
+                    this.spawnObstacle();
+                    this.spawnCoin();
+                    this.spawnPowerup();
+
+                    this.updateObstacles();
+                    this.updateCoins();
+                    this.updatePowerups();
+                    this.updateGameState();
+                    this.updateUI();
+                }
+
+                requestAnimationFrame(() => this.gameLoop());
+            }
+
+            gameOver() {
+                this.gameState.running = false;
+                this.gameContainer.classList.add('shake');
+
+                document.getElementById('finalScore').textContent = Math.floor(this.gameState.score);
+                document.getElementById('finalDistance').textContent = Math.floor(this.gameState.distance);
+                document.getElementById('maxCombo').textContent = this.gameState.maxCombo;
+                document.getElementById('gameOver').style.display = 'flex';
+
+                setTimeout(() => this.gameContainer.classList.remove('shake'), 300);
+            }
+
+            start() {
+                this.gameState = {
+                    running: true,
+                    score: 0,
+                    distance: 0,
+                    speed: 1.0,
+                    currentLane: 1,
+                    isJumping: false,
+                    isSliding: false,
+                    combo: 0,
+                    maxCombo: 0,
+                    powerups: {
+                        magnet: { active: false, timer: 0 },
+                        speed: { active: false, timer: 0 },
+                        shield: { active: false, timer: 0 },
+                        multiplier: { active: false, timer: 0 }
+                    }
+                };
+
+                [...this.obstacles, ...this.coins, ...this.powerups].forEach(item => item.element.remove());
+                this.particles.forEach(particle => particle.remove());
+
+                this.obstacles = [];
+                this.coins = [];
+                this.powerups = [];
+                this.particles = [];
+
+                this.player.className = 'player';
+                this.updatePlayerPosition();
+
+                document.getElementById('gameOver').style.display = 'none';
+                document.getElementById('startScreen').style.display = 'none';
+            }
+
+            restart() {
+                this.start();
+            }
+        }
+
+        let game;
+
+        function startGame() {
+            if (!game) {
+                game = new SubwaySurfersPro();
+            }
+            game.start();
+        }
+
+        function restartGame() {
+            game.restart();
+        }
+
+        game = new SubwaySurfersPro();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balloon Dash: Sky Escape Challenge</title>
+    <link href="~/css/Ballon.css" rel="stylesheet" />
+
+    <style>
+
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Fredoka', sans-serif;
+    background: linear-gradient(to bottom, #87CEEB, #1E90FF);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.game-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 80vh;
+    background: linear-gradient(to bottom, #87CEEB, #1E90FF, #000033);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.balloon {
+    position: absolute;
+    width: 60px;
+    height: 80px;
+    left: 50%;
+    bottom: 20%;
+    transform: translateX(-50%);
+    transition: bottom 0.1s ease-out;
+    z-index: 10;
+}
+
+.balloon-body {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle at 40% 40%, #FF5252, #D32F2F);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.2);
+    overflow: visible;
+}
+
+.balloon-basket {
+    position: absolute;
+    width: 30px;
+    height: 15px;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #8D6E63;
+    border-radius: 3px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.balloon-rope {
+    position: absolute;
+    width: 2px;
+    height: 20px;
+    background: #5D4037;
+    bottom: -5px;
+    left: 20px;
+}
+
+    .balloon-rope:nth-child(2) {
+        left: 38px;
+    }
+
+.cloud {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.8;
+    filter: blur(3px);
+}
+
+.obstacle {
+    position: absolute;
+    z-index: 5;
+}
+
+.bird {
+    width: 40px;
+    height: 20px;
+}
+
+.plane {
+    width: 80px;
+    height: 30px;
+}
+
+.storm {
+    width: 100px;
+    height: 60px;
+    background: #34495e;
+    border-radius: 50%;
+    box-shadow: 0 0 20px #2c3e50;
+    opacity: 0.8;
+}
+
+.debris {
+    width: 20px;
+    height: 20px;
+    background: #795548;
+    border-radius: 3px;
+    transform: rotate(45deg);
+}
+
+.powerup {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    z-index: 5;
+    animation: pulse 1s infinite alternate;
+}
+
+.fuel-powerup {
+    background: radial-gradient(circle at 40% 40%, #FFD700, #FFA500);
+    box-shadow: 0 0 10px #FFA500;
+}
+
+.shield-powerup {
+    background: radial-gradient(circle at 40% 40%, #00BFFF, #1E90FF);
+    box-shadow: 0 0 10px #1E90FF;
+}
+
+.coin {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #FFD700;
+    border-radius: 50%;
+    z-index: 5;
+    box-shadow: 0 0 5px #FFA500;
+    animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotateY(0deg);
+    }
+
+    to {
+        transform: rotateY(360deg);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+.controls {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    z-index: 20;
+}
+
+.lift-btn {
+    padding: 15px 40px;
+    background: #FF5252;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+    user-select: none;
+}
+
+.pause-btn {
+    padding: 15px 20px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+    user-select: none;
+}
+
+    .lift-btn:active, .pause-btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+.stats-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 20;
+}
+
+.score-container {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px 15px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.score {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.coins-container {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px 15px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.coin-icon {
+    width: 15px;
+    height: 15px;
+    background: #FFD700;
+    border-radius: 50%;
+}
+
+.coins {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.altitude-meter {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 30px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+}
+
+.altitude-fill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 0%;
+    background: linear-gradient(to top, #4CAF50, #8BC34A);
+    border-radius: 15px;
+    transition: height 0.3s;
+}
+
+.game-over {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s;
+}
+
+    .game-over.show {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .game-over h2 {
+        color: white;
+        font-size: 36px;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    .game-over p {
+        color: white;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+.high-score {
+    color: #FFD700;
+    font-size: 20px;
+    margin-bottom: 30px;
+}
+
+.restart-btn {
+    padding: 12px 30px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+    margin-bottom: 15px;
+}
+
+.shop-btn {
+    padding: 12px 30px;
+    background: #9C27B0;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+    .restart-btn:hover, .shop-btn:hover {
+        filter: brightness(1.1);
+    }
+
+    .restart-btn:active, .shop-btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+.start-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+}
+
+    .start-screen h1 {
+        color: white;
+        font-size: 32px;
+        text-align: center;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        padding: 0 20px;
+    }
+
+    .start-screen p {
+        color: white;
+        font-size: 18px;
+        text-align: center;
+        margin-bottom: 30px;
+        max-width: 80%;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+
+.start-btn {
+    padding: 15px 40px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+    .start-btn:hover {
+        background: #43A047;
+    }
+
+    .start-btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+.level-indicator {
+    position: absolute;
+    top: 70px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 8px 15px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.boost-meter {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 20;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.boost-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(to right, #FF9800, #F44336);
+    transform-origin: left;
+    transform: scaleX(1);
+    transition: transform 0.1s linear;
+}
+
+.boost-label {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+}
+
+.shield-indicator {
+    position: absolute;
+    top: 130px;
+    left: 20px;
+    background: rgba(30, 144, 255, 0.3);
+    padding: 8px 15px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    display: none;
+}
+
+.shield-effect {
+    position: absolute;
+    width: 80px;
+    height: 100px;
+    left: 50%;
+    bottom: 20%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(30, 144, 255, 0.2), rgba(30, 144, 255, 0));
+    z-index: 9;
+    display: none;
+}
+
+.pause-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+    .pause-screen.show {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .pause-screen h2 {
+        color: white;
+        font-size: 36px;
+        margin-bottom: 30px;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+.resume-btn {
+    padding: 12px 30px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+    .resume-btn:hover {
+        background: #43A047;
+    }
+
+    .resume-btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+.shop-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+    .shop-screen.show {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .shop-screen h2 {
+        color: white;
+        font-size: 32px;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+.shop-items {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 80%;
+    max-width: 400px;
+    margin-bottom: 30px;
+}
+
+.shop-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.shop-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.shop-item-name {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.shop-item-desc {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+.shop-item-price {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.shop-item-price-coin {
+    width: 15px;
+    height: 15px;
+    background: #FFD700;
+    border-radius: 50%;
+}
+
+.shop-item-price-amount {
+    color: #FFD700;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.shop-item-buy {
+    padding: 8px 15px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .shop-item-buy:disabled {
+        background: #555;
+        cursor: not-allowed;
+    }
+
+.close-shop-btn {
+    padding: 12px 30px;
+    background: #F44336;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.notification {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 18px;
+    z-index: 25;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+    .notification.show {
+        opacity: 1;
+        animation: notification 2s forwards;
+    }
+
+@keyframes notification {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+
+    20% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    80% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes sway {
+    0%, 100% {
+        transform: translateX(-50%) rotate(-2deg);
+    }
+
+    50% {
+        transform: translateX(-50%) rotate(2deg);
+    }
+}
+
+@keyframes lightning {
+    0%, 100% {
+        box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff;
+    }
+
+    50% {
+        box-shadow: none;
+    }
+}
+
+@media (max-height: 700px) {
+    .game-container {
+        height: 90vh;
+    }
+}
+
+@media (max-width: 500px) {
+    .lift-btn {
+        padding: 12px 30px;
+        font-size: 16px;
+    }
+
+    .pause-btn {
+        padding: 12px 15px;
+        font-size: 16px;
+    }
+
+    .stats-container {
+        top: 10px;
+        left: 10px;
+    }
+
+    .score-container, .coins-container {
+        padding: 8px 12px;
+    }
+
+    .altitude-meter {
+        top: 10px;
+        right: 10px;
+        height: 150px;
+    }
+
+    .level-indicator {
+        top: 60px;
+        left: 10px;
+        font-size: 14px;
+    }
+
+    .shield-indicator {
+        top: 100px;
+        left: 10px;
+        font-size: 14px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="game-container" id="game-container">
+        <div class="balloon" id="balloon">
+            <div class="balloon-body">
+                <div class="balloon-rope"></div>
+                <div class="balloon-rope"></div>
+                <div class="balloon-basket"></div>
+            </div>
+        </div>
+
+        <div class="shield-effect" id="shield-effect"></div>
+
+        <div class="stats-container">
+            <div class="score-container">
+                <div class="score">Score: <span id="score">0</span></div>
+            </div>
+
+            <div class="coins-container">
+                <div class="coin-icon"></div>
+                <div class="coins"><span id="coins">0</span></div>
+            </div>
+        </div>
+
+        <div class="level-indicator">Level: <span id="level">1</span></div>
+        <div class="shield-indicator" id="shield-indicator">Shield Active</div>
+
+        <div class="altitude-meter">
+            <div class="altitude-fill" id="altitude-fill"></div>
+        </div>
+
+        <div class="boost-label">BOOST</div>
+        <div class="boost-meter">
+            <div class="boost-fill" id="boost-fill"></div>
+        </div>
+
+        <div class="controls">
+            <button class="lift-btn" id="lift-btn">LIFT</button>
+            <button class="pause-btn" id="pause-btn">⏸️</button>
+        </div>
+
+        <div class="notification" id="notification"></div>
+
+        <div class="game-over" id="game-over">
+            <h2>Game Over!</h2>
+            <p>Your Score: <span id="final-score">0</span></p>
+            <p class="high-score">High Score: <span id="high-score">0</span></p>
+            <button class="restart-btn" id="restart-btn">Play Again</button>
+            <button class="shop-btn" id="shop-btn-end">Shop</button>
+        </div>
+
+        <div class="start-screen" id="start-screen">
+            <h1>Balloon Dash: Sky Escape Challenge</h1>
+            <p>Tap and hold the LIFT button to rise through the sky. Collect coins and avoid obstacles!</p>
+            <button class="start-btn" id="start-btn">START</button>
+        </div>
+
+        <div class="pause-screen" id="pause-screen">
+            <h2>Game Paused</h2>
+            <button class="resume-btn" id="resume-btn">Resume</button>
+        </div>
+
+        <div class="shop-screen" id="shop-screen">
+            <h2>Balloon Shop</h2>
+            <div class="shop-items" id="shop-items">
+                <!-- Shop items will be added here -->
+            </div>
+            <button class="close-shop-btn" id="close-shop-btn">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game elements
+            const gameContainer = document.getElementById('game-container');
+            const balloon = document.getElementById('balloon');
+            const liftBtn = document.getElementById('lift-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const scoreDisplay = document.getElementById('score');
+            const coinsDisplay = document.getElementById('coins');
+            const levelDisplay = document.getElementById('level');
+            const altitudeFill = document.getElementById('altitude-fill');
+            const boostFill = document.getElementById('boost-fill');
+            const gameOverScreen = document.getElementById('game-over');
+            const finalScoreDisplay = document.getElementById('final-score');
+            const highScoreDisplay = document.getElementById('high-score');
+            const restartBtn = document.getElementById('restart-btn');
+            const startScreen = document.getElementById('start-screen');
+            const startBtn = document.getElementById('start-btn');
+            const pauseScreen = document.getElementById('pause-screen');
+            const resumeBtn = document.getElementById('resume-btn');
+            const shopScreen = document.getElementById('shop-screen');
+            const shopItems = document.getElementById('shop-items');
+            const closeShopBtn = document.getElementById('close-shop-btn');
+            const shopBtnEnd = document.getElementById('shop-btn-end');
+            const notification = document.getElementById('notification');
+            const shieldIndicator = document.getElementById('shield-indicator');
+            const shieldEffect = document.getElementById('shield-effect');
+
+            // Game variables
+            let gameRunning = false;
+            let gamePaused = false;
+            let score = 0;
+            let coins = 0;
+            let level = 1;
+            let balloonPosition = 20; // Percentage from bottom
+            let balloonRising = false;
+            let obstacles = [];
+            let powerups = [];
+            let gameItems = [];
+            let clouds = [];
+            let gameSpeed = 1;
+            let obstacleInterval;
+            let powerupInterval;
+            let coinInterval;
+            let gameLoop;
+            let boostPower = 100; // Percentage
+            let boostRecovery;
+            let boostDraining = false;
+            let gameHeight;
+            let gameWidth;
+            let highScore = localStorage.getItem('balloonDashHighScore') || 0;
+            let hasShield = false;
+            let shieldDuration = 0;
+            let shieldTimer;
+
+            // Shop items
+            const shopItemsList = [
+                {
+                    id: 'boost_upgrade',
+                    name: 'Boost Upgrade',
+                    description: 'Increases boost recovery speed',
+                    price: 50,
+                    purchased: false,
+                    level: 1,
+                    maxLevel: 3,
+                    effect: () => {
+                        showNotification('Boost recovery speed increased!');
+                    }
+                },
+                {
+                    id: 'shield',
+                    name: 'Shield',
+                    description: 'Protects from one collision',
+                    price: 100,
+                    purchased: false,
+                    consumable: true,
+                    effect: () => {
+                        hasShield = true;
+                        shieldDuration = 30; // 30 seconds
+                        shieldIndicator.style.display = 'block';
+                        shieldEffect.style.display = 'block';
+                        showNotification('Shield activated!');
+                    }
+                },
+                {
+                    id: 'balloon_upgrade',
+                    name: 'Balloon Upgrade',
+                    description: 'Increases lift power',
+                    price: 150,
+                    purchased: false,
+                    level: 1,
+                    maxLevel: 3,
+                    effect: () => {
+                        showNotification('Balloon lift power increased!');
+                    }
+                }
+            ];
+
+            // Initialize game dimensions
+            function updateDimensions() {
+                gameHeight = gameContainer.clientHeight;
+                gameWidth = gameContainer.clientWidth;
+            }
+
+            // Create clouds in the background
+            function createClouds() {
+                for (let i = 0; i < 10; i++) {
+                    createCloud();
+                }
+            }
+
+            function createCloud() {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+
+                const size = Math.random() * 100 + 50;
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const opacity = Math.random() * 0.5 + 0.3;
+
+                cloud.style.width = `${size}px`;
+                cloud.style.height = `${size * 0.6}px`;
+                cloud.style.left = `${left}%`;
+                cloud.style.top = `${top}%`;
+                cloud.style.opacity = opacity;
+
+                gameContainer.appendChild(cloud);
+                clouds.push({
+                    element: cloud,
+                    speed: Math.random() * 0.2 + 0.1,
+                    position: top
+                });
+            }
+
+            // Move clouds
+            function moveClouds() {
+                clouds.forEach((cloud, index) => {
+                    cloud.position -= cloud.speed * gameSpeed;
+
+                    if (cloud.position < -20) {
+                        // Remove cloud and create a new one
+                        if (cloud.element.parentNode) {
+                            gameContainer.removeChild(cloud.element);
+                        }
+                        clouds.splice(index, 1);
+                        createCloud();
+                    } else {
+                        cloud.element.style.top = `${cloud.position}%`;
+                    }
+                });
+            }
+
+            // Create obstacles
+            function createObstacle() {
+                if (!gameRunning || gamePaused) return;
+
+                const types = ['bird', 'plane', 'storm', 'debris'];
+                const weights = [0.4, 0.3, 0.2, 0.1];
+
+                // Adjust weights based on level
+                if (level >= 3) {
+                    weights[2] = 0.3; // More storms at higher levels
+                    weights[3] = 0.2; // More debris at higher levels
+                }
+
+                // Choose obstacle type based on weights
+                let rand = Math.random();
+                let cumulativeWeight = 0;
+                let selectedType;
+
+                for (let i = 0; i < types.length; i++) {
+                    cumulativeWeight += weights[i];
+                    if (rand <= cumulativeWeight) {
+                        selectedType = types[i];
+                        break;
+                    }
+                }
+
+                const obstacle = document.createElement('div');
+                obstacle.className = `obstacle ${selectedType}`;
+
+                // Set obstacle position
+                const left = Math.random() * 80 + 10; // 10% to 90% from left
+                const top = -10; // Start above the screen
+
+                obstacle.style.left = `${left}%`;
+                obstacle.style.top = `${top}%`;
+
+                // Add SVG or styling based on obstacle type
+                switch (selectedType) {
+                    case 'bird':
+                        obstacle.innerHTML = `
+                            <svg viewBox="0 0 40 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5,10 C15,0 25,0 35,10 M5,10 C15,20 25,20 35,10" stroke="#333" stroke-width="2" fill="none" />
+                                <circle cx="35" cy="10" r="3" fill="#333" />
+                            </svg>
+                        `;
+                        break;
+                    case 'plane':
+                        obstacle.innerHTML = `
+                            <svg viewBox="0 0 80 30" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10,15 L70,15 L60,5 L20,5 Z" fill="#DDD" />
+                                <path d="M70,15 L60,25 L20,25 L10,15 Z" fill="#BBB" />
+                                <path d="M20,10 L40,10 L40,20 L20,20 Z" fill="#999" />
+                                <path d="M50,10 L60,10 L60,20 L50,20 Z" fill="#999" />
+                                <path d="M70,15 L80,15 L75,10 L75,20 Z" fill="#DDD" />
+                            </svg>
+                        `;
+                        break;
+                    case 'storm':
+                        obstacle.innerHTML = `
+                            <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20,40 C10,40 0,35 0,25 C0,15 10,10 20,10 C25,0 40,-5 55,5 C70,-5 85,0 90,10 C100,10 110,15 110,25 C110,35 100,40 90,40 Z" fill="#34495e" />
+                                <path d="M30,40 L40,60 L45,50 L55,60 L50,40" fill="#f1c40f" />
+                            </svg>
+                        `;
+                        // Add lightning effect
+                        obstacle.style.animation = 'lightning 0.5s infinite';
+                        break;
+                    case 'debris':
+                        // Random rotation for debris
+                        const rotation = Math.random() * 360;
+                        obstacle.style.transform = `rotate(${rotation}deg)`;
+                        break;
+                }
+
+                gameContainer.appendChild(obstacle);
+
+                // Add to obstacles array
+                obstacles.push({
+                    element: obstacle,
+                    type: selectedType,
+                    left: left,
+                    top: top,
+                    speed: Math.random() * 1 + 1,
+                    rotation: selectedType === 'debris' ? Math.random() * 5 - 2.5 : 0
+                });
+
+                // Schedule next obstacle
+                const minDelay = Math.max(1500 - level * 100, 800);
+                const maxDelay = Math.max(3000 - level * 150, 1500);
+                const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+
+                clearTimeout(obstacleInterval);
+                obstacleInterval = setTimeout(createObstacle, delay);
+            }
+
+            // Create powerups
+            function createPowerup() {
+                if (!gameRunning || gamePaused) return;
+
+                const types = ['fuel', 'shield'];
+                const type = types[Math.floor(Math.random() * types.length)];
+
+                const powerup = document.createElement('div');
+                powerup.className = `powerup ${type}-powerup`;
+
+                // Set powerup position
+                const left = Math.random() * 80 + 10; // 10% to 90% from left
+                const top = -10; // Start above the screen
+
+                powerup.style.left = `${left}%`;
+                powerup.style.top = `${top}%`;
+
+                gameContainer.appendChild(powerup);
+
+                // Add to powerups array
+                powerups.push({
+                    element: powerup,
+                    type: type,
+                    left: left,
+                    top: top,
+                    speed: 1
+                });
+
+                // Schedule next powerup
+                const delay = Math.random() * 15000 + 10000; // 10-25 seconds
+                clearTimeout(powerupInterval);
+                powerupInterval = setTimeout(createPowerup, delay);
+            }
+
+            // Create coins
+            function createCoin() {
+                if (!gameRunning || gamePaused) return;
+
+                const coin = document.createElement('div');
+                coin.className = 'coin';
+
+                // Set coin position
+                const left = Math.random() * 80 + 10; // 10% to 90% from left
+                const top = -10; // Start above the screen
+
+                coin.style.left = `${left}%`;
+                coin.style.top = `${top}%`;
+
+                gameContainer.appendChild(coin);
+
+                // Add to game items array
+                gameItems.push({
+                    element: coin,
+                    type: 'coin',
+                    left: left,
+                    top: top,
+                    speed: 1.5
+                });
+
+                // Schedule next coin
+                const delay = Math.random() * 3000 + 2000; // 2-5 seconds
+                clearTimeout(coinInterval);
+                coinInterval = setTimeout(createCoin, delay);
+            }
+
+            // Move obstacles
+            function moveObstacles() {
+                obstacles.forEach((obstacle, index) => {
+                    obstacle.top += obstacle.speed * gameSpeed;
+
+                    if (obstacle.type === 'debris') {
+                        obstacle.left += obstacle.rotation * 0.1;
+                    }
+
+                    obstacle.element.style.top = `${obstacle.top}%`;
+
+                    if (obstacle.type === 'debris') {
+                        obstacle.element.style.left = `${obstacle.left}%`;
+                    }
+
+                    // Check if obstacle is off screen
+                    if (obstacle.top > 110) {
+                        // Remove obstacle
+                        if (obstacle.element.parentNode) {
+                            gameContainer.removeChild(obstacle.element);
+                        }
+                        obstacles.splice(index, 1);
+
+                        // Add score for successfully avoiding obstacle
+                        updateScore(5);
+                    }
+
+                    // Check collision with balloon
+                    if (checkCollision(obstacle)) {
+                        if (hasShield) {
+                            // Shield protects from collision
+                            if (obstacle.element.parentNode) {
+                                gameContainer.removeChild(obstacle.element);
+                            }
+                            obstacles.splice(index, 1);
+
+                            // Remove shield
+                            hasShield = false;
+                            shieldDuration = 0;
+                            shieldIndicator.style.display = 'none';
+                            shieldEffect.style.display = 'none';
+                            clearTimeout(shieldTimer);
+
+                            showNotification('Shield protected you!');
+                        } else {
+                            gameOver();
+                        }
+                    }
+                });
+            }
+
+            // Move powerups and check collection
+            function movePowerups() {
+                powerups.forEach((powerup, index) => {
+                    powerup.top += powerup.speed * gameSpeed;
+                    powerup.element.style.top = `${powerup.top}%`;
+
+                    // Check if powerup is off screen
+                    if (powerup.top > 110) {
+                        // Remove powerup
+                        if (powerup.element.parentNode) {
+                            gameContainer.removeChild(powerup.element);
+                        }
+                        powerups.splice(index, 1);
+                    }
+
+                    // Check collection
+                    if (checkCollision(powerup)) {
+                        // Apply powerup effect
+                        if (powerup.type === 'fuel') {
+                            boostPower = 100;
+                            boostFill.style.transform = 'scaleX(1)';
+                            showNotification('Boost refilled!');
+                        } else if (powerup.type === 'shield') {
+                            hasShield = true;
+                            shieldDuration = 30; // 30 seconds
+                            shieldIndicator.style.display = 'block';
+                            shieldEffect.style.display = 'block';
+
+                            // Clear any existing shield timer
+                            if (shieldTimer) clearTimeout(shieldTimer);
+
+                            // Set shield timer
+                            updateShieldTimer();
+
+                            showNotification('Shield activated!');
+                        }
+
+                        // Remove powerup
+                        if (powerup.element.parentNode) {
+                            gameContainer.removeChild(powerup.element);
+                        }
+                        powerups.splice(index, 1);
+                    }
+                });
+            }
+
+            // Move game items (coins, etc.)
+            function moveGameItems() {
+                gameItems.forEach((item, index) => {
+                    item.top += item.speed * gameSpeed;
+                    item.element.style.top = `${item.top}%`;
+
+                    // Check if item is off screen
+                    if (item.top > 110) {
+                        // Remove item
+                        if (item.element.parentNode) {
+                            gameContainer.removeChild(item.element);
+                        }
+                        gameItems.splice(index, 1);
+                    }
+
+                    // Check collection
+                    if (checkCollision(item)) {
+                        // Apply item effect
+                        if (item.type === 'coin') {
+                            coins++;
+                            coinsDisplay.textContent = coins;
+                            showNotification('+1 Coin');
+                        }
+
+                        // Remove item
+                        if (item.element.parentNode) {
+                            gameContainer.removeChild(item.element);
+                        }
+                        gameItems.splice(index, 1);
+                    }
+                });
+            }
+
+            // Update shield timer
+            function updateShieldTimer() {
+                if (shieldDuration <= 0) {
+                    hasShield = false;
+                    shieldIndicator.style.display = 'none';
+                    shieldEffect.style.display = 'none';
+                    return;
+                }
+
+                shieldDuration--;
+                shieldIndicator.textContent = `Shield: ${shieldDuration}s`;
+
+                shieldTimer = setTimeout(updateShieldTimer, 1000);
+            }
+
+            // Check collision between balloon and object
+            function checkCollision(object) {
+                // Get balloon position and dimensions
+                const balloonRect = balloon.getBoundingClientRect();
+                const objectRect = object.element.getBoundingClientRect();
+
+                // Simple rectangle collision detection
+                return !(
+                    balloonRect.right < objectRect.left + 5 ||
+                    balloonRect.left > objectRect.right - 5 ||
+                    balloonRect.bottom < objectRect.top + 5 ||
+                    balloonRect.top > objectRect.bottom - 5
+                );
+            }
+
+            // Update score
+            function updateScore(points) {
+                score += points;
+                scoreDisplay.textContent = Math.floor(score);
+
+                // Check for level up
+                const newLevel = Math.floor(score / 100) + 1;
+                if (newLevel > level) {
+                    levelUp(newLevel);
+                }
+            }
+
+            // Level up
+            function levelUp(newLevel) {
+                level = newLevel;
+                levelDisplay.textContent = level;
+                gameSpeed += 0.2;
+
+                // Visual feedback for level up
+                levelDisplay.parentElement.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    levelDisplay.parentElement.style.transform = 'scale(1)';
+                }, 300);
+
+                showNotification(`Level ${level}!`);
+            }
+
+            // Update balloon position
+            function updateBalloon() {
+                // Get boost multiplier based on upgrade level
+                const boostMultiplier = shopItemsList.find(item => item.id === 'balloon_upgrade').purchased ?
+                    1 + (shopItemsList.find(item => item.id === 'balloon_upgrade').level * 0.2) : 1;
+
+                if (balloonRising && boostPower > 0) {
+                    // Rise balloon
+                    balloonPosition += 0.5 * gameSpeed * boostMultiplier;
+
+                    // Drain boost power
+                    boostPower = Math.max(0, boostPower - 1);
+                    boostFill.style.transform = `scaleX(${boostPower / 100})`;
+
+                    // Update score based on altitude
+                    if (balloonPosition > 50) {
+                        updateScore(0.1);
+                    }
+                } else {
+                    // Fall balloon
+                    balloonPosition = Math.max(5, balloonPosition - 0.3 * gameSpeed);
+                }
+
+                // Cap balloon position
+                balloonPosition = Math.min(90, balloonPosition);
+
+                // Update balloon position
+                balloon.style.bottom = `${balloonPosition}%`;
+
+                // Update shield effect position
+                if (hasShield) {
+                    shieldEffect.style.bottom = `${balloonPosition}%`;
+                }
+
+                // Update altitude meter
+                altitudeFill.style.height = `${balloonPosition}%`;
+
+                // Check if balloon reached the top
+                if (balloonPosition >= 90) {
+                    // Add bonus points
+                    updateScore(50);
+                    showNotification('Altitude Bonus: +50');
+
+                    // Reset balloon position
+                    balloonPosition = 20;
+                }
+
+                // Check if balloon is too low
+                if (balloonPosition <= 5 && gameRunning) {
+                    gameOver();
+                }
+
+                // Add floating animation
+                balloon.style.animation = balloonRising ? 'none' : 'sway 3s infinite ease-in-out';
+            }
+
+            // Recover boost power
+            function recoverBoost() {
+                if (!boostDraining && boostPower < 100) {
+                    // Get recovery rate based on upgrade level
+                    const recoveryRate = shopItemsList.find(item => item.id === 'boost_upgrade').purchased ?
+                        0.5 + (shopItemsList.find(item => item.id === 'boost_upgrade').level * 0.2) : 0.5;
+
+                    boostPower = Math.min(100, boostPower + recoveryRate);
+                    boostFill.style.transform = `scaleX(${boostPower / 100})`;
+                }
+            }
+
+            // Show notification
+            function showNotification(message) {
+                notification.textContent = message;
+                notification.classList.remove('show');
+
+                // Force reflow
+                void notification.offsetWidth;
+
+                notification.classList.add('show');
+            }
+
+            // Game over
+            function gameOver() {
+                gameRunning = false;
+                clearInterval(gameLoop);
+                clearTimeout(obstacleInterval);
+                clearTimeout(powerupInterval);
+                clearTimeout(coinInterval);
+                clearTimeout(shieldTimer);
+
+                // Update high score
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('balloonDashHighScore', highScore);
+                }
+
+                // Show game over screen
+                finalScoreDisplay.textContent = Math.floor(score);
+                highScoreDisplay.textContent = Math.floor(highScore);
+                gameOverScreen.classList.add('show');
+
+                // Stop balloon animation
+                balloon.style.animation = 'none';
+            }
+
+            // Reset game
+            function resetGame() {
+                // Reset variables
+                score = 0;
+                level = 1;
+                balloonPosition = 20;
+                gameSpeed = 1;
+                boostPower = 100;
+                hasShield = false;
+                shieldDuration = 0;
+
+                // Update displays
+                scoreDisplay.textContent = score;
+                levelDisplay.textContent = level;
+                coinsDisplay.textContent = coins;
+                altitudeFill.style.height = `${balloonPosition}%`;
+                boostFill.style.transform = 'scaleX(1)';
+                shieldIndicator.style.display = 'none';
+                shieldEffect.style.display = 'none';
+
+                // Reset balloon position
+                balloon.style.bottom = `${balloonPosition}%`;
+
+                // Clear obstacles
+                obstacles.forEach(obstacle => {
+                    if (obstacle.element.parentNode) {
+                        gameContainer.removeChild(obstacle.element);
+                    }
+                });
+                obstacles = [];
+
+                // Clear powerups
+                powerups.forEach(powerup => {
+                    if (powerup.element.parentNode) {
+                        gameContainer.removeChild(powerup.element);
+                    }
+                });
+                powerups = [];
+
+                // Clear game items
+                gameItems.forEach(item => {
+                    if (item.element.parentNode) {
+                        gameContainer.removeChild(item.element);
+                    }
+                });
+                gameItems = [];
+
+                // Clear clouds
+                clouds.forEach(cloud => {
+                    if (cloud.element.parentNode) {
+                        gameContainer.removeChild(cloud.element);
+                    }
+                });
+                clouds = [];
+
+                // Hide game over screen
+                gameOverScreen.classList.remove('show');
+
+                // Create new clouds
+                createClouds();
+
+                // Start game
+                startGame();
+            }
+
+            // Pause game
+            function pauseGame() {
+                if (!gameRunning) return;
+
+                gamePaused = true;
+                pauseScreen.classList.add('show');
+                clearInterval(gameLoop);
+            }
+
+            // Resume game
+            function resumeGame() {
+                if (!gameRunning) return;
+
+                gamePaused = false;
+                pauseScreen.classList.remove('show');
+
+                // Resume game loop
+                gameLoop = setInterval(() => {
+                    moveClouds();
+                    moveObstacles();
+                    movePowerups();
+                    moveGameItems();
+                    updateBalloon();
+                    recoverBoost();
+                }, 20);
+            }
+
+            // Update shop display
+            function updateShopDisplay() {
+                shopItems.innerHTML = '';
+
+                shopItemsList.forEach(item => {
+                    const shopItem = document.createElement('div');
+                    shopItem.className = 'shop-item';
+
+                    const itemInfo = document.createElement('div');
+                    itemInfo.className = 'shop-item-info';
+
+                    const itemName = document.createElement('div');
+                    itemName.className = 'shop-item-name';
+                    itemName.textContent = item.name + (item.level && item.purchased ? ` (Lvl ${item.level})` : '');
+
+                    const itemDesc = document.createElement('div');
+                    itemDesc.className = 'shop-item-desc';
+                    itemDesc.textContent = item.description;
+
+                    itemInfo.appendChild(itemName);
+                    itemInfo.appendChild(itemDesc);
+
+                    const itemPrice = document.createElement('div');
+                    itemPrice.className = 'shop-item-price';
+
+                    const itemPriceCoin = document.createElement('div');
+                    itemPriceCoin.className = 'shop-item-price-coin';
+
+                    const itemPriceAmount = document.createElement('div');
+                    itemPriceAmount.className = 'shop-item-price-amount';
+
+                    // Calculate price based on level for upgradeable items
+                    let currentPrice = item.price;
+                    if (item.level && item.purchased) {
+                        currentPrice = Math.floor(item.price * (1 + item.level * 0.5));
+                    }
+
+                    itemPriceAmount.textContent = currentPrice;
+
+                    itemPrice.appendChild(itemPriceCoin);
+                    itemPrice.appendChild(itemPriceAmount);
+
+                    const itemBuy = document.createElement('button');
+                    itemBuy.className = 'shop-item-buy';
+
+                    // Set button text and state based on item type
+                    if (item.level && item.purchased) {
+                        if (item.level >= item.maxLevel) {
+                            itemBuy.textContent = 'MAX';
+                            itemBuy.disabled = true;
+                        } else {
+                            itemBuy.textContent = 'Upgrade';
+                            itemBuy.disabled = coins < currentPrice;
+                        }
+                    } else if (item.purchased && !item.consumable) {
+                        itemBuy.textContent = 'Purchased';
+                        itemBuy.disabled = true;
+                    } else {
+                        itemBuy.textContent = 'Buy';
+                        itemBuy.disabled = coins < currentPrice;
+                    }
+
+                    // Add buy event
+                    itemBuy.addEventListener('click', () => {
+                        if (coins >= currentPrice) {
+                            coins -= currentPrice;
+                            coinsDisplay.textContent = coins;
+
+                            if (item.level) {
+                                if (!item.purchased) {
+                                    item.purchased = true;
+                                } else {
+                                    item.level++;
+                                }
+                            } else {
+                                item.purchased = true;
+                            }
+
+                            // Apply item effect
+                            if (item.effect) {
+                                item.effect();
+                            }
+
+                            // Update shop display
+                            updateShopDisplay();
+                        }
+                    });
+
+                    shopItem.appendChild(itemInfo);
+                    shopItem.appendChild(itemPrice);
+                    shopItem.appendChild(itemBuy);
+
+                    shopItems.appendChild(shopItem);
+                });
+            }
+
+            // Start game
+            function startGame() {
+                gameRunning = true;
+                gamePaused = false;
+
+                // Hide start screen
+                startScreen.style.display = 'none';
+
+                // Start game loop
+                gameLoop = setInterval(() => {
+                    moveClouds();
+                    moveObstacles();
+                    movePowerups();
+                    moveGameItems();
+                    updateBalloon();
+                    recoverBoost();
+                }, 20);
+
+                // Start creating obstacles with a delay to give player time
+                setTimeout(() => {
+                    createObstacle();
+                }, 3000);
+
+                // Start creating powerups
+                setTimeout(() => {
+                    createPowerup();
+                }, 10000);
+
+                // Start creating coins
+                setTimeout(() => {
+                    createCoin();
+                }, 2000);
+
+                // Show welcome notification
+                showNotification('Hold LIFT to rise!');
+            }
+
+            // Event listeners
+            liftBtn.addEventListener('mousedown', () => {
+                balloonRising = true;
+                boostDraining = true;
+            });
+
+            liftBtn.addEventListener('mouseup', () => {
+                balloonRising = false;
+                boostDraining = false;
+            });
+
+            liftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                balloonRising = true;
+                boostDraining = true;
+            });
+
+            liftBtn.addEventListener('touchend', () => {
+                balloonRising = false;
+                boostDraining = false;
+            });
+
+            // Ensure lift button is released when pointer leaves
+            liftBtn.addEventListener('mouseleave', () => {
+                balloonRising = false;
+                boostDraining = false;
+            });
+
+            pauseBtn.addEventListener('click', () => {
+                if (gamePaused) {
+                    resumeGame();
+                } else {
+                    pauseGame();
+                }
+            });
+
+            resumeBtn.addEventListener('click', resumeGame);
+
+            restartBtn.addEventListener('click', resetGame);
+            startBtn.addEventListener('click', startGame);
+
+            shopBtnEnd.addEventListener('click', () => {
+                updateShopDisplay();
+                shopScreen.classList.add('show');
+            });
+
+            closeShopBtn.addEventListener('click', () => {
+                shopScreen.classList.remove('show');
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', updateDimensions);
+
+            // Handle keyboard controls
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    balloonRising = true;
+                    boostDraining = true;
+                } else if (e.code === 'Escape') {
+                    if (gamePaused) {
+                        resumeGame();
+                    } else {
+                        pauseGame();
+                    }
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                if (e.code === 'Space') {
+                    balloonRising = false;
+                    boostDraining = false;
+                }
+            });
+
+            // Initialize game
+            updateDimensions();
+            createClouds();
+            highScoreDisplay.textContent = Math.floor(highScore);
+
+            // Give player some starting coins
+            coins = 50;
+            coinsDisplay.textContent = coins;
+        });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'967a2998951c90aa',t:'MTc1MzkzNDE1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+﻿@model GamaxyWebApplication.Models.GeminiResponse
+@{
+    ViewData["Title"] = "ChatBot";
+    Layout = "Chat_Layout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/chat.css" />
+    <style>
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #chatBox {
+            overflow-y: auto;
+            flex-grow: 1;
+            background: #0f0f0f;
+            scroll-behavior: smooth;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .bg-gradient-custom {
+            background: linear-gradient(to right, #008dff, #D400FF, #008dff);
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #008dff, #D400FF, #008dff);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to right, #D400FF, #008dff, #D400FF);
+        }
+
+        .typing-animation {
+            animation: typingBlink 1s steps(5, start) infinite;
+        }
+
+        .blinker {
+            animation: blink 1s infinite;
+        }
+
+        @@keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        #startVoiceBtn {
+            background: linear-gradient(to right, #008dff, #D400FF, #008dff);
+            border: none;
+            color: white;
+        }
+
+        #startVoiceBtn:hover {
+            background: linear-gradient(to right, #D400FF, #008dff, #D400FF);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+    </style>
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/chat.css" />
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row vh-100">
+            <!-- Sidebar -->
+            <div class="col-md-3 bg-light border-end p-3 overflow-auto">
+                <h5 class="mb-3">🗂️ Previous Chats</h5>
+
+                <a href="@Url.Action("Index", "Home")" class="btn btn-success w-100 mb-3">➕ New Chat</a>
+
+                @if (ViewBag.AllSessions != null)
+                {
+                    foreach (var session in ViewBag.AllSessions as List<string>)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <a href="@Url.Action("Index", "Home", new { sessionId = session })" class="text-decoration-none text-primary">
+                                Chat @session.Substring(0, 6)...
+                            </a>
+                            <form asp-action="DeleteSession" method="post" class="d-inline" onsubmit="return confirmDelete();">
+                                <input type="hidden" name="sessionId" value="@session" />
+                                <button type="submit" class="btn btn-sm btn-danger ms-2">🗑️</button>
+                            </form>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- Chat Area -->
+            <div class="col-md-9 d-flex flex-column p-4">
+                <div id="chatBox" class="flex-grow-1 overflow-auto mb-3">
+                    @if (Model.ChatHistory != null)
+                    {
+                        foreach (var msg in Model.ChatHistory)
+                        {
+                            <div class="d-flex @(msg.Sender == "User" ? "justify-content-end" : "justify-content-start") mb-2">
+                                <div class="position-relative p-3 rounded-4 shadow-sm @(msg.Sender == "User" ? "bg-primary text-white" : "bg-light bot-message")" style="max-width: 75%;">
+
+                                    @if (msg.Sender != "User")
+                                    {
+                                        <button class="btn btn-sm btn-secondary copy-btn position-absolute top-0 end-0 mt-2 me-2" data-message="@msg.Message">Copy</button>
+                                    }
+
+                                    @if (msg.Sender == "Bot" && msg == Model.ChatHistory.Last())
+                                    {
+                                        <div class="typing-animation" data-message="@Html.Raw(msg.Message.Replace("\"", "&quot;").Replace("\n", "<br />"))"></div>
+                                    }
+                                    else
+                                    {
+                                        @Html.Raw(msg.Message.Replace("\n", "<br />"))
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+
+
+
+
+
+                <!-- Uploaded Files Preview -->
+                @if (Model.UploadedFiles != null && Model.UploadedFiles.Any())
+                {
+                    <div class="mb-3">
+                        <h6>🖼 Uploaded Files:</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var file in Model.UploadedFiles)
+                            {
+                                if (file.ContentType.StartsWith("image/"))
+                                {
+                                    var base64 = Convert.ToBase64String(file.Data);
+                                    <div class="text-center">
+                                        <img src="data:@file.ContentType;base64,@base64" style="height: 100px;" class="rounded shadow-sm" />
+                                        <div style="font-size: small;">@file.FileName<br />(@(file.Size / 1024) KB)</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="border p-2 rounded bg-light text-center">
+                                        📎 @file.FileName<br />
+                                        <small>@file.ContentType - @(file.Size / 1024) KB</small>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+                <button type="button" id="startVoiceBtn" class="btn btn-secondary">🎤 Speak to Chatbot</button>
+                <!-- Input -->
+                <form asp-action="Generate" method="post" enctype="multipart/form-data" class="d-flex flex-column">
+                    <input type="hidden" name="SessionId" value="@Model.SessionId" />
+                    <div class="d-flex">
+                        <input name="Prompt" id="promptInput" class="form-control me-2" placeholder="Type your prompt..." autocomplete="off" />
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </div>
+                    <div class="mt-2">
+                        <input type="file" name="UploadedFiles" multiple class="form-control" />
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Confirm delete function
+        function confirmDelete() {
+            return confirm("Are you sure you want to delete this chat session?");
+        }
+
+        // Speech-to-text functionality
+        var startVoiceBtn = document.getElementById("startVoiceBtn");
+        var promptInput = document.getElementById("promptInput");
+
+        if ('webkitSpeechRecognition' in window) {
+            var recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function () {
+                startVoiceBtn.textContent = "Listening...";
+            };
+
+            recognition.onerror = function (event) {
+                alert("Sorry, there was an error with voice recognition: " + event.error);
+                startVoiceBtn.textContent = "🎤 Speak to Chatbot";
+            };
+
+            recognition.onresult = function (event) {
+                var speechResult = event.results[0][0].transcript;
+                promptInput.value = speechResult;
+                startVoiceBtn.textContent = "🎤 Speak to Chatbot";
+            };
+
+            recognition.onend = function () {
+                // Reset button when recognition stops
+                startVoiceBtn.textContent = "🎤 Speak to Chatbot";
+            };
+
+            startVoiceBtn.addEventListener("click", function () {
+                recognition.start();
+            });
+        } else {
+            alert("Your browser doesn't support voice input. Please use Google Chrome or another compatible browser.");
+        }
+
+
+        function confirmDelete() {
+            return confirm("Are you sure you want to delete this chat session?");
+        }
+
+        document.querySelectorAll(".typing-animation").forEach(el => {
+            const content = el.getAttribute("data-message");
+            let i = 0;
+            let interval = setInterval(() => {
+                el.innerHTML = content.substring(0, i) + "<span class='blinker'>|</span>";
+                i++;
+                if (i > content.length) {
+                    clearInterval(interval);
+                    el.innerHTML = content;
+                }
+            }, 20);
+        });
+
+        document.getElementById("promptInput").addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                this.form.submit();
+            }
+        });
+
+        window.onload = function () {
+            var chatBox = document.getElementById("chatBox");
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+
+        document.querySelectorAll(".copy-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                // Get the message text to copy
+                const messageText = button.getAttribute("data-message");
+
+                // Create a temporary textarea to copy the text
+                const textarea = document.createElement("textarea");
+                textarea.value = messageText;
+                document.body.appendChild(textarea);
+
+                // Select and copy the text
+                textarea.select();
+                document.execCommand("copy");
+
+                // Remove the textarea from the DOM
+                document.body.removeChild(textarea);
+
+                // Optional: Show a small alert or visual feedback to indicate success
+                alert("Message copied to clipboard!");
+            });
+        });
+
+
+    </script>
+</body>
+</html>

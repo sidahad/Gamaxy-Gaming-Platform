@@ -1,0 +1,1766 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Balloon Dash: Sky Escape Challenge";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Balloon Dash: Sky Escape Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="~/css/Ballon.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color: #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">BALLOON DASH: SKY ESCAPE CHALLENGE</h1>
+                <div class="game-subtitle">RISE AND COLLECT COINS!</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container" id="game-container">
+                    <div class="balloon" id="balloon">
+                        <div class="balloon-body">
+                            <div class="balloon-rope"></div>
+                            <div class="balloon-rope"></div>
+                            <div class="balloon-basket"></div>
+                        </div>
+                    </div>
+                    <div class="shield-effect" id="shield-effect"></div>
+                    <div class="stats-container">
+                        <div class="score-container">
+                            <div class="score">Score: <span id="score">0</span></div>
+                        </div>
+                        <div class="coins-container">
+                            <div class="coin-icon"></div>
+                            <div class="coins"><span id="coins">0</span></div>
+                        </div>
+                    </div>
+                    <div class="level-indicator">Level: <span id="level">1</span></div>
+                    <div class="shield-indicator" id="shield-indicator">Shield Active</div>
+                    <div class="altitude-meter">
+                        <div class="altitude-fill" id="altitude-fill"></div>
+                    </div>
+                    <div class="boost-label">BOOST</div>
+                    <div class="boost-meter">
+                        <div class="boost-fill" id="boost-fill"></div>
+                    </div>
+                    <div class="controls">
+                        <button class="lift-btn" id="lift-btn">LIFT</button>
+                        <button class="pause-btn" id="pause-btn">⏸️</button>
+                    </div>
+                    <div class="notification" id="notification"></div>
+                    <div class="game-over" id="game-over">
+                        <h2>Game Over!</h2>
+                        <p>Your Score: <span id="final-score">0</span></p>
+                        <p class="high-score">High Score: <span id="high-score">0</span></p>
+                        <button class="restart-btn" id="restart-btn">Play Again</button>
+                        <button class="shop-btn" id="shop-btn-end">Shop</button>
+                    </div>
+                    <div class="start-screen" id="start-screen">
+                        <h1>Balloon Dash: Sky Escape Challenge</h1>
+                        <p>Tap and hold the LIFT button to rise through the sky. Collect coins and avoid obstacles!</p>
+                        <button class="start-btn" id="start-btn">START</button>
+                    </div>
+                    <div class="pause-screen" id="pause-screen">
+                        <h2>Game Paused</h2>
+                        <button class="resume-btn" id="resume-btn">Resume</button>
+                    </div>
+                    <div class="shop-screen" id="shop-screen">
+                        <h2>Balloon Shop</h2>
+                        <div class="shop-items" id="shop-items"></div>
+                        <button class="close-shop-btn" id="close-shop-btn">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Section -->
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game elements
+            const gameContainer = document.getElementById('game-container');
+            const balloon = document.getElementById('balloon');
+            const liftBtn = document.getElementById('lift-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const scoreDisplay = document.getElementById('score');
+            const coinsDisplay = document.getElementById('coins');
+            const levelDisplay = document.getElementById('level');
+            const altitudeFill = document.getElementById('altitude-fill');
+            const boostFill = document.getElementById('boost-fill');
+            const gameOverScreen = document.getElementById('game-over');
+            const finalScoreDisplay = document.getElementById('final-score');
+            const highScoreDisplay = document.getElementById('high-score');
+            const restartBtn = document.getElementById('restart-btn');
+            const startScreen = document.getElementById('start-screen');
+            const startBtn = document.getElementById('start-btn');
+            const pauseScreen = document.getElementById('pause-screen');
+            const resumeBtn = document.getElementById('resume-btn');
+            const shopScreen = document.getElementById('shop-screen');
+            const shopItems = document.getElementById('shop-items');
+            const closeShopBtn = document.getElementById('close-shop-btn');
+            const shopBtnEnd = document.getElementById('shop-btn-end');
+            const notification = document.getElementById('notification');
+            const shieldIndicator = document.getElementById('shield-indicator');
+            const shieldEffect = document.getElementById('shield-effect');
+
+            // Game variables
+            let gameRunning = false;
+            let gamePaused = false;
+            let score = 0;
+            let coins = 0;
+            let level = 1;
+            let balloonPosition = 20; // Percentage from bottom
+            let balloonRising = false;
+            let obstacles = [];
+            let powerups = [];
+            let gameItems = [];
+            let clouds = [];
+            let gameSpeed = 1;
+            let obstacleInterval;
+            let powerupInterval;
+            let coinInterval;
+            let gameLoop;
+            let boostPower = 100; // Percentage
+            let boostRecovery;
+            let boostDraining = false;
+            let gameHeight;
+            let gameWidth;
+            let highScore = localStorage.getItem('balloonDashHighScore') || 0;
+            let hasShield = false;
+            let shieldDuration = 0;
+            let shieldTimer;
+
+            // Shop items
+            const shopItemsList = [
+                {
+                    id: 'boost_upgrade',
+                    name: 'Boost Upgrade',
+                    description: 'Increases boost recovery speed',
+                    price: 50,
+                    purchased: false,
+                    level: 1,
+                    maxLevel: 3,
+                    effect: () => {
+                        showNotification('Boost recovery speed increased!');
+                    }
+                },
+                {
+                    id: 'shield',
+                    name: 'Shield',
+                    description: 'Protects from one collision',
+                    price: 100,
+                    purchased: false,
+                    consumable: true,
+                    effect: () => {
+                        hasShield = true;
+                        shieldDuration = 30; // 30 seconds
+                        shieldIndicator.style.display = 'block';
+                        shieldEffect.style.display = 'block';
+                        showNotification('Shield activated!');
+                    }
+                },
+                {
+                    id: 'balloon_upgrade',
+                    name: 'Balloon Upgrade',
+                    description: 'Increases lift power',
+                    price: 150,
+                    purchased: false,
+                    level: 1,
+                    maxLevel: 3,
+                    effect: () => {
+                        showNotification('Balloon lift power increased!');
+                    }
+                }
+            ];
+
+            // Initialize game dimensions
+            function updateDimensions() {
+                gameHeight = gameContainer.clientHeight;
+                gameWidth = gameContainer.clientWidth;
+                // Update balloon position
+                balloon.style.bottom = `${balloonPosition}%`;
+                if (hasShield) {
+                    shieldEffect.style.bottom = `${balloonPosition}%`;
+                }
+                // Update dynamic elements
+                obstacles.forEach(obstacle => {
+                    obstacle.element.style.left = `${obstacle.left}%`;
+                    obstacle.element.style.top = `${obstacle.top}%`;
+                });
+                powerups.forEach(powerup => {
+                    powerup.element.style.left = `${powerup.left}%`;
+                    powerup.element.style.top = `${powerup.top}%`;
+                });
+                gameItems.forEach(item => {
+                    item.element.style.left = `${item.left}%`;
+                    item.element.style.top = `${item.top}%`;
+                });
+                clouds.forEach(cloud => {
+                    cloud.element.style.left = `${cloud.left}%`;
+                    cloud.element.style.top = `${cloud.position}%`;
+                });
+            }
+
+            // Create clouds in the background
+            function createClouds() {
+                clouds = [];
+                for (let i = 0; i < 10; i++) {
+                    createCloud();
+                }
+            }
+
+            function createCloud() {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                const size = Math.random() * 100 + 50;
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const opacity = Math.random() * 0.5 + 0.3;
+                cloud.style.width = `${size}px`;
+                cloud.style.height = `${size * 0.6}px`;
+                cloud.style.left = `${left}%`;
+                cloud.style.top = `${top}%`;
+                cloud.style.opacity = opacity;
+                gameContainer.appendChild(cloud);
+                clouds.push({
+                    element: cloud,
+                    speed: Math.random() * 0.2 + 0.1,
+                    position: top,
+                    left: left
+                });
+            }
+
+            // Move clouds
+            function moveClouds() {
+                clouds.forEach((cloud, index) => {
+                    cloud.position -= cloud.speed * gameSpeed;
+                    if (cloud.position < -20) {
+                        if (cloud.element.parentNode) {
+                            gameContainer.removeChild(cloud.element);
+                        }
+                        clouds.splice(index, 1);
+                        createCloud();
+                    } else {
+                        cloud.element.style.top = `${cloud.position}%`;
+                    }
+                });
+            }
+
+            // Create obstacles
+            function createObstacle() {
+                if (!gameRunning || gamePaused) return;
+                const types = ['bird', 'plane', 'storm', 'debris'];
+                const weights = [0.4, 0.3, 0.2, 0.1];
+                if (level >= 3) {
+                    weights[2] = 0.3; // More storms
+                    weights[3] = 0.2; // More debris
+                }
+                let rand = Math.random();
+                let cumulativeWeight = 0;
+                let selectedType;
+                for (let i = 0; i < types.length; i++) {
+                    cumulativeWeight += weights[i];
+                    if (rand <= cumulativeWeight) {
+                        selectedType = types[i];
+                        break;
+                    }
+                }
+                const obstacle = document.createElement('div');
+                obstacle.className = `obstacle ${selectedType}`;
+                const left = Math.random() * 80 + 10;
+                const top = -10;
+                obstacle.style.left = `${left}%`;
+                obstacle.style.top = `${top}%`;
+                switch (selectedType) {
+                    case 'bird':
+                        obstacle.innerHTML = `
+                            <svg viewBox="0 0 40 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5,10 C15,0 25,0 35,10 M5,10 C15,20 25,20 35,10" stroke="#333" stroke-width="2" fill="none" />
+                                <circle cx="35" cy="10" r="3" fill="#333" />
+                            </svg>
+                        `;
+                        break;
+                    case 'plane':
+                        obstacle.innerHTML = `
+                            <svg viewBox="0 0 80 30" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10,15 L70,15 L60,5 L20,5 Z" fill="#DDD" />
+                                <path d="M70,15 L60,25 L20,25 L10,15 Z" fill="#BBB" />
+                                <path d="M20,10 L40,10 L40,20 L20,20 Z" fill="#999" />
+                                <path d="M50,10 L60,10 L60,20 L50,20 Z" fill="#999" />
+                                <path d="M70,15 L80,15 L75,10 L75,20 Z" fill="#DDD" />
+                            </svg>
+                        `;
+                        break;
+                    case 'storm':
+                        obstacle.innerHTML = `
+                            <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20,40 C10,40 0,35 0,25 C0,15 10,10 20,10 C25,0 40,-5 55,5 C70,-5 85,0 90,10 C100,10 110,15 110,25 C110,35 100,40 90,40 Z" fill="#34495e" />
+                                <path d="M30,40 L40,60 L45,50 L55,60 L50,40" fill="#f1c40f" />
+                            </svg>
+                        `;
+                        obstacle.style.animation = 'lightning 0.5s infinite';
+                        break;
+                    case 'debris':
+                        const rotation = Math.random() * 360;
+                        obstacle.style.transform = `rotate(${rotation}deg)`;
+                        break;
+                }
+                gameContainer.appendChild(obstacle);
+                obstacles.push({
+                    element: obstacle,
+                    type: selectedType,
+                    left: left,
+                    top: top,
+                    speed: Math.random() * 1 + 1,
+                    rotation: selectedType === 'debris' ? Math.random() * 5 - 2.5 : 0
+                });
+                const minDelay = Math.max(1500 - level * 100, 800);
+                const maxDelay = Math.max(3000 - level * 150, 1500);
+                const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+                clearTimeout(obstacleInterval);
+                obstacleInterval = setTimeout(createObstacle, delay);
+            }
+
+            // Create powerups
+            function createPowerup() {
+                if (!gameRunning || gamePaused) return;
+                const types = ['fuel', 'shield'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                const powerup = document.createElement('div');
+                powerup.className = `powerup ${type}-powerup`;
+                const left = Math.random() * 80 + 10;
+                const top = -10;
+                powerup.style.left = `${left}%`;
+                powerup.style.top = `${top}%`;
+                gameContainer.appendChild(powerup);
+                powerups.push({
+                    element: powerup,
+                    type: type,
+                    left: left,
+                    top: top,
+                    speed: 1
+                });
+                const delay = Math.random() * 15000 + 10000;
+                clearTimeout(powerupInterval);
+                powerupInterval = setTimeout(createPowerup, delay);
+            }
+
+            // Create coins
+            function createCoin() {
+                if (!gameRunning || gamePaused) return;
+                const coin = document.createElement('div');
+                coin.className = 'coin';
+                const left = Math.random() * 80 + 10;
+                const top = -10;
+                coin.style.left = `${left}%`;
+                coin.style.top = `${top}%`;
+                gameContainer.appendChild(coin);
+                gameItems.push({
+                    element: coin,
+                    type: 'coin',
+                    left: left,
+                    top: top,
+                    speed: 1.5
+                });
+                const delay = Math.random() * 3000 + 2000;
+                clearTimeout(coinInterval);
+                coinInterval = setTimeout(createCoin, delay);
+            }
+
+            // Move obstacles
+            function moveObstacles() {
+                obstacles.forEach((obstacle, index) => {
+                    obstacle.top += obstacle.speed * gameSpeed;
+                    if (obstacle.type === 'debris') {
+                        obstacle.left += obstacle.rotation * 0.1;
+                    }
+                    obstacle.element.style.top = `${obstacle.top}%`;
+                    if (obstacle.type === 'debris') {
+                        obstacle.element.style.left = `${obstacle.left}%`;
+                    }
+                    if (obstacle.top > 110) {
+                        if (obstacle.element.parentNode) {
+                            gameContainer.removeChild(obstacle.element);
+                        }
+                        obstacles.splice(index, 1);
+                        updateScore(5);
+                    }
+                    if (checkCollision(obstacle)) {
+                        if (hasShield) {
+                            if (obstacle.element.parentNode) {
+                                gameContainer.removeChild(obstacle.element);
+                            }
+                            obstacles.splice(index, 1);
+                            hasShield = false;
+                            shieldDuration = 0;
+                            shieldIndicator.style.display = 'none';
+                            shieldEffect.style.display = 'none';
+                            clearTimeout(shieldTimer);
+                            showNotification('Shield protected you!');
+                        } else {
+                            gameOver();
+                        }
+                    }
+                });
+            }
+
+            // Move powerups and check collection
+            function movePowerups() {
+                powerups.forEach((powerup, index) => {
+                    powerup.top += powerup.speed * gameSpeed;
+                    powerup.element.style.top = `${powerup.top}%`;
+                    if (powerup.top > 110) {
+                        if (powerup.element.parentNode) {
+                            gameContainer.removeChild(powerup.element);
+                        }
+                        powerups.splice(index, 1);
+                    }
+                    if (checkCollision(powerup)) {
+                        if (powerup.type === 'fuel') {
+                            boostPower = 100;
+                            boostFill.style.transform = `scaleX(${boostPower / 100})`;
+                            showNotification('Boost refilled!');
+                        } else if (powerup.type === 'shield') {
+                            hasShield = true;
+                            shieldDuration = 30;
+                            shieldIndicator.style.display = 'block';
+                            shieldEffect.style.display = 'block';
+                            if (shieldTimer) clearTimeout(shieldTimer);
+                            updateShieldTimer();
+                            showNotification('Shield activated!');
+                        }
+                        if (powerup.element.parentNode) {
+                            gameContainer.removeChild(powerup.element);
+                        }
+                        powerups.splice(index, 1);
+                    }
+                });
+            }
+
+            // Move game items (coins, etc.)
+            function moveGameItems() {
+                gameItems.forEach((item, index) => {
+                    item.top += item.speed * gameSpeed;
+                    item.element.style.top = `${item.top}%`;
+                    if (item.top > 110) {
+                        if (item.element.parentNode) {
+                            gameContainer.removeChild(item.element);
+                        }
+                        gameItems.splice(index, 1);
+                    }
+                    if (checkCollision(item)) {
+                        if (item.type === 'coin') {
+                            coins++;
+                            coinsDisplay.textContent = coins;
+                            showNotification('+1 Coin');
+                        }
+                        if (item.element.parentNode) {
+                            gameContainer.removeChild(item.element);
+                        }
+                        gameItems.splice(index, 1);
+                    }
+                });
+            }
+
+            // Update shield timer
+            function updateShieldTimer() {
+                if (shieldDuration <= 0) {
+                    hasShield = false;
+                    shieldIndicator.style.display = 'none';
+                    shieldEffect.style.display = 'none';
+                    return;
+                }
+                shieldDuration--;
+                shieldIndicator.textContent = `Shield: ${shieldDuration}s`;
+                shieldTimer = setTimeout(updateShieldTimer, 1000);
+            }
+
+            // Check collision
+            function checkCollision(object) {
+                const balloonRect = balloon.getBoundingClientRect();
+                const objectRect = object.element.getBoundingClientRect();
+                return !(
+                    balloonRect.right < objectRect.left + 5 ||
+                    balloonRect.left > objectRect.right - 5 ||
+                    balloonRect.bottom < objectRect.top + 5 ||
+                    balloonRect.top > objectRect.bottom - 5
+                );
+            }
+
+            // Update score
+            function updateScore(points) {
+                score += points;
+                scoreDisplay.textContent = Math.floor(score);
+                const newLevel = Math.floor(score / 100) + 1;
+                if (newLevel > level) {
+                    levelUp(newLevel);
+                }
+            }
+
+            // Level up
+            function levelUp(newLevel) {
+                level = newLevel;
+                levelDisplay.textContent = level;
+                gameSpeed += 0.2;
+                levelDisplay.parentElement.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    levelDisplay.parentElement.style.transform = 'scale(1)';
+                }, 300);
+                showNotification(`Level ${level}!`);
+            }
+
+            // Update balloon position
+            function updateBalloon() {
+                const boostMultiplier = shopItemsList.find(item => item.id === 'balloon_upgrade').purchased ?
+                    1 + (shopItemsList.find(item => item.id === 'balloon_upgrade').level * 0.2) : 1;
+                if (balloonRising && boostPower > 0) {
+                    balloonPosition += 0.5 * gameSpeed * boostMultiplier;
+                    boostPower = Math.max(0, boostPower - 1);
+                    boostFill.style.transform = `scaleX(${boostPower / 100})`;
+                    if (balloonPosition > 50) {
+                        updateScore(0.1);
+                    }
+                } else {
+                    balloonPosition = Math.max(5, balloonPosition - 0.3 * gameSpeed);
+                }
+                balloonPosition = Math.min(90, balloonPosition);
+                balloon.style.bottom = `${balloonPosition}%`;
+                if (hasShield) {
+                    shieldEffect.style.bottom = `${balloonPosition}%`;
+                }
+                altitudeFill.style.height = `${balloonPosition}%`;
+                if (balloonPosition >= 90) {
+                    updateScore(50);
+                    showNotification('Altitude Bonus: +50');
+                    balloonPosition = 20;
+                }
+                if (balloonPosition <= 5 && gameRunning) {
+                    gameOver();
+                }
+                balloon.style.animation = balloonRising ? 'none' : 'sway 3s infinite ease-in-out';
+            }
+
+            // Recover boost power
+            function recoverBoost() {
+                if (!boostDraining && boostPower < 100) {
+                    const recoveryRate = shopItemsList.find(item => item.id === 'boost_upgrade').purchased ?
+                        0.5 + (shopItemsList.find(item => item.id === 'boost_upgrade').level * 0.2) : 0.5;
+                    boostPower = Math.min(100, boostPower + recoveryRate);
+                    boostFill.style.transform = `scaleX(${boostPower / 100})`;
+                }
+            }
+
+            // Show notification
+            function showNotification(message) {
+                notification.textContent = message;
+                notification.classList.remove('show');
+                void notification.offsetWidth;
+                notification.classList.add('show');
+            }
+
+            // Game over
+            function gameOver() {
+                gameRunning = false;
+                clearInterval(gameLoop);
+                clearTimeout(obstacleInterval);
+                clearTimeout(powerupInterval);
+                clearTimeout(coinInterval);
+                clearTimeout(shieldTimer);
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('balloonDashHighScore', highScore);
+                }
+                finalScoreDisplay.textContent = Math.floor(score);
+                highScoreDisplay.textContent = Math.floor(highScore);
+                gameOverScreen.classList.add('show');
+                balloon.style.animation = 'none';
+            }
+
+            // Reset game
+            function resetGame() {
+                score = 0;
+                level = 1;
+                balloonPosition = 20;
+                gameSpeed = 1;
+                boostPower = 100;
+                hasShield = false;
+                shieldDuration = 0;
+                scoreDisplay.textContent = score;
+                levelDisplay.textContent = level;
+                coinsDisplay.textContent = coins;
+                altitudeFill.style.height = `${balloonPosition}%`;
+                boostFill.style.transform = 'scaleX(1)';
+                shieldIndicator.style.display = 'none';
+                shieldEffect.style.display = 'none';
+                balloon.style.bottom = `${balloonPosition}%`;
+                obstacles.forEach(obstacle => {
+                    if (obstacle.element.parentNode) {
+                        gameContainer.removeChild(obstacle.element);
+                    }
+                });
+                obstacles = [];
+                powerups.forEach(powerup => {
+                    if (powerup.element.parentNode) {
+                        gameContainer.removeChild(powerup.element);
+                    }
+                });
+                powerups = [];
+                gameItems.forEach(item => {
+                    if (item.element.parentNode) {
+                        gameContainer.removeChild(item.element);
+                    }
+                });
+                gameItems = [];
+                clouds.forEach(cloud => {
+                    if (cloud.element.parentNode) {
+                        gameContainer.removeChild(cloud.element);
+                    }
+                });
+                clouds = [];
+                gameOverScreen.classList.remove('show');
+                createClouds();
+                startGame();
+            }
+
+            // Pause game
+            function pauseGame() {
+                if (!gameRunning) return;
+                gamePaused = true;
+                pauseScreen.classList.add('show');
+                clearInterval(gameLoop);
+            }
+
+            // Resume game
+            function resumeGame() {
+                if (!gameRunning) return;
+                gamePaused = false;
+                pauseScreen.classList.remove('show');
+                gameLoop = setInterval(() => {
+                    moveClouds();
+                    moveObstacles();
+                    movePowerups();
+                    moveGameItems();
+                    updateBalloon();
+                    recoverBoost();
+                }, 20);
+            }
+
+            // Update shop display
+            function updateShopDisplay() {
+                shopItems.innerHTML = '';
+                shopItemsList.forEach(item => {
+                    const shopItem = document.createElement('div');
+                    shopItem.className = 'shop-item';
+                    const itemInfo = document.createElement('div');
+                    itemInfo.className = 'shop-item-info';
+                    const itemName = document.createElement('div');
+                    itemName.className = 'shop-item-name';
+                    itemName.textContent = item.name + (item.level && item.purchased ? ` (Lvl ${item.level})` : '');
+                    const itemDesc = document.createElement('div');
+                    itemDesc.className = 'shop-item-desc';
+                    itemDesc.textContent = item.description;
+                    itemInfo.appendChild(itemName);
+                    itemInfo.appendChild(itemDesc);
+                    const itemPrice = document.createElement('div');
+                    itemPrice.className = 'shop-item-price';
+                    const itemPriceCoin = document.createElement('div');
+                    itemPriceCoin.className = 'shop-item-price-coin';
+                    const itemPriceAmount = document.createElement('div');
+                    itemPriceAmount.className = 'shop-item-price-amount';
+                    let currentPrice = item.price;
+                    if (item.level && item.purchased) {
+                        currentPrice = Math.floor(item.price * (1 + item.level * 0.5));
+                    }
+                    itemPriceAmount.textContent = currentPrice;
+                    itemPrice.appendChild(itemPriceCoin);
+                    itemPrice.appendChild(itemPriceAmount);
+                    const itemBuy = document.createElement('button');
+                    itemBuy.className = 'shop-item-buy';
+                    if (item.level && item.purchased) {
+                        if (item.level >= item.maxLevel) {
+                            itemBuy.textContent = 'MAX';
+                            itemBuy.disabled = true;
+                        } else {
+                            itemBuy.textContent = 'Upgrade';
+                            itemBuy.disabled = coins < currentPrice;
+                        }
+                    } else if (item.purchased && !item.consumable) {
+                        itemBuy.textContent = 'Purchased';
+                        itemBuy.disabled = true;
+                    } else {
+                        itemBuy.textContent = 'Buy';
+                        itemBuy.disabled = coins < currentPrice;
+                    }
+                    itemBuy.addEventListener('click', () => {
+                        if (coins >= currentPrice) {
+                            coins -= currentPrice;
+                            coinsDisplay.textContent = coins;
+                            if (item.level) {
+                                if (!item.purchased) {
+                                    item.purchased = true;
+                                } else {
+                                    item.level++;
+                                }
+                            } else {
+                                item.purchased = true;
+                            }
+                            if (item.effect) {
+                                item.effect();
+                            }
+                            updateShopDisplay();
+                        }
+                    });
+                    shopItem.appendChild(itemInfo);
+                    shopItem.appendChild(itemPrice);
+                    shopItem.appendChild(itemBuy);
+                    shopItems.appendChild(shopItem);
+                });
+            }
+
+            // Start game
+            function startGame() {
+                gameRunning = true;
+                gamePaused = false;
+                startScreen.style.display = 'none';
+                gameLoop = setInterval(() => {
+                    moveClouds();
+                    moveObstacles();
+                    movePowerups();
+                    moveGameItems();
+                    updateBalloon();
+                    recoverBoost();
+                }, 20);
+                setTimeout(() => { createObstacle(); }, 3000);
+                setTimeout(() => { createPowerup(); }, 10000);
+                setTimeout(() => { createCoin(); }, 2000);
+                showNotification('Hold LIFT to rise!');
+            }
+
+            // Event listeners
+            liftBtn.addEventListener('mousedown', () => {
+                balloonRising = true;
+                boostDraining = true;
+            });
+            liftBtn.addEventListener('mouseup', () => {
+                balloonRising = false;
+                boostDraining = false;
+            });
+            liftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                balloonRising = true;
+                boostDraining = true;
+            });
+            liftBtn.addEventListener('touchend', () => {
+                balloonRising = false;
+                boostDraining = false;
+            });
+            liftBtn.addEventListener('mouseleave', () => {
+                balloonRising = false;
+                boostDraining = false;
+            });
+            pauseBtn.addEventListener('click', () => {
+                if (gamePaused) {
+                    resumeGame();
+                } else {
+                    pauseGame();
+                }
+            });
+            resumeBtn.addEventListener('click', resumeGame);
+            restartBtn.addEventListener('click', resetGame);
+            startBtn.addEventListener('click', startGame);
+            shopBtnEnd.addEventListener('click', () => {
+                updateShopDisplay();
+                shopScreen.classList.add('show');
+            });
+            closeShopBtn.addEventListener('click', () => {
+                shopScreen.classList.remove('show');
+            });
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(updateDimensions, 100);
+            });
+            window.addEventListener('orientationchange', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(updateDimensions, 100);
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    balloonRising = true;
+                    boostDraining = true;
+                } else if (e.code === 'Escape') {
+                    if (gamePaused) {
+                        resumeGame();
+                    } else {
+                        pauseGame();
+                    }
+                }
+            });
+            document.addEventListener('keyup', (e) => {
+                if (e.code === 'Space') {
+                    balloonRising = false;
+                    boostDraining = false;
+                }
+            });
+
+            // Initialize game
+            updateDimensions();
+            createClouds();
+            highScoreDisplay.textContent = Math.floor(highScore);
+            coins = 50;
+            coinsDisplay.textContent = coins;
+
+            // Rating form submission
+            $(document).ready(function () {
+                $('#ratingForm').submit(function (e) {
+                    e.preventDefault();
+                    $.ajax({
+                        url: '@Url.Action("RateGame", "Home")',
+                        type: 'POST',
+                        data: $(this).serialize(),
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                alert(response.message);
+                                location.reload();
+                            } else {
+                                alert('Error: ' + response.message);
+                            }
+                        },
+                        error: function () {
+                            alert('An error occurred while submitting the rating.');
+                        }
+                    });
+                });
+            });
+
+            // Cloudflare challenge script
+            (function(){
+                function c(){
+                    var b=a.contentDocument||a.contentWindow.document;
+                    if(b){
+                        var d=b.createElement('script');
+                        d.innerHTML="window.__CF$cv$params={r:'967a2998951c90aa',t:'MTc1MzkzNDE1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+                        b.getElementsByTagName('head')[0].appendChild(d)
+                    }
+                }
+                if(document.body){
+                    var a=document.createElement('iframe');
+                    a.height=1;
+                    a.width=1;
+                    a.style.position='absolute';
+                    a.style.top=0;
+                    a.style.left=0;
+                    a.style.border='none';
+                    a.style.visibility='hidden';
+                    document.body.appendChild(a);
+                    if('loading'!==document.readyState)c();
+                    else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);
+                    else{
+                        var e=document.onreadystatechange||function(){};
+                        document.onreadystatechange=function(b){
+                            e(b);
+                            'loading'!==document.readyState&&(document.onreadystatechange=e,c())
+                        }
+                    }
+                }
+            })();
+        });
+    </script>
+</body>
+</html>
+
+@* @model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Balloon Dash: Sky Escape Challenge";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Balloon Dash: Sky Escape Challenge</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link href="~/css/Ballon.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+
+        <div class="game-container" id="game-container">
+            <div class="balloon" id="balloon">
+                <div class="balloon-body">
+                    <div class="balloon-rope"></div>
+                    <div class="balloon-rope"></div>
+                    <div class="balloon-basket"></div>
+                </div>
+            </div>
+            <div class="shield-effect" id="shield-effect"></div>
+            <div class="stats-container">
+                <div class="score-container">
+                    <div class="score">Score: <span id="score">0</span></div>
+                </div>
+                <div class="coins-container">
+                    <div class="coin-icon"></div>
+                    <div class="coins"><span id="coins">0</span></div>
+                </div>
+            </div>
+            <div class="level-indicator">Level: <span id="level">1</span></div>
+            <div class="shield-indicator" id="shield-indicator">Shield Active</div>
+            <div class="altitude-meter">
+                <div class="altitude-fill" id="altitude-fill"></div>
+            </div>
+            <div class="boost-label">BOOST</div>
+            <div class="boost-meter">
+                <div class="boost-fill" id="boost-fill"></div>
+            </div>
+            <div class="controls">
+                <button class="lift-btn" id="lift-btn">LIFT</button>
+                <button class="pause-btn" id="pause-btn">⏸️</button>
+            </div>
+            <div class="notification" id="notification"></div>
+            <div class="game-over" id="game-over">
+                <h2>Game Over!</h2>
+                <p>Your Score: <span id="final-score">0</span></p>
+                <p class="high-score">High Score: <span id="high-score">0</span></p>
+                <button class="restart-btn" id="restart-btn">Play Again</button>
+                <button class="shop-btn" id="shop-btn-end">Shop</button>
+            </div>
+            <div class="start-screen" id="start-screen">
+                <h1>Balloon Dash: Sky Escape Challenge</h1>
+                <p>Tap and hold the LIFT button to rise through the sky. Collect coins and avoid obstacles!</p>
+                <button class="start-btn" id="start-btn">START</button>
+            </div>
+            <div class="pause-screen" id="pause-screen">
+                <h2>Game Paused</h2>
+                <button class="resume-btn" id="resume-btn">Resume</button>
+            </div>
+            <div class="shop-screen" id="shop-screen">
+                <h2>Balloon Shop</h2>
+                <div class="shop-items" id="shop-items"></div>
+                <button class="close-shop-btn" id="close-shop-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game elements
+            const gameContainer = document.getElementById('game-container');
+            const balloon = document.getElementById('balloon');
+            const liftBtn = document.getElementById('lift-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const scoreDisplay = document.getElementById('score');
+            const coinsDisplay = document.getElementById('coins');
+            const levelDisplay = document.getElementById('level');
+            const altitudeFill = document.getElementById('altitude-fill');
+            const boostFill = document.getElementById('boost-fill');
+            const gameOverScreen = document.getElementById('game-over');
+            const finalScoreDisplay = document.getElementById('final-score');
+            const highScoreDisplay = document.getElementById('high-score');
+            const restartBtn = document.getElementById('restart-btn');
+            const startScreen = document.getElementById('start-screen');
+            const startBtn = document.getElementById('start-btn');
+            const pauseScreen = document.getElementById('pause-screen');
+            const resumeBtn = document.getElementById('resume-btn');
+            const shopScreen = document.getElementById('shop-screen');
+            const shopItems = document.getElementById('shop-items');
+            const closeShopBtn = document.getElementById('close-shop-btn');
+            const shopBtnEnd = document.getElementById('shop-btn-end');
+            const notification = document.getElementById('notification');
+            const shieldIndicator = document.getElementById('shield-indicator');
+            const shieldEffect = document.getElementById('shield-effect');
+
+            // Game variables
+            let gameRunning = false;
+            let gamePaused = false;
+            let score = 0;
+            let coins = 0;
+            let level = 1;
+            let balloonPosition = 20; // Percentage from bottom
+            let balloonRising = false;
+            let obstacles = [];
+            let powerups = [];
+            let gameItems = [];
+            let clouds = [];
+            let gameSpeed = 1;
+            let obstacleInterval;
+            let powerupInterval;
+            let coinInterval;
+            let gameLoop;
+            let boostPower = 100; // Percentage
+            let boostRecovery;
+            let boostDraining = false;
+            let gameHeight;
+            let gameWidth;
+            let highScore = localStorage.getItem('balloonDashHighScore') || 0;
+            let hasShield = false;
+            let shieldDuration = 0;
+            let shieldTimer;
+
+            // Shop items
+            const shopItemsList = [
+                {
+                    id: 'boost_upgrade',
+                    name: 'Boost Upgrade',
+                    description: 'Increases boost recovery speed',
+                    price: 50,
+                    purchased: false,
+                    level: 1,
+                    maxLevel: 3,
+                    effect: () => {
+                        showNotification('Boost recovery speed increased!');
+                    }
+                },
+                {
+                    id: 'shield',
+                    name: 'Shield',
+                    description: 'Protects from one collision',
+                    price: 100,
+                    purchased: false,
+                    consumable: true,
+                    effect: () => {
+                        hasShield = true;
+                        shieldDuration = 30; // 30 seconds
+                        shieldIndicator.style.display = 'block';
+                        shieldEffect.style.display = 'block';
+                        showNotification('Shield activated!');
+                    }
+                },
+                {
+                    id: 'balloon_upgrade',
+                    name: 'Balloon Upgrade',
+                    description: 'Increases lift power',
+                    price: 150,
+                    purchased: false,
+                    level: 1,
+                    maxLevel: 3,
+                    effect: () => {
+                        showNotification('Balloon lift power increased!');
+                    }
+                }
+            ];
+
+            // Initialize game dimensions
+            function updateDimensions() {
+                gameHeight = gameContainer.clientHeight;
+                gameWidth = gameContainer.clientWidth;
+            }
+
+            // Create clouds in the background
+            function createClouds() {
+                for (let i = 0; i < 10; i++) {
+                    createCloud();
+                }
+            }
+
+            function createCloud() {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                const size = Math.random() * 100 + 50;
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const opacity = Math.random() * 0.5 + 0.3;
+                cloud.style.width = `${size}px`;
+                cloud.style.height = `${size * 0.6}px`;
+                cloud.style.left = `${left}%`;
+                cloud.style.top = `${top}%`;
+                cloud.style.opacity = opacity;
+                gameContainer.appendChild(cloud);
+                clouds.push({
+                    element: cloud,
+                    speed: Math.random() * 0.2 + 0.1,
+                    position: top
+                });
+            }
+
+            // Move clouds
+            function moveClouds() {
+                clouds.forEach((cloud, index) => {
+                    cloud.position -= cloud.speed * gameSpeed;
+                    if (cloud.position < -20) {
+                        if (cloud.element.parentNode) {
+                            gameContainer.removeChild(cloud.element);
+                        }
+                        clouds.splice(index, 1);
+                        createCloud();
+                    } else {
+                        cloud.element.style.top = `${cloud.position}%`;
+                    }
+                });
+            }
+
+            // Create obstacles
+            function createObstacle() {
+                if (!gameRunning || gamePaused) return;
+                const types = ['bird', 'plane', 'storm', 'debris'];
+                const weights = [0.4, 0.3, 0.2, 0.1];
+                if (level >= 3) {
+                    weights[2] = 0.3; // More storms
+                    weights[3] = 0.2; // More debris
+                }
+                let rand = Math.random();
+                let cumulativeWeight = 0;
+                let selectedType;
+                for (let i = 0; i < types.length; i++) {
+                    cumulativeWeight += weights[i];
+                    if (rand <= cumulativeWeight) {
+                        selectedType = types[i];
+                        break;
+                    }
+                }
+                const obstacle = document.createElement('div');
+                obstacle.className = `obstacle ${selectedType}`;
+                const left = Math.random() * 80 + 10;
+                const top = -10;
+                obstacle.style.left = `${left}%`;
+                obstacle.style.top = `${top}%`;
+                switch (selectedType) {
+                    case 'bird':
+                        obstacle.innerHTML = `
+                            <svg viewBox="0 0 40 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5,10 C15,0 25,0 35,10 M5,10 C15,20 25,20 35,10" stroke="#333" stroke-width="2" fill="none" />
+                                <circle cx="35" cy="10" r="3" fill="#333" />
+                            </svg>
+                        `;
+                        break;
+                    case 'plane':
+                        obstacle.innerHTML = `
+                            <svg viewBox="0 0 80 30" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10,15 L70,15 L60,5 L20,5 Z" fill="#DDD" />
+                                <path d="M70,15 L60,25 L20,25 L10,15 Z" fill="#BBB" />
+                                <path d="M20,10 L40,10 L40,20 L20,20 Z" fill="#999" />
+                                <path d="M50,10 L60,10 L60,20 L50,20 Z" fill="#999" />
+                                <path d="M70,15 L80,15 L75,10 L75,20 Z" fill="#DDD" />
+                            </svg>
+                        `;
+                        break;
+                    case 'storm':
+                        obstacle.innerHTML = `
+                            <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20,40 C10,40 0,35 0,25 C0,15 10,10 20,10 C25,0 40,-5 55,5 C70,-5 85,0 90,10 C100,10 110,15 110,25 C110,35 100,40 90,40 Z" fill="#34495e" />
+                                <path d="M30,40 L40,60 L45,50 L55,60 L50,40" fill="#f1c40f" />
+                            </svg>
+                        `;
+                        obstacle.style.animation = 'lightning 0.5s infinite';
+                        break;
+                    case 'debris':
+                        const rotation = Math.random() * 360;
+                        obstacle.style.transform = `rotate(${rotation}deg)`;
+                        break;
+                }
+                gameContainer.appendChild(obstacle);
+                obstacles.push({
+                    element: obstacle,
+                    type: selectedType,
+                    left: left,
+                    top: top,
+                    speed: Math.random() * 1 + 1,
+                    rotation: selectedType === 'debris' ? Math.random() * 5 - 2.5 : 0
+                });
+                const minDelay = Math.max(1500 - level * 100, 800);
+                const maxDelay = Math.max(3000 - level * 150, 1500);
+                const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+                clearTimeout(obstacleInterval);
+                obstacleInterval = setTimeout(createObstacle, delay);
+            }
+
+            // Create powerups
+            function createPowerup() {
+                if (!gameRunning || gamePaused) return;
+                const types = ['fuel', 'shield'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                const powerup = document.createElement('div');
+                powerup.className = `powerup ${type}-powerup`;
+                const left = Math.random() * 80 + 10;
+                const top = -10;
+                powerup.style.left = `${left}%`;
+                powerup.style.top = `${top}%`;
+                gameContainer.appendChild(powerup);
+                powerups.push({
+                    element: powerup,
+                    type: type,
+                    left: left,
+                    top: top,
+                    speed: 1
+                });
+                const delay = Math.random() * 15000 + 10000;
+                clearTimeout(powerupInterval);
+                powerupInterval = setTimeout(createPowerup, delay);
+            }
+
+            // Create coins
+            function createCoin() {
+                if (!gameRunning || gamePaused) return;
+                const coin = document.createElement('div');
+                coin.className = 'coin';
+                const left = Math.random() * 80 + 10;
+                const top = -10;
+                coin.style.left = `${left}%`;
+                coin.style.top = `${top}%`;
+                gameContainer.appendChild(coin);
+                gameItems.push({
+                    element: coin,
+                    type: 'coin',
+                    left: left,
+                    top: top,
+                    speed: 1.5
+                });
+                const delay = Math.random() * 3000 + 2000;
+                clearTimeout(coinInterval);
+                coinInterval = setTimeout(createCoin, delay);
+            }
+
+            // Move obstacles
+            function moveObstacles() {
+                obstacles.forEach((obstacle, index) => {
+                    obstacle.top += obstacle.speed * gameSpeed;
+                    if (obstacle.type === 'debris') {
+                        obstacle.left += obstacle.rotation * 0.1;
+                    }
+                    obstacle.element.style.top = `${obstacle.top}%`;
+                    if (obstacle.type === 'debris') {
+                        obstacle.element.style.left = `${obstacle.left}%`;
+                    }
+                    if (obstacle.top > 110) {
+                        if (obstacle.element.parentNode) {
+                            gameContainer.removeChild(obstacle.element);
+                        }
+                        obstacles.splice(index, 1);
+                        updateScore(5);
+                    }
+                    if (checkCollision(obstacle)) {
+                        if (hasShield) {
+                            if (obstacle.element.parentNode) {
+                                gameContainer.removeChild(obstacle.element);
+                            }
+                            obstacles.splice(index, 1);
+                            hasShield = false;
+                            shieldDuration = 0;
+                            shieldIndicator.style.display = 'none';
+                            shieldEffect.style.display = 'none';
+                            clearTimeout(shieldTimer);
+                            showNotification('Shield protected you!');
+                        } else {
+                            gameOver();
+                        }
+                    }
+                });
+            }
+
+            // Move powerups and check collection
+            function movePowerups() {
+                powerups.forEach((powerup, index) => {
+                    powerup.top += powerup.speed * gameSpeed;
+                    powerup.element.style.top = `${powerup.top}%`;
+                    if (powerup.top > 110) {
+                        if (powerup.element.parentNode) {
+                            gameContainer.removeChild(powerup.element);
+                        }
+                        powerups.splice(index, 1);
+                    }
+                    if (checkCollision(powerup)) {
+                        if (powerup.type === 'fuel') {
+                            boostPower = 100;
+                            boostFill.style.transform = 'scaleX(1)';
+                            showNotification('Boost refilled!');
+                        } else if (powerup.type === 'shield') {
+                            hasShield = true;
+                            shieldDuration = 30;
+                            shieldIndicator.style.display = 'block';
+                            shieldEffect.style.display = 'block';
+                            if (shieldTimer) clearTimeout(shieldTimer);
+                            updateShieldTimer();
+                            showNotification('Shield activated!');
+                        }
+                        if (powerup.element.parentNode) {
+                            gameContainer.removeChild(powerup.element);
+                        }
+                        powerups.splice(index, 1);
+                    }
+                });
+            }
+
+            // Move game items (coins, etc.)
+            function moveGameItems() {
+                gameItems.forEach((item, index) => {
+                    item.top += item.speed * gameSpeed;
+                    item.element.style.top = `${item.top}%`;
+                    if (item.top > 110) {
+                        if (item.element.parentNode) {
+                            gameContainer.removeChild(item.element);
+                        }
+                        gameItems.splice(index, 1);
+                    }
+                    if (checkCollision(item)) {
+                        if (item.type === 'coin') {
+                            coins++;
+                            coinsDisplay.textContent = coins;
+                            showNotification('+1 Coin');
+                        }
+                        if (item.element.parentNode) {
+                            gameContainer.removeChild(item.element);
+                        }
+                        gameItems.splice(index, 1);
+                    }
+                });
+            }
+
+            // Update shield timer
+            function updateShieldTimer() {
+                if (shieldDuration <= 0) {
+                    hasShield = false;
+                    shieldIndicator.style.display = 'none';
+                    shieldEffect.style.display = 'none';
+                    return;
+                }
+                shieldDuration--;
+                shieldIndicator.textContent = `Shield: ${shieldDuration}s`;
+                shieldTimer = setTimeout(updateShieldTimer, 1000);
+            }
+
+            // Check collision
+            function checkCollision(object) {
+                const balloonRect = balloon.getBoundingClientRect();
+                const objectRect = object.element.getBoundingClientRect();
+                return !(
+                    balloonRect.right < objectRect.left + 5 ||
+                    balloonRect.left > objectRect.right - 5 ||
+                    balloonRect.bottom < objectRect.top + 5 ||
+                    balloonRect.top > objectRect.bottom - 5
+                );
+            }
+
+            // Update score
+            function updateScore(points) {
+                score += points;
+                scoreDisplay.textContent = Math.floor(score);
+                const newLevel = Math.floor(score / 100) + 1;
+                if (newLevel > level) {
+                    levelUp(newLevel);
+                }
+            }
+
+            // Level up
+            function levelUp(newLevel) {
+                level = newLevel;
+                levelDisplay.textContent = level;
+                gameSpeed += 0.2;
+                levelDisplay.parentElement.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    levelDisplay.parentElement.style.transform = 'scale(1)';
+                }, 300);
+                showNotification(`Level ${level}!`);
+            }
+
+            // Update balloon position
+            function updateBalloon() {
+                const boostMultiplier = shopItemsList.find(item => item.id === 'balloon_upgrade').purchased ?
+                    1 + (shopItemsList.find(item => item.id === 'balloon_upgrade').level * 0.2) : 1;
+                if (balloonRising && boostPower > 0) {
+                    balloonPosition += 0.5 * gameSpeed * boostMultiplier;
+                    boostPower = Math.max(0, boostPower - 1);
+                    boostFill.style.transform = `scaleX(${boostPower / 100})`;
+                    if (balloonPosition > 50) {
+                        updateScore(0.1);
+                    }
+                } else {
+                    balloonPosition = Math.max(5, balloonPosition - 0.3 * gameSpeed);
+                }
+                balloonPosition = Math.min(90, balloonPosition);
+                balloon.style.bottom = `${balloonPosition}%`;
+                if (hasShield) {
+                    shieldEffect.style.bottom = `${balloonPosition}%`;
+                }
+                altitudeFill.style.height = `${balloonPosition}%`;
+                if (balloonPosition >= 90) {
+                    updateScore(50);
+                    showNotification('Altitude Bonus: +50');
+                    balloonPosition = 20;
+                }
+                if (balloonPosition <= 5 && gameRunning) {
+                    gameOver();
+                }
+                balloon.style.animation = balloonRising ? 'none' : 'sway 3s infinite ease-in-out';
+            }
+
+            // Recover boost power
+            function recoverBoost() {
+                if (!boostDraining && boostPower < 100) {
+                    const recoveryRate = shopItemsList.find(item => item.id === 'boost_upgrade').purchased ?
+                        0.5 + (shopItemsList.find(item => item.id === 'boost_upgrade').level * 0.2) : 0.5;
+                    boostPower = Math.min(100, boostPower + recoveryRate);
+                    boostFill.style.transform = `scaleX(${boostPower / 100})`;
+                }
+            }
+
+            // Show notification
+            function showNotification(message) {
+                notification.textContent = message;
+                notification.classList.remove('show');
+                void notification.offsetWidth;
+                notification.classList.add('show');
+            }
+
+            // Game over
+            function gameOver() {
+                gameRunning = false;
+                clearInterval(gameLoop);
+                clearTimeout(obstacleInterval);
+                clearTimeout(powerupInterval);
+                clearTimeout(coinInterval);
+                clearTimeout(shieldTimer);
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('balloonDashHighScore', highScore);
+                }
+                finalScoreDisplay.textContent = Math.floor(score);
+                highScoreDisplay.textContent = Math.floor(highScore);
+                gameOverScreen.classList.add('show');
+                balloon.style.animation = 'none';
+            }
+
+            // Reset game
+            function resetGame() {
+                score = 0;
+                level = 1;
+                balloonPosition = 20;
+                gameSpeed = 1;
+                boostPower = 100;
+                hasShield = false;
+                shieldDuration = 0;
+                scoreDisplay.textContent = score;
+                levelDisplay.textContent = level;
+                coinsDisplay.textContent = coins;
+                altitudeFill.style.height = `${balloonPosition}%`;
+                boostFill.style.transform = 'scaleX(1)';
+                shieldIndicator.style.display = 'none';
+                shieldEffect.style.display = 'none';
+                balloon.style.bottom = `${balloonPosition}%`;
+                obstacles.forEach(obstacle => {
+                    if (obstacle.element.parentNode) {
+                        gameContainer.removeChild(obstacle.element);
+                    }
+                });
+                obstacles = [];
+                powerups.forEach(powerup => {
+                    if (powerup.element.parentNode) {
+                        gameContainer.removeChild(powerup.element);
+                    }
+                });
+                powerups = [];
+                gameItems.forEach(item => {
+                    if (item.element.parentNode) {
+                        gameContainer.removeChild(item.element);
+                    }
+                });
+                gameItems = [];
+                clouds.forEach(cloud => {
+                    if (cloud.element.parentNode) {
+                        gameContainer.removeChild(cloud.element);
+                    }
+                });
+                clouds = [];
+                gameOverScreen.classList.remove('show');
+                createClouds();
+                startGame();
+            }
+
+            // Pause game
+            function pauseGame() {
+                if (!gameRunning) return;
+                gamePaused = true;
+                pauseScreen.classList.add('show');
+                clearInterval(gameLoop);
+            }
+
+            // Resume game
+            function resumeGame() {
+                if (!gameRunning) return;
+                gamePaused = false;
+                pauseScreen.classList.remove('show');
+                gameLoop = setInterval(() => {
+                    moveClouds();
+                    moveObstacles();
+                    movePowerups();
+                    moveGameItems();
+                    updateBalloon();
+                    recoverBoost();
+                }, 20);
+            }
+
+            // Update shop display
+            function updateShopDisplay() {
+                shopItems.innerHTML = '';
+                shopItemsList.forEach(item => {
+                    const shopItem = document.createElement('div');
+                    shopItem.className = 'shop-item';
+                    const itemInfo = document.createElement('div');
+                    itemInfo.className = 'shop-item-info';
+                    const itemName = document.createElement('div');
+                    itemName.className = 'shop-item-name';
+                    itemName.textContent = item.name + (item.level && item.purchased ? ` (Lvl ${item.level})` : '');
+                    const itemDesc = document.createElement('div');
+                    itemDesc.className = 'shop-item-desc';
+                    itemDesc.textContent = item.description;
+                    itemInfo.appendChild(itemName);
+                    itemInfo.appendChild(itemDesc);
+                    const itemPrice = document.createElement('div');
+                    itemPrice.className = 'shop-item-price';
+                    const itemPriceCoin = document.createElement('div');
+                    itemPriceCoin.className = 'shop-item-price-coin';
+                    const itemPriceAmount = document.createElement('div');
+                    itemPriceAmount.className = 'shop-item-price-amount';
+                    let currentPrice = item.price;
+                    if (item.level && item.purchased) {
+                        currentPrice = Math.floor(item.price * (1 + item.level * 0.5));
+                    }
+                    itemPriceAmount.textContent = currentPrice;
+                    itemPrice.appendChild(itemPriceCoin);
+                    itemPrice.appendChild(itemPriceAmount);
+                    const itemBuy = document.createElement('button');
+                    itemBuy.className = 'shop-item-buy';
+                    if (item.level && item.purchased) {
+                        if (item.level >= item.maxLevel) {
+                            itemBuy.textContent = 'MAX';
+                            itemBuy.disabled = true;
+                        } else {
+                            itemBuy.textContent = 'Upgrade';
+                            itemBuy.disabled = coins < currentPrice;
+                        }
+                    } else if (item.purchased && !item.consumable) {
+                        itemBuy.textContent = 'Purchased';
+                        itemBuy.disabled = true;
+                    } else {
+                        itemBuy.textContent = 'Buy';
+                        itemBuy.disabled = coins < currentPrice;
+                    }
+                    itemBuy.addEventListener('click', () => {
+                        if (coins >= currentPrice) {
+                            coins -= currentPrice;
+                            coinsDisplay.textContent = coins;
+                            if (item.level) {
+                                if (!item.purchased) {
+                                    item.purchased = true;
+                                } else {
+                                    item.level++;
+                                }
+                            } else {
+                                item.purchased = true;
+                            }
+                            if (item.effect) {
+                                item.effect();
+                            }
+                            updateShopDisplay();
+                        }
+                    });
+                    shopItem.appendChild(itemInfo);
+                    shopItem.appendChild(itemPrice);
+                    shopItem.appendChild(itemBuy);
+                    shopItems.appendChild(shopItem);
+                });
+            }
+
+            // Start game
+            function startGame() {
+                gameRunning = true;
+                gamePaused = false;
+                startScreen.style.display = 'none';
+                gameLoop = setInterval(() => {
+                    moveClouds();
+                    moveObstacles();
+                    movePowerups();
+                    moveGameItems();
+                    updateBalloon();
+                    recoverBoost();
+                }, 20);
+                setTimeout(() => { createObstacle(); }, 3000);
+                setTimeout(() => { createPowerup(); }, 10000);
+                setTimeout(() => { createCoin(); }, 2000);
+                showNotification('Hold LIFT to rise!');
+            }
+
+            // Event listeners
+            liftBtn.addEventListener('mousedown', () => {
+                balloonRising = true;
+                boostDraining = true;
+            });
+            liftBtn.addEventListener('mouseup', () => {
+                balloonRising = false;
+                boostDraining = false;
+            });
+            liftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                balloonRising = true;
+                boostDraining = true;
+            });
+            liftBtn.addEventListener('touchend', () => {
+                balloonRising = false;
+                boostDraining = false;
+            });
+            liftBtn.addEventListener('mouseleave', () => {
+                balloonRising = false;
+                boostDraining = false;
+            });
+            pauseBtn.addEventListener('click', () => {
+                if (gamePaused) {
+                    resumeGame();
+                } else {
+                    pauseGame();
+                }
+            });
+            resumeBtn.addEventListener('click', resumeGame);
+            restartBtn.addEventListener('click', resetGame);
+            startBtn.addEventListener('click', startGame);
+            shopBtnEnd.addEventListener('click', () => {
+                updateShopDisplay();
+                shopScreen.classList.add('show');
+            });
+            closeShopBtn.addEventListener('click', () => {
+                shopScreen.classList.remove('show');
+            });
+            window.addEventListener('resize', updateDimensions);
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    balloonRising = true;
+                    boostDraining = true;
+                } else if (e.code === 'Escape') {
+                    if (gamePaused) {
+                        resumeGame();
+                    } else {
+                        pauseGame();
+                    }
+                }
+            });
+            document.addEventListener('keyup', (e) => {
+                if (e.code === 'Space') {
+                    balloonRising = false;
+                    boostDraining = false;
+                }
+            });
+
+            // Initialize game
+            updateDimensions();
+            createClouds();
+            highScoreDisplay.textContent = Math.floor(highScore);
+            coins = 50;
+            coinsDisplay.textContent = coins;
+
+            // Rating form submission
+            $(document).ready(function () {
+                $('#ratingForm').submit(function (e) {
+                    e.preventDefault();
+                    $.ajax({
+                        url: '@Url.Action("RateGame", "Home")',
+                        type: 'POST',
+                        data: $(this).serialize(),
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                alert(response.message);
+                                location.reload();
+                            } else {
+                                alert('Error: ' + response.message);
+                            }
+                        },
+                        error: function () {
+                            alert('An error occurred while submitting the rating.');
+                        }
+                    });
+                });
+            });
+        });
+
+        // Cloudflare challenge script
+        (function(){
+            function c(){
+                var b=a.contentDocument||a.contentWindow.document;
+                if(b){
+                    var d=b.createElement('script');
+                    d.innerHTML="window.__CF$cv$params={r:'967a2998951c90aa',t:'MTc1MzkzNDE1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+                    b.getElementsByTagName('head')[0].appendChild(d)
+                }
+            }
+            if(document.body){
+                var a=document.createElement('iframe');
+                a.height=1;
+                a.width=1;
+                a.style.position='absolute';
+                a.style.top=0;
+                a.style.left=0;
+                a.style.border='none';
+                a.style.visibility='hidden';
+                document.body.appendChild(a);
+                if('loading'!==document.readyState)c();
+                else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);
+                else{
+                    var e=document.onreadystatechange||function(){};
+                    document.onreadystatechange=function(b){
+                        e(b);
+                        'loading'!==document.readyState&&(document.onreadystatechange=e,c())
+                    }
+                }
+            }
+        })();
+    </script>
+</body>
+</html> *@

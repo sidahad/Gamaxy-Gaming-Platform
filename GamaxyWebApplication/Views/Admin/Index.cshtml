@@ -1,0 +1,106 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    Layout = "Admin_layout";
+}
+
+<div class="clearfix"></div>
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <div class="card mt-3 shadow-lg">
+            <div class="card-content">
+                <div class="row row-group m-0">
+                    <div class="col-12 col-lg-6 col-xl-6 border-light p-3">
+                        <div class="card-body bg-dark  text-white rounded-lg">
+                            <h5 class="mb-0">@ViewBag.TotalUsers <span class="float-right"><i class="fa fa-users"></i></span></h5>
+                            <div class="progress my-3" style="height: 5px;">
+                                <div class="progress-bar bg-warning" style="width: 75%"></div>
+                            </div>
+                            <p class="mb-0 small-font">Total Users</p>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6 col-xl-6 border-light p-3">
+                        <div class="card-body bg-dark text-white rounded-lg">
+                            <h5 class="mb-0">
+                                @ViewBag.TotalGamers
+                                <span class="float-right"><i class="fa fa-chalkboard-teacher"></i></span>
+                            </h5>
+                            <div class="progress my-3" style="height: 5px;">
+                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                            </div>
+                            <p class="mb-0 small-font">Total Gamers</p>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6 col-xl-6 border-light p-3">
+                        <div class="card-body bg-dark  text-white rounded-lg">
+                            <h5 class="mb-0">@ViewBag.TotalCategories <span class="float-right"><i class="fa fa-list"></i></span></h5>
+                            <div class="progress my-3" style="height: 5px;">
+                                <div class="progress-bar bg-danger" style="width: 65%"></div>
+                            </div>
+                            <p class="mb-0 small-font">Total Categories</p>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6 col-xl-6 border-light p-3">
+                        <div class="card-body bg-dark text-white rounded-lg">
+                            <h5 class="mb-0">@ViewBag.Games <span class="float-right"><i class="fa fa-book"></i></span></h5>
+                            <div class="progress my-3" style="height: 5px;">
+                                <div class="progress-bar bg-primary" style="width: 80%"></div>
+                            </div>
+                            <p class="mb-0 small-font">Total Games</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Top Button with animation -->
+        <a href="javaScript:void();" class="back-to-top btn btn-primary rounded-circle">
+            <i class="fa fa-angle-double-up"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Custom styles for engagement -->
+<style>
+    .card-body {
+        transition: all 0.3s ease-in-out;
+    }
+
+        .card-body:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .back-to-top {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        display: none;
+        font-size: 24px;
+    }
+
+        .back-to-top:hover {
+            color: #ffffff;
+            background-color: #007bff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+</style>
+
+<script>
+    // Scroll to top button visibility
+    $(window).scroll(function () {
+        if ($(this).scrollTop() > 100) {
+            $('.back-to-top').fadeIn();
+        } else {
+            $('.back-to-top').fadeOut();
+        }
+    });
+
+    // Scroll to top action
+    $('.back-to-top').click(function () {
+        $('html, body').animate({ scrollTop: 0 }, '300');
+        return false;
+    });
+</script>

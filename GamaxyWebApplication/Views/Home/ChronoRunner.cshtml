@@ -1,0 +1,1257 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "ChronoRunner - Time Travel Infinite Runner";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ChronoRunner - Time Travel Infinite Runner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link href="~/css/ChronoRunner.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">CHRONORUNNER</h1>
+                <div class="game-subtitle">TIME TRAVEL INFINITE RUNNER</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container">
+                    <canvas id="gameCanvas"></canvas>
+
+                    <div id="startScreen">
+                        <h1 class="start-title">CHRONORUNNER</h1>
+                        <p class="start-subtitle">Defy Physics, Master Time</p>
+                        <button class="control-btn" onclick="startGame()">START ADVENTURE</button>
+                        <button class="control-btn" onclick="showInstructions()">HOW TO PLAY</button>
+                        <div id="instructions" style="display: none;">
+                            <p>Run endlessly through the city! Switch lanes and avoid obstacles!</p>
+                            <div class="controls">
+                                <span class="control-key">A/D</span>
+                                <span class="control-key">SPACE</span>
+                                <span class="control-key">S</span>
+                                <span class="control-key">SHIFT</span>
+                                <span class="control-key">ESC</span>
+                            </div>
+                            <p style="margin-top: 10px;">Switch Lanes • Jump • Crouch • Dash • Pause</p>
+                        </div>
+                    </div>
+
+                    <div id="ui">
+                        <div id="gameUI" style="display: none;">
+                            <div class="ui-panel">
+                                <div class="score">Score: <span id="scoreValue">0</span></div>
+                                <div class="dimension-indicator">Level: <span id="currentLevel">1</span> | Dimension: <span id="currentDimension">Cyber</span></div>
+                                <div class="health-bar">
+                                    <div class="health-fill" id="healthFill"></div>
+                                </div>
+                            </div>
+                            <div class="ui-panel">
+                                <div style="font-size: 0.9rem;">Next Shift: <span id="shiftTimer">30s</span></div>
+                                <div style="font-size: 0.8rem; margin-top: 5px; color: var(--success);">Speed: <span id="speedValue">1.0x</span></div>
+                            </div>
+                        </div>
+
+                        <div class="dimension-shift-alert" id="shiftAlert">
+                            DIMENSION SHIFT!
+                        </div>
+                    </div>
+
+                    <div id="gameOver">
+                        <h2 class="game-over-title">TEMPORAL COLLAPSE</h2>
+                        <p class="final-score">Final Score: <span id="finalScore">0</span></p>
+                        <p style="margin-bottom: 2rem; opacity: 0.8;">You survived <span id="survivedTime">0</span> seconds across dimensions</p>
+                        <button class="control-btn" onclick="startNewGame()">NEW GAME</button>
+                        <button class="control-btn" onclick="backToMenu()">MAIN MENU</button>
+                    </div>
+
+                    <div id="pauseMenu" style="display: none;">
+                        <div class="control-menu">
+                            <h2>GAME PAUSED</h2>
+                            <div class="control-buttons">
+                                <button class="control-btn" onclick="resumeGame()">RESUME</button>
+                                <button class="control-btn" onclick="restartGame()">RESTART</button>
+                                <button class="control-btn" onclick="newGame()">NEW GAME</button>
+                                <button class="control-btn" onclick="backToMenu()">MAIN MENU</button>
+                            </div>
+                            <div style="margin-top: 1rem; text-align: center; opacity: 0.8;">
+                                <p>Press ESC again to resume</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="loading" id="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        Initializing Temporal Engine...
+                    </div>
+
+                    <div class="esc-indicator">
+                        <span class="esc-key">ESC</span> for Pause
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Section -->
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        // Particle System
+        function createParticles() {
+            const particlesContainer = document.createElement('div');
+            particlesContainer.className = 'particles';
+            document.querySelector('.game-container').appendChild(particlesContainer);
+
+            setInterval(() => {
+                if (document.querySelectorAll('.particle').length < 50) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                    particle.style.animationDelay = Math.random() * 2 + 's';
+                    particle.style.width = (Math.random() * 3 + 2) + 'px';
+                    particle.style.height = particle.style.width;
+                    particlesContainer.appendChild(particle);
+
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 6000);
+                }
+            }, 200);
+        }
+
+        // Game Variables
+        let scene, camera, renderer, player, obstacles = [], particles = [], powerups = [];
+        let gameState = 'menu'; // menu, playing, gameOver, paused
+        let score = 0, health = 100, speed = 0.1, gameTime = 0;
+        let currentDimension = 0, dimensionTimer = 30;
+        let keys = {}, playerPosition = 0, playerY = 0, playerVelocityY = 0;
+        let isJumping = false, canDash = true, dashCooldown = 0;
+        let gravityReversed = false, timeSlowed = false, dimensionShiftActive = false;
+        let currentLevel = 1, levelProgress = 0, isCrouching = false;
+
+        const dimensions = [
+            { name: 'Cyber', color: 0x00ffff, fogColor: 0x001122, obstacleColor: 0xff00ff },
+            { name: 'Ancient', color: 0xffd700, fogColor: 0x2d1810, obstacleColor: 0x8b4513 },
+            { name: 'Sci-Fi', color: 0x00ff00, fogColor: 0x0a0a2e, obstacleColor: 0x0080ff },
+            { name: 'Lava', color: 0xff4500, fogColor: 0x2d0a00, obstacleColor: 0xff6600 },
+            { name: 'Ice', color: 0x87ceeb, fogColor: 0x1e3a5f, obstacleColor: 0x4169e1 }
+        ];
+
+        // Initialize Three.js
+        function initThreeJS() {
+            const canvas = document.getElementById('gameCanvas');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Daytime Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.8);
+            scene.add(ambientLight);
+
+            // Sun light
+            const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            sunLight.position.set(10, 20, 5);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 50;
+            sunLight.shadow.camera.left = -20;
+            sunLight.shadow.camera.right = 20;
+            sunLight.shadow.camera.top = 20;
+            sunLight.shadow.camera.bottom = -20;
+            scene.add(sunLight);
+
+            // Additional fill light
+            const fillLight = new THREE.DirectionalLight(0x87CEEB, 0.3);
+            fillLight.position.set(-5, 10, -5);
+            scene.add(fillLight);
+
+            // Human Player Character
+            const playerGroup = new THREE.Group();
+
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+            const headMaterial = new THREE.MeshLambertMaterial({ color: 0xffdbac });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.set(0, 0.65, 0);
+            head.castShadow = true;
+            playerGroup.add(head);
+
+            // Body (torso)
+            const bodyGeometry = new THREE.CylinderGeometry(0.12, 0.15, 0.5, 8);
+            const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x4ecdc4 });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.set(0, 0.25, 0);
+            body.castShadow = true;
+            playerGroup.add(body);
+
+            // Arms
+            const armGeometry = new THREE.CylinderGeometry(0.04, 0.04, 0.3, 8);
+            const armMaterial = new THREE.MeshLambertMaterial({ color: 0xffdbac });
+
+            const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+            leftArm.position.set(-0.2, 0.3, 0);
+            leftArm.rotation.z = 0.3;
+            leftArm.castShadow = true;
+            playerGroup.add(leftArm);
+
+            const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+            rightArm.position.set(0.2, 0.3, 0);
+            rightArm.rotation.z = -0.3;
+            rightArm.castShadow = true;
+            playerGroup.add(rightArm);
+
+            // Legs
+            const legGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.4, 8);
+            const legMaterial = new THREE.MeshLambertMaterial({ color: 0x2c3e50 });
+
+            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            leftLeg.position.set(-0.08, -0.2, 0);
+            leftLeg.castShadow = true;
+            playerGroup.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            rightLeg.position.set(0.08, -0.2, 0);
+            rightLeg.castShadow = true;
+            playerGroup.add(rightLeg);
+
+            // Feet
+            const footGeometry = new THREE.BoxGeometry(0.08, 0.04, 0.15);
+            const footMaterial = new THREE.MeshLambertMaterial({ color: 0x34495e });
+
+            const leftFoot = new THREE.Mesh(footGeometry, footMaterial);
+            leftFoot.position.set(-0.08, -0.42, 0.04);
+            leftFoot.castShadow = true;
+            playerGroup.add(leftFoot);
+
+            const rightFoot = new THREE.Mesh(footGeometry, footMaterial);
+            rightFoot.position.set(0.08, -0.42, 0.04);
+            rightFoot.castShadow = true;
+            playerGroup.add(rightFoot);
+
+            player = playerGroup;
+            player.position.set(0, 0.5, 0);
+            scene.add(player);
+
+            // Realistic asphalt road surface
+            const roadGeometry = new THREE.PlaneGeometry(12, 200);
+            const roadMaterial = new THREE.MeshLambertMaterial({
+                color: 0x2c2c2c,
+                roughness: 0.8
+            });
+            const road = new THREE.Mesh(roadGeometry, roadMaterial);
+            road.rotation.x = -Math.PI / 2;
+            road.receiveShadow = true;
+            scene.add(road);
+
+            // Road shoulder/sidewalk on left
+            const leftShoulderGeometry = new THREE.PlaneGeometry(6, 200);
+            const shoulderMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
+            const leftShoulder = new THREE.Mesh(leftShoulderGeometry, shoulderMaterial);
+            leftShoulder.rotation.x = -Math.PI / 2;
+            leftShoulder.position.set(-9, 0.005, 0);
+            leftShoulder.receiveShadow = true;
+            scene.add(leftShoulder);
+
+            // Road shoulder/sidewalk on right
+            const rightShoulder = new THREE.Mesh(leftShoulderGeometry, shoulderMaterial);
+            rightShoulder.rotation.x = -Math.PI / 2;
+            rightShoulder.position.set(9, 0.005, 0);
+            rightShoulder.receiveShadow = true;
+            scene.add(rightShoulder);
+
+            // Center yellow dividing line
+            const centerLineGeometry = new THREE.PlaneGeometry(0.2, 200);
+            const centerLineMaterial = new THREE.MeshLambertMaterial({ color: 0xffff00 });
+            const centerLine = new THREE.Mesh(centerLineGeometry, centerLineMaterial);
+            centerLine.rotation.x = -Math.PI / 2;
+            centerLine.position.set(0, 0.01, 0);
+            scene.add(centerLine);
+
+            // Left lane dividing line
+            const leftLaneGeometry = new THREE.PlaneGeometry(0.15, 200);
+            const laneMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const leftLane = new THREE.Mesh(leftLaneGeometry, laneMaterial);
+            leftLane.rotation.x = -Math.PI / 2;
+            leftLane.position.set(-3, 0.01, 0);
+            scene.add(leftLane);
+
+            // Right lane dividing line
+            const rightLane = new THREE.Mesh(leftLaneGeometry, laneMaterial);
+            rightLane.rotation.x = -Math.PI / 2;
+            rightLane.position.set(3, 0.01, 0);
+            scene.add(rightLane);
+
+            // Road edge lines (white)
+            const edgeLineGeometry = new THREE.PlaneGeometry(0.2, 200);
+            const edgeLineMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+            // Left edge line
+            const leftEdge = new THREE.Mesh(edgeLineGeometry, edgeLineMaterial);
+            leftEdge.rotation.x = -Math.PI / 2;
+            leftEdge.position.set(-6, 0.01, 0);
+            scene.add(leftEdge);
+
+            // Right edge line
+            const rightEdge = new THREE.Mesh(edgeLineGeometry, edgeLineMaterial);
+            rightEdge.rotation.x = -Math.PI / 2;
+            rightEdge.position.set(6, 0.01, 0);
+            scene.add(rightEdge);
+
+            // Add dashed lines for realism
+            for (let i = 0; i < 50; i++) {
+                const dashGeometry = new THREE.PlaneGeometry(0.15, 2);
+                const dashMaterial = new THREE.MeshLambertMaterial({ color: 0xffff00 });
+                const dash = new THREE.Mesh(dashGeometry, dashMaterial);
+                dash.rotation.x = -Math.PI / 2;
+                dash.position.set(0, 0.011, i * 8 - 100);
+                scene.add(dash);
+            }
+
+            // Camera position
+            camera.position.set(0, 5, 8);
+            camera.lookAt(0, 0, 0);
+
+            // Sky with gradient
+            const skyGeometry = new THREE.SphereGeometry(100, 32, 32);
+            const skyMaterial = new THREE.MeshBasicMaterial({
+                color: 0x87CEEB,
+                side: THREE.BackSide
+            });
+            const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+            scene.add(sky);
+
+            // Add modern city background
+            createModernCity();
+
+            // Add clouds
+            createClouds();
+
+            // Fog (lighter for daytime)
+            scene.fog = new THREE.Fog(0xcccccc, 30, 100);
+
+            // Initial obstacles
+            generateObstacles();
+            generateParticles();
+        }
+
+        function createModernCity() {
+            // Create modern city skyline on LEFT side
+            for (let i = 0; i < 15; i++) {
+                const buildingHeight = Math.random() * 25 + 15;
+                const buildingWidth = Math.random() * 4 + 3;
+                const buildingDepth = Math.random() * 6 + 4;
+
+                const buildingGeometry = new THREE.BoxGeometry(buildingWidth, buildingHeight, buildingDepth);
+                const buildingMaterial = new THREE.MeshLambertMaterial({
+                    color: new THREE.Color().setHSL(0.6, 0.3, Math.random() * 0.4 + 0.3)
+                });
+                const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+
+                building.position.set(
+                    -15 - Math.random() * 10,
+                    buildingHeight / 2,
+                    (i - 7) * 8 + Math.random() * 4
+                );
+
+                building.castShadow = true;
+                building.receiveShadow = true;
+                scene.add(building);
+
+                // Add windows to left buildings
+                for (let floor = 0; floor < Math.floor(buildingHeight / 3); floor++) {
+                    for (let window = 0; window < 4; window++) {
+                        const windowGeometry = new THREE.PlaneGeometry(0.4, 0.4);
+                        const windowMaterial = new THREE.MeshBasicMaterial({
+                            color: Math.random() > 0.6 ? 0xffff88 : 0x333366
+                        });
+                        const windowMesh = new THREE.Mesh(windowGeometry, windowMaterial);
+                        windowMesh.position.set(
+                            building.position.x + buildingWidth / 2 + 0.01,
+                            floor * 3 + 3,
+                            building.position.z + (window - 1.5) * 0.8
+                        );
+                        scene.add(windowMesh);
+                    }
+                }
+            }
+
+            // Create modern city skyline on RIGHT side
+            for (let i = 0; i < 15; i++) {
+                const buildingHeight = Math.random() * 25 + 15;
+                const buildingWidth = Math.random() * 4 + 3;
+                const buildingDepth = Math.random() * 6 + 4;
+
+                const buildingGeometry = new THREE.BoxGeometry(buildingWidth, buildingHeight, buildingDepth);
+                const buildingMaterial = new THREE.MeshLambertMaterial({
+                    color: new THREE.Color().setHSL(0.6, 0.3, Math.random() * 0.4 + 0.3)
+                });
+                const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+
+                building.position.set(
+                    15 + Math.random() * 10,
+                    buildingHeight / 2,
+                    (i - 7) * 8 + Math.random() * 4
+                );
+
+                building.castShadow = true;
+                building.receiveShadow = true;
+                scene.add(building);
+
+                // Add windows to right buildings
+                for (let floor = 0; floor < Math.floor(buildingHeight / 3); floor++) {
+                    for (let window = 0; window < 4; window++) {
+                        const windowGeometry = new THREE.PlaneGeometry(0.4, 0.4);
+                        const windowMaterial = new THREE.MeshBasicMaterial({
+                            color: Math.random() > 0.6 ? 0xffff88 : 0x333366
+                        });
+                        const windowMesh = new THREE.Mesh(windowGeometry, windowMaterial);
+                        windowMesh.position.set(
+                            building.position.x - buildingWidth / 2 - 0.01,
+                            floor * 3 + 3,
+                            building.position.z + (window - 1.5) * 0.8
+                        );
+                        scene.add(windowMesh);
+                    }
+                }
+            }
+        }
+
+        function createClouds() {
+            for (let i = 0; i < 15; i++) {
+                const cloudGroup = new THREE.Group();
+
+                for (let j = 0; j < 5; j++) {
+                    const cloudGeometry = new THREE.SphereGeometry(
+                        Math.random() * 3 + 2, 16, 16
+                    );
+                    const cloudMaterial = new THREE.MeshLambertMaterial({
+                        color: 0xffffff,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    const cloudPart = new THREE.Mesh(cloudGeometry, cloudMaterial);
+                    cloudPart.position.set(
+                        (Math.random() - 0.5) * 8,
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 8
+                    );
+                    cloudGroup.add(cloudPart);
+                }
+
+                cloudGroup.position.set(
+                    (Math.random() - 0.5) * 100,
+                    15 + Math.random() * 10,
+                    (Math.random() - 0.5) * 100
+                );
+
+                scene.add(cloudGroup);
+            }
+        }
+
+        function generateObstacles() {
+            for (let i = 0; i < 25; i++) {
+                createObstacle(-10 - i * 2.5);
+            }
+        }
+
+        function createObstacle(z) {
+            const obstacleType = Math.floor(Math.random() * 5);
+            const obstacleGroup = new THREE.Group();
+            const dim = dimensions[currentDimension];
+
+            switch (obstacleType) {
+                case 0: // Standard Hurdle
+                    createStandardHurdle(obstacleGroup, dim);
+                    break;
+                case 1: // High Hurdle
+                    createHighHurdle(obstacleGroup, dim);
+                    break;
+                case 2: // Double Hurdle
+                    createDoubleHurdle(obstacleGroup, dim);
+                    break;
+                case 3: // Barrier Wall
+                    createBarrierWall(obstacleGroup, dim);
+                    break;
+                case 4: // Spike Trap
+                    createSpikeTrap(obstacleGroup, dim);
+                    break;
+            }
+
+            obstacleGroup.position.set(
+                (Math.random() - 0.5) * 6,
+                0,
+                z
+            );
+
+            scene.add(obstacleGroup);
+            obstacles.push(obstacleGroup);
+        }
+
+        function createStandardHurdle(group, dim) {
+            const postGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8);
+            const postMaterial = new THREE.MeshLambertMaterial({ color: dim.obstacleColor });
+
+            const leftPost = new THREE.Mesh(postGeometry, postMaterial);
+            leftPost.position.set(-0.8, 0.6, 0);
+            leftPost.castShadow = true;
+            group.add(leftPost);
+
+            const rightPost = new THREE.Mesh(postGeometry, postMaterial);
+            rightPost.position.set(0.8, 0.6, 0);
+            rightPost.castShadow = true;
+            group.add(rightPost);
+
+            const barGeometry = new THREE.CylinderGeometry(0.03, 0.03, 1.6, 8);
+            const barMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const bar = new THREE.Mesh(barGeometry, barMaterial);
+            bar.rotation.z = Math.PI / 2;
+            bar.position.set(0, 1.0, 0);
+            bar.castShadow = true;
+            group.add(bar);
+        }
+
+        function createHighHurdle(group, dim) {
+            const postGeometry = new THREE.CylinderGeometry(0.06, 0.06, 2.0, 8);
+            const postMaterial = new THREE.MeshLambertMaterial({ color: dim.obstacleColor });
+
+            const leftPost = new THREE.Mesh(postGeometry, postMaterial);
+            leftPost.position.set(-0.9, 1.0, 0);
+            leftPost.castShadow = true;
+            group.add(leftPost);
+
+            const rightPost = new THREE.Mesh(postGeometry, postMaterial);
+            rightPost.position.set(0.9, 1.0, 0);
+            rightPost.castShadow = true;
+            group.add(rightPost);
+
+            const barGeometry = new THREE.CylinderGeometry(0.04, 0.04, 1.8, 8);
+            const barMaterial = new THREE.MeshLambertMaterial({ color: 0xff4444 });
+            const bar = new THREE.Mesh(barGeometry, barMaterial);
+            bar.rotation.z = Math.PI / 2;
+            bar.position.set(0, 1.6, 0);
+            bar.castShadow = true;
+            group.add(bar);
+        }
+
+        function createDoubleHurdle(group, dim) {
+            for (let i = 0; i < 2; i++) {
+                const postGeometry = new THREE.CylinderGeometry(0.04, 0.04, 1.0, 8);
+                const postMaterial = new THREE.MeshLambertMaterial({ color: dim.obstacleColor });
+
+                const leftPost = new THREE.Mesh(postGeometry, postMaterial);
+                leftPost.position.set(-0.7, 0.5, i * 1.5 - 0.75);
+                leftPost.castShadow = true;
+                group.add(leftPost);
+
+                const rightPost = new THREE.Mesh(postGeometry, postMaterial);
+                rightPost.position.set(0.7, 0.5, i * 1.5 - 0.75);
+                rightPost.castShadow = true;
+                group.add(rightPost);
+
+                const barGeometry = new THREE.CylinderGeometry(0.025, 0.025, 1.4, 8);
+                const barMaterial = new THREE.MeshLambertMaterial({ color: 0x44ff44 });
+                const bar = new THREE.Mesh(barGeometry, barMaterial);
+                bar.rotation.z = Math.PI / 2;
+                bar.position.set(0, 0.8, i * 1.5 - 0.75);
+                bar.castShadow = true;
+                group.add(bar);
+            }
+        }
+
+        function createBarrierWall(group, dim) {
+            const wallGeometry = new THREE.BoxGeometry(2.0, 1.5, 0.2);
+            const wallMaterial = new THREE.MeshLambertMaterial({ color: dim.obstacleColor });
+            const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+            wall.position.set(0, 0.75, 0);
+            wall.castShadow = true;
+            group.add(wall);
+
+            for (let i = 0; i < 3; i++) {
+                const stripeGeometry = new THREE.BoxGeometry(2.1, 0.1, 0.21);
+                const stripeMaterial = new THREE.MeshLambertMaterial({ color: 0xffff00 });
+                const stripe = new THREE.Mesh(stripeGeometry, stripeMaterial);
+                stripe.position.set(0, 0.3 + i * 0.3, 0);
+                group.add(stripe);
+            }
+        }
+
+        function createSpikeTrap(group, dim) {
+            for (let i = 0; i < 5; i++) {
+                const spikeGeometry = new THREE.ConeGeometry(0.1, 0.8, 6);
+                const spikeMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
+                const spike = new THREE.Mesh(spikeGeometry, spikeMaterial);
+                spike.position.set((i - 2) * 0.4, 0.4, 0);
+                spike.castShadow = true;
+                group.add(spike);
+            }
+
+            const baseGeometry = new THREE.BoxGeometry(2.5, 0.1, 0.5);
+            const baseMaterial = new THREE.MeshLambertMaterial({ color: dim.obstacleColor });
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.set(0, 0.05, 0);
+            base.castShadow = true;
+            group.add(base);
+        }
+
+        function generateParticles() {
+            for (let i = 0; i < 50; i++) {
+                const geometry = new THREE.SphereGeometry(0.05, 8, 8);
+                const material = new THREE.MeshBasicMaterial({
+                    color: dimensions[currentDimension].color,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const particle = new THREE.Mesh(geometry, material);
+                particle.position.set(
+                    (Math.random() - 0.5) * 20,
+                    Math.random() * 10,
+                    Math.random() * -50 - 10
+                );
+                scene.add(particle);
+                particles.push(particle);
+            }
+        }
+
+        function updateGame() {
+            if (gameState !== 'playing') return;
+
+            gameTime += 0.016;
+            score += Math.floor(speed * 100);
+
+            // Update timers
+            dimensionTimer -= 0.016;
+            if (dashCooldown > 0) dashCooldown -= 0.016;
+
+            // Dimension shift
+            if (dimensionTimer <= 0) {
+                shiftDimension();
+                dimensionTimer = 30;
+            }
+
+            // Player movement (lane switching)
+            if (keys['a'] || keys['A']) {
+                playerPosition = Math.max(playerPosition - 0.15, -3);
+            }
+            if (keys['d'] || keys['D']) {
+                playerPosition = Math.min(playerPosition + 0.15, 3);
+            }
+
+            // Jumping
+            if ((keys[' '] || keys['Space']) && !isJumping && !isCrouching) {
+                playerVelocityY = gravityReversed ? -0.3 : 0.3;
+                isJumping = true;
+            }
+
+            // Crouching
+            if (keys['s'] || keys['S']) {
+                isCrouching = true;
+                player.scale.y = 0.5;
+                player.position.y = playerY + 0.25;
+            } else {
+                isCrouching = false;
+                player.scale.y = 1;
+                player.position.y = playerY + 0.5;
+            }
+
+            // Dash
+            if ((keys['Shift'] || keys['shift']) && canDash && dashCooldown <= 0) {
+                speed *= 2;
+                dashCooldown = 2;
+                canDash = false;
+                setTimeout(() => {
+                    speed /= 2;
+                    canDash = true;
+                }, 500);
+            }
+
+            // Physics
+            const gravity = gravityReversed ? 0.02 : -0.02;
+            const timeMultiplier = timeSlowed ? 0.5 : 1;
+
+            playerVelocityY += gravity * timeMultiplier;
+            playerY += playerVelocityY * timeMultiplier;
+
+            if ((!gravityReversed && playerY <= 0) || (gravityReversed && playerY >= 8)) {
+                playerY = gravityReversed ? 8 : 0;
+                playerVelocityY = 0;
+                isJumping = false;
+            }
+
+            // Update player position
+            player.position.x = playerPosition;
+            if (isCrouching) {
+                player.position.y = playerY + 0.25;
+            }
+
+            // Continuous running animation
+            const runSpeed = 15;
+
+            // Arm swinging animation
+            if (player.children[2]) {
+                player.children[2].rotation.x = Math.sin(gameTime * runSpeed) * 0.8;
+                player.children[2].rotation.z = 0.3 + Math.sin(gameTime * runSpeed) * 0.2;
+            }
+            if (player.children[3]) {
+                player.children[3].rotation.x = -Math.sin(gameTime * runSpeed) * 0.8;
+                player.children[3].rotation.z = -0.3 - Math.sin(gameTime * runSpeed) * 0.2;
+            }
+
+            // Realistic leg running animation
+            if (player.children[4]) {
+                const leftLegRotation = Math.sin(gameTime * runSpeed) * 0.8;
+                player.children[4].rotation.x = leftLegRotation;
+                if (leftLegRotation > 0) {
+                    player.children[4].position.y = -0.15;
+                } else {
+                    player.children[4].position.y = -0.2;
+                }
+            }
+            if (player.children[5]) {
+                const rightLegRotation = -Math.sin(gameTime * runSpeed) * 0.8;
+                player.children[5].rotation.x = rightLegRotation;
+                if (rightLegRotation > 0) {
+                    player.children[5].position.y = -0.15;
+                } else {
+                    player.children[5].position.y = -0.2;
+                }
+            }
+
+            // Body bobbing
+            if (!isCrouching) {
+                player.position.y = (playerY + 0.5) + Math.sin(gameTime * runSpeed * 2) * 0.08;
+            }
+
+            // Head bobbing
+            if (player.children[0]) {
+                player.children[0].rotation.z = Math.sin(gameTime * runSpeed) * 0.1;
+            }
+
+            // Move obstacles
+            obstacles.forEach((obstacle, index) => {
+                obstacle.position.z += speed * timeMultiplier;
+
+                if (obstacle.position.z > 10) {
+                    scene.remove(obstacle);
+                    obstacles.splice(index, 1);
+                    createObstacle(-20);
+                }
+
+                // Collision detection
+                let collisionHeight = isCrouching ? 0.8 : 1.5;
+                let collisionWidth = 1.5;
+                let playerHeight = isCrouching ? playerY + 0.25 : playerY + 0.5;
+
+                if (obstacle.children.length > 6) {
+                    collisionWidth = 2.0;
+                } else if (obstacle.children.some(child => child.geometry && child.geometry.type === 'BoxGeometry')) {
+                    collisionHeight = isCrouching ? 1.0 : 2.0;
+                    collisionWidth = 2.0;
+                } else if (obstacle.children.some(child => child.geometry && child.geometry.type === 'ConeGeometry')) {
+                    collisionHeight = isCrouching ? 0.5 : 1.0;
+                    collisionWidth = 2.5;
+                }
+
+                let canDuckUnder = isCrouching && (
+                    obstacle.children.some(child => child.position && child.position.y > 0.8)
+                );
+
+                if (!canDuckUnder &&
+                    Math.abs(obstacle.position.x - playerPosition) < collisionWidth &&
+                    Math.abs(obstacle.position.z) < 1.2 &&
+                    Math.abs(obstacle.position.y - playerHeight) < collisionHeight) {
+                    takeDamage(15);
+                }
+            });
+
+            // Move particles
+            particles.forEach(particle => {
+                particle.position.z += speed * timeMultiplier * 0.5;
+                particle.rotation.x += 0.02;
+                particle.rotation.y += 0.02;
+
+                if (particle.position.z > 10) {
+                    particle.position.z = -60;
+                    particle.position.x = (Math.random() - 0.5) * 20;
+                    particle.position.y = Math.random() * 10;
+                }
+            });
+
+            // Update camera
+            camera.position.x = playerPosition * 0.3;
+            camera.lookAt(playerPosition * 0.2, playerY + 1, -5);
+
+            // Level progression
+            levelProgress += speed * 100;
+            if (levelProgress >= 10000) {
+                currentLevel++;
+                levelProgress = 0;
+                speed += 0.02;
+
+                const alert = document.getElementById('shiftAlert');
+                alert.textContent = `LEVEL ${currentLevel} REACHED!`;
+                gsap.to(alert, { opacity: 1, duration: 0.5, yoyo: true, repeat: 1 });
+            }
+
+            // Update UI
+            document.getElementById('scoreValue').textContent = score;
+            document.getElementById('currentLevel').textContent = currentLevel;
+            document.getElementById('currentDimension').textContent = dimensions[currentDimension].name;
+            document.getElementById('shiftTimer').textContent = Math.ceil(dimensionTimer) + 's';
+            document.getElementById('speedValue').textContent = (speed * 10).toFixed(1) + 'x';
+            document.getElementById('healthFill').style.width = health + '%';
+
+            // Increase difficulty
+            speed += 0.0005;
+
+            if (health <= 0) {
+                gameOver();
+            }
+        }
+
+        function shiftDimension() {
+            currentDimension = (currentDimension + 1) % dimensions.length;
+            const dim = dimensions[currentDimension];
+
+            const alert = document.getElementById('shiftAlert');
+            alert.textContent = `ENTERING ${dim.name.toUpperCase()} DIMENSION!`;
+            gsap.to(alert, { opacity: 1, duration: 0.5, yoyo: true, repeat: 1 });
+
+            scene.fog.color.setHex(dim.fogColor);
+
+            obstacles.forEach(obstacle => {
+                obstacle.children.forEach(child => {
+                    if (child.material && child.material.color) {
+                        child.material.color.setHex(dim.obstacleColor);
+                    }
+                });
+            });
+
+            particles.forEach(particle => {
+                particle.material.color.setHex(dim.color);
+            });
+
+            switch (currentDimension) {
+                case 0: // Cyber
+                    gravityReversed = false;
+                    timeSlowed = false;
+                    break;
+                case 1: // Ancient
+                    speed *= 0.8;
+                    break;
+                case 2: // Sci-Fi
+                    gravityReversed = Math.random() > 0.5;
+                    break;
+                case 3: // Lava
+                    speed *= 1.5;
+                    break;
+                case 4: // Ice
+                    timeSlowed = true;
+                    break;
+            }
+        }
+
+        function takeDamage(amount) {
+            health -= amount;
+            health = Math.max(0, health);
+
+            gsap.to(camera.position, {
+                x: camera.position.x + (Math.random() - 0.5) * 0.5,
+                duration: 0.1,
+                yoyo: true,
+                repeat: 3
+            });
+
+            player.children.forEach(child => {
+                gsap.to(child.material, {
+                    opacity: 0.5,
+                    duration: 0.1,
+                    yoyo: true,
+                    repeat: 3,
+                    onComplete: () => child.material.opacity = 1
+                });
+            });
+        }
+
+        function gameOver() {
+            gameState = 'gameOver';
+            document.getElementById('gameUI').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'flex';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('survivedTime').textContent = Math.floor(gameTime);
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameUI').style.display = 'flex';
+            gameState = 'playing';
+
+            if (!scene) {
+                initThreeJS();
+            } else {
+                resetGameCompletely();
+            }
+
+            gameLoop();
+        }
+
+        function resetGame() {
+            score = 0;
+            health = 100;
+            speed = 0.25;
+            gameTime = 0;
+            currentDimension = 0;
+            dimensionTimer = 30;
+            playerPosition = 0;
+            playerY = 0;
+            playerVelocityY = 0;
+            isJumping = false;
+            gravityReversed = false;
+            timeSlowed = false;
+            currentLevel = 1;
+            levelProgress = 0;
+            isCrouching = false;
+
+            if (player) {
+                player.position.set(0, 0.5, 0);
+                player.scale.set(1, 1, 1);
+            }
+        }
+
+        function resetGameCompletely() {
+            obstacles.forEach(obstacle => {
+                scene.remove(obstacle);
+            });
+            obstacles = [];
+
+            particles.forEach(particle => {
+                scene.remove(particle);
+            });
+            particles = [];
+
+            score = 0;
+            health = 100;
+            speed = 0.25;
+            gameTime = 0;
+            currentDimension = 0;
+            dimensionTimer = 30;
+            playerPosition = 0;
+            playerY = 0;
+            playerVelocityY = 0;
+            isJumping = false;
+            gravityReversed = false;
+            timeSlowed = false;
+            currentLevel = 1;
+            levelProgress = 0;
+            isCrouching = false;
+            canDash = true;
+            dashCooldown = 0;
+
+            if (player) {
+                player.position.set(0, 0.5, 0);
+                player.scale.set(1, 1, 1);
+            }
+
+            generateObstacles();
+            generateParticles();
+
+            if (scene && scene.fog) {
+                scene.fog.color.setHex(dimensions[0].fogColor);
+            }
+        }
+
+        function startNewGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('gameUI').style.display = 'flex';
+            gameState = 'playing';
+            resetGameCompletely();
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('pauseMenu').style.display = 'none';
+            document.getElementById('gameUI').style.display = 'flex';
+            gameState = 'playing';
+            resetGameCompletely();
+        }
+
+        function backToMenu() {
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('pauseMenu').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+            gameState = 'menu';
+        }
+
+        function pauseGame() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+                document.getElementById('pauseMenu').style.display = 'block';
+            } else if (gameState === 'paused') {
+                resumeGame();
+            }
+        }
+
+        function resumeGame() {
+            gameState = 'playing';
+            document.getElementById('pauseMenu').style.display = 'none';
+        }
+
+        function newGame() {
+            document.getElementById('pauseMenu').style.display = 'none';
+            document.getElementById('gameUI').style.display = 'flex';
+            gameState = 'playing';
+            resetGameCompletely();
+        }
+
+        function showInstructions() {
+            const instructions = document.getElementById('instructions');
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing') {
+                updateGame();
+            }
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event Listeners
+        document.addEventListener('keydown', (event) => {
+            keys[event.key] = true;
+            keys[event.code] = true;
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                pauseGame();
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            keys[event.key] = false;
+            keys[event.code] = false;
+        });
+
+        window.addEventListener('resize', () => {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+
+        window.addEventListener('load', () => {
+            createParticles();
+        });
+    </script>
+</body>
+</html>
+
+@* @model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "GameName";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChronoRunner - Time Travel Infinite Runner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="~/css/ChronoRunner.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+        <div id="gameContainer">
+            <canvas id="gameCanvas"></canvas>
+
+            <div id="startScreen">
+                <h1 class="title">CHRONORUNNER</h1>
+                <p class="subtitle">Time Travel Infinite Runner - Defy Physics, Master Time</p>
+                <button class="btn btn-primary" onclick="startGame()">START ADVENTURE</button>
+                <button class="btn btn-secondary" onclick="showInstructions()">HOW TO PLAY</button>
+                <div id="instructions" style="display: none;">
+                    <p>Run endlessly through the city! Switch lanes and avoid obstacles!</p>
+                    <div class="controls">
+                        <span class="control-key">A/D</span>
+                        <span class="control-key">SPACE</span>
+                        <span class="control-key">S</span>
+                        <span class="control-key">SHIFT</span>
+                        <span class="control-key">ESC</span>
+                    </div>
+                    <p style="margin-top: 10px;">Switch Lanes • Jump • Crouch • Dash • Pause</p>
+                </div>
+            </div>
+
+            <div id="ui">
+                <div id="gameUI" style="display: none;">
+                    <div class="ui-panel">
+                        <div class="score">Score: <span id="scoreValue">0</span></div>
+                        <div class="dimension-indicator">Level: <span id="currentLevel">1</span> | Dimension: <span id="currentDimension">Cyber</span></div>
+                        <div class="health-bar">
+                            <div class="health-fill" id="healthFill"></div>
+                        </div>
+                    </div>
+                    <div class="ui-panel">
+                        <div style="font-size: 0.9rem;">Next Shift: <span id="shiftTimer">30s</span></div>
+                        <div style="font-size: 0.8rem; margin-top: 5px; color: #96ceb4;">Speed: <span id="speedValue">1.0x</span></div>
+                    </div>
+                </div>
+
+                <div class="dimension-shift-alert" id="shiftAlert">
+                    DIMENSION SHIFT!
+                </div>
+            </div>
+
+            <div id="gameOver">
+                <h2 class="game-over-title">TEMPORAL COLLAPSE</h2>
+                <p class="final-score">Final Score: <span id="finalScore">0</span></p>
+                <p style="margin-bottom: 2rem; opacity: 0.8;">You survived <span id="survivedTime">0</span> seconds across dimensions</p>
+                <button class="btn btn-primary" onclick="startNewGame()">NEW GAME</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">MAIN MENU</button>
+            </div>
+
+            <div id="pauseMenu" style="display: none;">
+                <div style="background: rgba(0, 0, 0, 0.9); position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 400;">
+                    <h2 style="font-size: 2.5rem; font-weight: 900; color: #4ecdc4; margin-bottom: 2rem;">GAME PAUSED</h2>
+                    <button class="btn btn-primary" onclick="resumeGame()">RESUME</button>
+                    <button class="btn btn-secondary" onclick="restartGame()">RESTART</button>
+                    <button class="btn btn-secondary" onclick="newGame()">NEW GAME</button>
+                    <button class="btn btn-secondary" onclick="backToMenu()">MAIN MENU</button>
+                    <div style="margin-top: 2rem; text-align: center; opacity: 0.8;">
+                        <p>Press ESC again to resume</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                Initializing Temporal Engine...
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="~/js/ChronoRunner.js"></script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95e8b254e1e82490',t:'MTc1MjQwODgzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
+ *@

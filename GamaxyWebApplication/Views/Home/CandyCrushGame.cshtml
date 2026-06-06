@@ -1,0 +1,783 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Candy Crush";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Candy Crush</title>
+    <link href="~/css/CandyCrushGame.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,600,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4ECDC4;
+            --accent-color: #FFE66D;
+            --dark-color: #292F36;
+            --light-color: #F7FFF7;
+            --background-dark: #1A1A2E;
+            --background-light: #F8F9FA;
+            --text-primary: #292F36;
+            --text-secondary: #6C757D;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 16px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --font-size-xs: 12px;
+            --font-size-sm: 14px;
+            --font-size-md: 16px;
+            --font-size-lg: 20px;
+            --font-size-xl: 24px;
+            --font-size-xxl: 32px;
+            --font-family-primary: 'Montserrat', sans-serif;
+            --transition-fast: 0.15s ease;
+            --transition-medium: 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: var(--font-family-primary);
+            background-image: url('https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/bg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Game Layout Container */
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 100vh;
+            padding: 1vh;
+            overflow: hidden;
+        }
+
+        /* Header Section */
+        #game-header {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1vh 2vh;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1vh;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: 700;
+            font-size: clamp(14px, 3vw, 20px);
+            color: var(--primary-color);
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            width: clamp(18px, 4vw, 24px);
+            height: clamp(18px, 4vw, 24px);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B6B'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/%3E%3Cpath d='M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z'/%3E%3C/svg%3E");
+            background-size: contain;
+        }
+
+        /* Stats Container */
+        .stats-container {
+            display: flex;
+            gap: 1vh;
+            align-items: center;
+        }
+
+        .stat-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5vh;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: var(--border-radius-sm);
+            padding: 0.5vh 1vh;
+            color: var(--dark-color);
+            font-size: clamp(12px, 2.5vw, 16px);
+            font-weight: 600;
+            min-width: 0;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+        }
+
+        .stat-icon {
+            width: clamp(14px, 3vw, 20px);
+            height: clamp(14px, 3vw, 20px);
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .score-icon {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B6B'%3E%3Cpath d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3C/svg%3E");
+        }
+
+        .time-icon {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234ECDC4'%3E%3Cpath d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z'/%3E%3Cpath d='M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z'/%3E%3C/svg%3E");
+        }
+
+        /* Header Buttons */
+        .header-btn {
+            width: clamp(24px, 6vw, 36px);
+            height: clamp(24px, 6vw, 36px);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-color);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+            font-size: clamp(12px, 3vw, 16px);
+        }
+
+            .header-btn:hover {
+                background: var(--light-color);
+                transform: scale(1.05);
+            }
+
+            .header-btn:active {
+                transform: scale(0.95);
+            }
+
+        /* Main Game Area */
+        #game-main {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            position: relative;
+            padding: 1vh;
+        }
+
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 0.5vh;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-md);
+            width: min(90vw, 90vh, 600px);
+            height: min(90vw, 90vh, 600px);
+            aspect-ratio: 1/1;
+        }
+
+            .grid div {
+                flex: 1 0 calc(12.5% - 1vh);
+                margin: 0.5vh;
+                background-size: cover;
+                background-position: center;
+                border-radius: var(--border-radius-sm);
+                transition: transform 0.2s ease, opacity 0.2s ease;
+                aspect-ratio: 1/1;
+            }
+
+                .grid div:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+                }
+
+        /* Footer Section */
+        #game-footer {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: center;
+            gap: 1vh;
+            padding: 1vh;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-top: 1vh;
+        }
+
+        .footer-btn {
+            padding: 1vh 2vh;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-family: var(--font-family-primary);
+            font-size: clamp(12px, 2.5vw, 16px);
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-medium);
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5vh;
+            white-space: nowrap;
+        }
+
+            .footer-btn:hover {
+                background: #FF5252;
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
+
+            .footer-btn:active {
+                transform: translateY(0);
+                box-shadow: var(--shadow-sm);
+            }
+
+        /* Game Screens (Start, Game Over) */
+        .game-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 2vh;
+            text-align: center;
+        }
+
+            .game-screen h1, .game-screen h2 {
+                font-family: var(--font-family-primary);
+                color: var(--accent-color);
+                font-size: clamp(24px, 6vw, 32px);
+                margin-bottom: 2vh;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            }
+
+            .game-screen p {
+                color: var(--light-color);
+                font-size: clamp(14px, 3vw, 16px);
+                margin-bottom: 1vh;
+                max-width: 500px;
+            }
+
+            .game-screen .btn-group {
+                display: flex;
+                gap: 2vh;
+                margin-top: 3vh;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .game-screen .btn {
+                padding: 1.5vh 3vh;
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: var(--border-radius-md);
+                font-family: var(--font-family-primary);
+                font-size: clamp(14px, 3vw, 16px);
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: var(--shadow-sm);
+                transition: var(--transition-medium);
+                min-width: 0;
+            }
+
+                .game-screen .btn:hover {
+                    background: #FF5252;
+                    transform: translateY(-2px);
+                    box-shadow: var(--shadow-md);
+                }
+
+                .game-screen .btn:active {
+                    transform: translateY(0);
+                    box-shadow: var(--shadow-sm);
+                }
+
+                .game-screen .btn.secondary {
+                    background: var(--secondary-color);
+                }
+
+                    .game-screen .btn.secondary:hover {
+                        background: #3DBEB6;
+                    }
+
+        /* Initially Hide Game Elements */
+        .grid, #game-footer, #timer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+
+        <div id="game-container">
+            <!-- Header Section -->
+            <header id="game-header">
+                <div class="logo">
+                    <span class="logo-icon"></span>
+                    <span>Candy Crush</span>
+                </div>
+
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <span class="stat-icon score-icon"></span>
+                        <span id="score">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-icon time-icon"></span>
+                        <span id="timer">2:00</span>
+                    </div>
+                </div>
+
+                <button class="header-btn" id="pause-btn">⏸</button>
+            </header>
+
+            <!-- Main Game Area -->
+            <main id="game-main">
+                <div class="grid"></div>
+            </main>
+
+            <!-- Footer Section -->
+            <footer id="game-footer">
+                <button class="footer-btn" id="restart-footer-btn">Restart Game</button>
+            </footer>
+
+            <!-- Start Screen -->
+            <div id="start-screen" class="game-screen">
+                <h1>Candy Crush</h1>
+                <p>Match colorful candies to score points before time runs out!</p>
+                <p>Swipe to move candies and create matches of 3 or more.</p>
+
+                <div class="btn-group">
+                    <button class="btn" id="start-btn">START GAME</button>
+                </div>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="game-over" class="game-screen" style="display: none;">
+                <h2>Game Over</h2>
+                <p>Time's up! Your final score:</p>
+                <h1 id="final-score">0</h1>
+
+                <div class="btn-group">
+                    <button class="btn" id="restart-btn">PLAY AGAIN</button>
+                    <button class="btn secondary" id="menu-btn">MAIN MENU</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            candyCrushGame();
+
+            // Rating form submission
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        function candyCrushGame() {
+            // DOM Elements
+            const grid = document.querySelector(".grid");
+            const scoreDisplay = document.getElementById("score");
+            const timerDisplay = document.getElementById("timer");
+            const startScreen = document.getElementById("start-screen");
+            const gameOverScreen = document.getElementById("game-over");
+            const startButton = document.getElementById("start-btn");
+            const restartButton = document.getElementById("restart-btn");
+            const menuButton = document.getElementById("menu-btn");
+            const restartFooterButton = document.getElementById("restart-footer-btn");
+            const pauseButton = document.getElementById("pause-btn");
+
+            // Game State Variables
+            const width = 8;
+            const squares = [];
+            let score = 0;
+            let timeLeft = 120; // 2 minutes in seconds
+            let gameInterval = null;
+            let timerInterval = null;
+            let isPaused = false;
+
+            const candyColors = [
+                "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/red-candy.png)",
+                "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/blue-candy.png)",
+                "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/green-candy.png)",
+                "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/yellow-candy.png)",
+                "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/orange-candy.png)",
+                "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/purple-candy.png)",
+            ];
+
+            // Create the Game Board
+            function createBoard() {
+                grid.innerHTML = ""; // Clear existing grid
+                squares.length = 0;  // Clear squares array
+                for (let i = 0; i < width * width; i++) {
+                    const square = document.createElement("div");
+                    square.setAttribute("draggable", true);
+                    square.setAttribute("id", i);
+                    let randomColor = Math.floor(Math.random() * candyColors.length);
+                    square.style.backgroundImage = candyColors[randomColor];
+                    grid.appendChild(square);
+                    squares.push(square);
+                }
+                // Add drag event listeners
+                squares.forEach(square => square.addEventListener("dragstart", dragStart));
+                squares.forEach(square => square.addEventListener("dragend", dragEnd));
+                squares.forEach(square => square.addEventListener("dragover", dragOver));
+                squares.forEach(square => square.addEventListener("dragenter", dragEnter));
+                squares.forEach(square => square.addEventListener("dragleave", dragLeave));
+                squares.forEach(square => square.addEventListener("drop", dragDrop));
+
+                // Add touch event listeners for mobile
+                let touchStartSquare = null;
+                let touchStartTime = 0;
+
+                squares.forEach(square => {
+                    square.addEventListener("touchstart", (e) => {
+                        if (isPaused) return;
+                        e.preventDefault();
+                        touchStartSquare = square;
+                        touchStartTime = Date.now();
+                    });
+
+                    square.addEventListener("touchmove", (e) => {
+                        e.preventDefault();
+                        if (!touchStartSquare || isPaused) return;
+                        const touch = e.touches[0];
+                        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                        if (target && target.classList.contains("grid") && target.tagName === "DIV") {
+                            const squareId = parseInt(target.id);
+                            const validMoves = [
+                                parseInt(touchStartSquare.id) - 1,
+                                parseInt(touchStartSquare.id) - width,
+                                parseInt(touchStartSquare.id) + 1,
+                                parseInt(touchStartSquare.id) + width
+                            ];
+                            if (validMoves.includes(squareId)) {
+                                colorBeingDragged = touchStartSquare.style.backgroundImage;
+                                squareIdBeingDragged = parseInt(touchStartSquare.id);
+                                colorBeingReplaced = target.style.backgroundImage;
+                                squareIdBeingReplaced = squareId;
+                                target.style.backgroundImage = colorBeingDragged;
+                                touchStartSquare.style.backgroundImage = colorBeingReplaced;
+                            }
+                        }
+                    });
+
+                    square.addEventListener("touchend", (e) => {
+                        e.preventDefault();
+                        if (!touchStartSquare || isPaused) return;
+                        if (squareIdBeingReplaced !== null) {
+                            let validMoves = [
+                                squareIdBeingDragged - 1,
+                                squareIdBeingDragged - width,
+                                squareIdBeingDragged + 1,
+                                squareIdBeingDragged + width
+                            ];
+                            let validMove = validMoves.includes(squareIdBeingReplaced);
+                            if (!validMove) {
+                                squares[squareIdBeingReplaced].style.backgroundImage = colorBeingReplaced;
+                                squares[squareIdBeingDragged].style.backgroundImage = colorBeingDragged;
+                            }
+                            squareIdBeingReplaced = null;
+                        }
+                        touchStartSquare = null;
+                    });
+                });
+            }
+
+            // Drag and Drop Functions
+            let colorBeingDragged, colorBeingReplaced, squareIdBeingDragged, squareIdBeingReplaced;
+
+            function dragStart() {
+                if (isPaused) return;
+                colorBeingDragged = this.style.backgroundImage;
+                squareIdBeingDragged = parseInt(this.id);
+            }
+
+            function dragOver(e) {
+                e.preventDefault();
+            }
+
+            function dragEnter(e) {
+                e.preventDefault();
+            }
+
+            function dragLeave() {
+                // No action needed
+            }
+
+            function dragDrop() {
+                if (isPaused) return;
+                colorBeingReplaced = this.style.backgroundImage;
+                squareIdBeingReplaced = parseInt(this.id);
+                this.style.backgroundImage = colorBeingDragged;
+                squares[squareIdBeingDragged].style.backgroundImage = colorBeingReplaced;
+            }
+
+            function dragEnd() {
+                if (isPaused) return;
+
+                // Define valid moves (adjacent squares: left, up, right, down)
+                let validMoves = [
+                    squareIdBeingDragged - 1,
+                    squareIdBeingDragged - width,
+                    squareIdBeingDragged + 1,
+                    squareIdBeingDragged + width
+                ];
+                let validMove = validMoves.includes(squareIdBeingReplaced);
+
+                if (squareIdBeingReplaced && validMove) {
+                    squareIdBeingReplaced = null; // Move is valid, keep the swap
+                } else if (squareIdBeingReplaced && !validMove) {
+                    // Invalid move, revert the swap
+                    squares[squareIdBeingReplaced].style.backgroundImage = colorBeingReplaced;
+                    squares[squareIdBeingDragged].style.backgroundImage = colorBeingDragged;
+                } else {
+                    // No drop occurred, revert to original
+                    squares[squareIdBeingDragged].style.backgroundImage = colorBeingDragged;
+                }
+            }
+
+            // Move Candies Down
+            function moveIntoSquareBelow() {
+                // Fill empty squares in the first row
+                for (let i = 0; i < width; i++) {
+                    if (squares[i].style.backgroundImage === "") {
+                        let randomColor = Math.floor(Math.random() * candyColors.length);
+                        squares[i].style.backgroundImage = candyColors[randomColor];
+                    }
+                }
+                // Move candies down to fill gaps
+                for (let i = 0; i < width * (width - 1); i++) {
+                    if (squares[i + width].style.backgroundImage === "") {
+                        squares[i + width].style.backgroundImage = squares[i].style.backgroundImage;
+                        squares[i].style.backgroundImage = "";
+                    }
+                }
+            }
+
+            // Check for Matches
+            function checkRowForFour() {
+                for (let i = 0; i < 60; i++) {
+                    if (i % width >= width - 3) continue; // Skip if not enough columns left
+                    let rowOfFour = [i, i + 1, i + 2, i + 3];
+                    let decidedColor = squares[i].style.backgroundImage;
+                    const isBlank = squares[i].style.backgroundImage === "";
+                    if (rowOfFour.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+                        score += 4;
+                        scoreDisplay.innerHTML = score;
+                        rowOfFour.forEach(index => squares[index].style.backgroundImage = "");
+                    }
+                }
+            }
+
+            function checkColumnForFour() {
+                for (let i = 0; i < 40; i++) {
+                    let columnOfFour = [i, i + width, i + 2 * width, i + 3 * width];
+                    let decidedColor = squares[i].style.backgroundImage;
+                    const isBlank = squares[i].style.backgroundImage === "";
+                    if (columnOfFour.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+                        score += 4;
+                        scoreDisplay.innerHTML = score;
+                        columnOfFour.forEach(index => squares[index].style.backgroundImage = "");
+                    }
+                }
+            }
+
+            function checkRowForThree() {
+                for (let i = 0; i < 62; i++) {
+                    if (i % width >= width - 2) continue; // Skip if not enough columns left
+                    let rowOfThree = [i, i + 1, i + 2];
+                    let decidedColor = squares[i].style.backgroundImage;
+                    const isBlank = squares[i].style.backgroundImage === "";
+                    if (rowOfThree.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+                        score += 3;
+                        scoreDisplay.innerHTML = score;
+                        rowOfThree.forEach(index => squares[index].style.backgroundImage = "");
+                    }
+                }
+            }
+
+            function checkColumnForThree() {
+                for (let i = 0; i < 48; i++) {
+                    let columnOfThree = [i, i + width, i + 2 * width];
+                    let decidedColor = squares[i].style.backgroundImage;
+                    const isBlank = squares[i].style.backgroundImage === "";
+                    if (columnOfThree.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+                        score += 3;
+                        scoreDisplay.innerHTML = score;
+                        columnOfThree.forEach(index => squares[index].style.backgroundImage = "");
+                    }
+                }
+            }
+
+            // Game Loop
+            function gameLoop() {
+                if (isPaused) return;
+                checkRowForFour();
+                checkColumnForFour();
+                checkRowForThree();
+                checkColumnForThree();
+                moveIntoSquareBelow();
+            }
+
+            // Update Timer Display
+            function updateTimerDisplay() {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerDisplay.innerHTML = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+            }
+
+            // Start the Game
+            function startGame() {
+                startScreen.style.display = "none";
+                grid.style.display = "flex";
+                document.getElementById("game-footer").style.display = "flex";
+                timerDisplay.style.display = "block";
+                createBoard();
+                score = 0;
+                scoreDisplay.innerHTML = score;
+                timeLeft = 120;
+                updateTimerDisplay();
+                isPaused = false;
+
+                // Start game loop
+                gameInterval = setInterval(gameLoop, 100);
+
+                // Start timer
+                timerInterval = setInterval(() => {
+                    if (isPaused) return;
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        endGame();
+                    }
+                }, 1000);
+            }
+
+            // End Game
+            function endGame() {
+                clearInterval(gameInterval);
+                clearInterval(timerInterval);
+                squares.forEach(square => square.setAttribute("draggable", false));
+                document.getElementById("final-score").innerHTML = score;
+                gameOverScreen.style.display = "flex";
+            }
+
+            // Restart Game
+            function restartGame() {
+                gameOverScreen.style.display = "none";
+                startGame();
+            }
+
+            // Return to Menu
+            function returnToMenu() {
+                gameOverScreen.style.display = "none";
+                clearInterval(gameInterval);
+                clearInterval(timerInterval);
+                grid.style.display = "none";
+                document.getElementById("game-footer").style.display = "none";
+                timerDisplay.style.display = "none";
+                startScreen.style.display = "flex";
+            }
+
+            // Toggle Pause
+            function togglePause() {
+                isPaused = !isPaused;
+                pauseButton.innerHTML = isPaused ? "▶" : "⏸";
+                if (isPaused) {
+                    grid.style.opacity = "0.7";
+                } else {
+                    grid.style.opacity = "1";
+                }
+            }
+
+            // Event Listeners
+            startButton.addEventListener("click", startGame);
+            restartButton.addEventListener("click", restartGame);
+            menuButton.addEventListener("click", returnToMenu);
+            restartFooterButton.addEventListener("click", restartGame);
+            pauseButton.addEventListener("click", togglePause);
+        }
+    </script>
+</body>
+</html>

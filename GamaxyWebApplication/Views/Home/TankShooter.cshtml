@@ -1,0 +1,741 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "2D Tank Battle";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>2D Tank Battle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link href="~/css/TankShooter.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">2D TANK BATTLE</h1>
+                <div class="game-subtitle">DESTROY ENEMY TANKS</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container" id="game-container">
+                    <div id="hud">
+                        <div id="score">Score: 0</div>
+                        <div id="player-health">Health: 100%</div>
+                        <div id="enemies-left">Enemies: 5</div>
+                    </div>
+
+                    <div id="mobile-controls">
+                        <div class="mobile-controls-container">
+                            <button class="mobile-control-btn" id="mobile-up">↑</button>
+                            <button class="mobile-control-btn" id="mobile-left">←</button>
+                            <button class="mobile-control-btn" id="mobile-right">→</button>
+                            <button class="mobile-control-btn" id="mobile-down">↓</button>
+                        </div>
+                        <button class="mobile-fire-btn" id="mobile-fire">FIRE</button>
+                    </div>
+
+                    <div id="game-over">
+                        <h2 id="game-result">Game Over</h2>
+                        <p id="final-score">Your score: 0</p>
+                        <button id="restart-btn" class="btn">Play Again</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <p>WASD or Arrows to move • Mouse to aim • Space to shoot</p>
+            </div>
+
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript code remains unchanged
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        // Game state
+        const game = {
+            score: 0,
+            isOver: false,
+            enemiesLeft: 5,
+            obstacles: [],
+            bullets: [],
+            explosions: [],
+            impacts: [],
+            terrainDetails: [],
+            bulletTrails: [],
+            keys: {
+                up: false,
+                down: false,
+                left: false,
+                right: false,
+                space: false
+            },
+            mouse: {
+                x: 0,
+                y: 0
+            },
+            containerWidth: 0,
+            containerHeight: 0,
+            isMobile: false
+        };
+
+        // Game container
+        const gameContainer = document.getElementById('game-container');
+
+        // Update container dimensions
+        function updateContainerDimensions() {
+            game.containerWidth = gameContainer.clientWidth;
+            game.containerHeight = gameContainer.clientHeight;
+        }
+
+        // Initial dimensions update
+        updateContainerDimensions();
+
+        // Create player tank
+        const player = {
+            element: document.createElement('div'),
+            bodyElement: document.createElement('div'),
+            turretElement: document.createElement('div'),
+            trackLeftElement: document.createElement('div'),
+            trackRightElement: document.createElement('div'),
+            healthBarElement: document.createElement('div'),
+            healthFillElement: document.createElement('div'),
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            speed: 3,
+            rotationSpeed: 3,
+            rotation: 0,
+            turretRotation: 0,
+            health: 100,
+            lastShot: 0,
+            shootCooldown: 500
+        };
+
+        function initPlayer() {
+            player.element.className = 'tank player';
+            player.bodyElement.className = 'tank-body';
+            player.turretElement.className = 'tank-turret';
+            player.trackLeftElement.className = 'tank-tracks tank-track-left';
+            player.trackRightElement.className = 'tank-tracks tank-track-right';
+            player.healthBarElement.className = 'health-bar';
+            player.healthFillElement.className = 'health-fill';
+
+            player.element.appendChild(player.bodyElement);
+            player.element.appendChild(player.turretElement);
+            player.element.appendChild(player.trackLeftElement);
+            player.element.appendChild(player.trackRightElement);
+            player.healthBarElement.appendChild(player.healthFillElement);
+            player.element.appendChild(player.healthBarElement);
+
+            gameContainer.appendChild(player.element);
+
+            player.x = game.containerWidth / 2;
+            player.y = game.containerHeight / 2;
+
+            const tankRect = player.element.getBoundingClientRect();
+            player.width = tankRect.width;
+            player.height = tankRect.height;
+
+            updatePlayerPosition();
+        }
+
+        function updatePlayerPosition() {
+            player.element.style.left = player.x - player.width / 2 + 'px';
+            player.element.style.top = player.y - player.height / 2 + 'px';
+            player.element.style.transform = `rotate(${player.rotation}deg)`;
+            player.turretElement.style.transform = `rotate(${player.turretRotation - player.rotation}deg)`;
+            player.healthFillElement.style.width = player.health + '%';
+        }
+
+        class Enemy {
+            constructor(x, y) {
+                this.element = document.createElement('div');
+                this.bodyElement = document.createElement('div');
+                this.turretElement = document.createElement('div');
+                this.trackLeftElement = document.createElement('div');
+                this.trackRightElement = document.createElement('div');
+                this.healthBarElement = document.createElement('div');
+                this.healthFillElement = document.createElement('div');
+                this.x = x;
+                this.y = y;
+                this.width = 0;
+                this.height = 0;
+                this.speed = 1 + Math.random() * 0.5;
+                this.rotation = Math.random() * 360;
+                this.turretRotation = 0;
+                this.health = 100;
+                this.lastShot = 0;
+                this.shootCooldown = 2000 + Math.random() * 1000;
+                this.decisionTime = 0;
+                this.decisionInterval = 1000 + Math.random() * 1000;
+                this.moveDirection = { x: 0, y: 0 };
+
+                this.element.className = 'tank enemy';
+                this.bodyElement.className = 'tank-body';
+                this.turretElement.className = 'tank-turret';
+                this.trackLeftElement.className = 'tank-tracks tank-track-left';
+                this.trackRightElement.className = 'tank-tracks tank-track-right';
+                this.healthBarElement.className = 'health-bar';
+                this.healthFillElement.className = 'health-fill';
+
+                this.element.appendChild(this.bodyElement);
+                this.element.appendChild(this.turretElement);
+                this.element.appendChild(this.trackLeftElement);
+                this.element.appendChild(this.trackRightElement);
+                this.healthBarElement.appendChild(this.healthFillElement);
+                this.element.appendChild(this.healthBarElement);
+
+                gameContainer.appendChild(this.element);
+
+                const tankRect = this.element.getBoundingClientRect();
+                this.width = tankRect.width;
+                this.height = tankRect.height;
+
+                this.updatePosition();
+            }
+
+            updatePosition() {
+                this.element.style.left = this.x - this.width / 2 + 'px';
+                this.element.style.top = this.y - this.height / 2 + 'px';
+                this.element.style.transform = `rotate(${this.rotation}deg)`;
+                this.turretElement.style.transform = `rotate(${this.turretRotation - this.rotation}deg)`;
+                this.healthFillElement.style.width = this.health + '%';
+            }
+
+            update(timestamp) {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                this.turretRotation = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                if (timestamp - this.decisionTime > this.decisionInterval) {
+                    this.decisionTime = timestamp;
+                    if (Math.random() < 0.7) {
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        this.moveDirection.x = dx / distance;
+                        this.moveDirection.y = dy / distance;
+                        this.rotation = Math.atan2(this.moveDirection.y, this.moveDirection.x) * 180 / Math.PI;
+                    } else {
+                        const angle = Math.random() * Math.PI * 2;
+                        this.moveDirection.x = Math.cos(angle);
+                        this.moveDirection.y = Math.sin(angle);
+                        this.rotation = angle * 180 / Math.PI;
+                    }
+                }
+
+                const newX = this.x + this.moveDirection.x * this.speed;
+                const newY = this.y + this.moveDirection.y * this.speed;
+
+                if (newX > this.width/2 && newX < game.containerWidth - this.width/2 &&
+                    newY > this.height/2 && newY < game.containerHeight - this.height/2) {
+                    this.x = newX;
+                    this.y = newY;
+                } else {
+                    this.moveDirection.x *= -1;
+                    this.moveDirection.y *= -1;
+                    this.rotation = Math.atan2(this.moveDirection.y, this.moveDirection.x) * 180 / Math.PI;
+                }
+
+                if (timestamp - this.lastShot > this.shootCooldown) {
+                    const canSeePlayer = this.checkLineOfSight();
+                    if (canSeePlayer) {
+                        this.shoot();
+                        this.lastShot = timestamp;
+                    }
+                }
+
+                this.updatePosition();
+            }
+
+            checkLineOfSight() {
+                const distance = Math.sqrt(
+                    Math.pow(player.x - this.x, 2) +
+                    Math.pow(player.y - this.y, 2)
+                );
+                return distance < Math.min(game.containerWidth, game.containerHeight) * 0.7;
+            }
+
+            shoot() {
+                const angle = this.turretRotation * Math.PI / 180;
+                const bulletSpeed = 7;
+                const turretLength = this.width * 0.66;
+                const startX = this.x + Math.cos(angle) * turretLength;
+                const startY = this.y + Math.sin(angle) * turretLength;
+                createBullet(startX, startY, angle, bulletSpeed, false);
+                createBulletTrail(startX, startY, angle, 20);
+            }
+
+            takeDamage(amount) {
+                this.health -= amount;
+                if (this.health <= 0) {
+                    this.destroy();
+                    return true;
+                }
+                return false;
+            }
+
+            destroy() {
+                createExplosion(this.x, this.y, 2);
+                this.element.remove();
+                game.enemiesLeft--;
+                document.getElementById('enemies-left').textContent = `Enemies: ${game.enemiesLeft}`;
+                if (game.enemiesLeft <= 0) {
+                    endGame(true);
+                }
+            }
+        }
+
+        const enemies = [];
+        function createEnemies() {
+            for (let i = 0; i < 5; i++) {
+                let x, y;
+                do {
+                    x = Math.random() * (game.containerWidth - 100) + 50;
+                    y = Math.random() * (game.containerHeight - 100) + 50;
+                } while (Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)) < Math.min(game.containerWidth, game.containerHeight) * 0.3);
+                enemies.push(new Enemy(x, y));
+            }
+        }
+
+        function createBullet(x, y, angle, speed, isPlayerBullet) {
+            const bullet = {
+                element: document.createElement('div'),
+                x: x,
+                y: y,
+                angle: angle,
+                speed: speed,
+                isPlayerBullet: isPlayerBullet,
+                damage: isPlayerBullet ? 25 : 10,
+                lifetime: 0
+            };
+            bullet.element.className = 'bullet';
+            bullet.element.style.left = bullet.x + 'px';
+            bullet.element.style.top = bullet.y + 'px';
+            gameContainer.appendChild(bullet.element);
+            game.bullets.push(bullet);
+        }
+
+        function createBulletTrail(x, y, angle, length) {
+            const trail = {
+                element: document.createElement('div'),
+                x: x,
+                y: y,
+                angle: angle,
+                length: length,
+                lifetime: 0,
+                maxLifetime: 10
+            };
+            trail.element.className = 'bullet-trail';
+            trail.element.style.left = trail.x + 'px';
+            trail.element.style.top = trail.y + 'px';
+            trail.element.style.width = trail.length + 'px';
+            trail.element.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+            gameContainer.appendChild(trail.element);
+            game.bulletTrails.push(trail);
+        }
+
+        function createExplosion(x, y, size = 1) {
+            const explosion = {
+                element: document.createElement('div'),
+                x: x,
+                y: y,
+                size: size
+            };
+            explosion.element.className = 'explosion';
+            explosion.element.style.left = (x - 20 * size) + 'px';
+            explosion.element.style.top = (y - 20 * size) + 'px';
+            explosion.element.style.transform = `scale(${size})`;
+            gameContainer.appendChild(explosion.element);
+            game.explosions.push(explosion);
+            setTimeout(() => {
+                const index = game.explosions.indexOf(explosion);
+                if (index !== -1) {
+                    game.explosions.splice(index, 1);
+                    explosion.element.remove();
+                }
+            }, 500);
+        }
+
+        function createImpact(x, y) {
+            const impact = {
+                element: document.createElement('div'),
+                x: x,
+                y: y,
+                lifetime: 0,
+                maxLifetime: 30
+            };
+            impact.element.className = 'impact';
+            impact.element.style.left = (x - 5) + 'px';
+            impact.element.style.top = (y - 5) + 'px';
+            gameContainer.appendChild(impact.element);
+            game.impacts.push(impact);
+        }
+
+        function createTerrainDetails() {
+            for (let i = 0; i < 50; i++) {
+                const detail = {
+                    element: document.createElement('div'),
+                    x: Math.random() * game.containerWidth,
+                    y: Math.random() * game.containerHeight,
+                    size: 3 + Math.random() * 10
+                };
+                detail.element.className = 'terrain-detail';
+                detail.element.style.left = detail.x + 'px';
+                detail.element.style.top = detail.y + 'px';
+                detail.element.style.width = detail.size + 'px';
+                detail.element.style.height = detail.size + 'px';
+                detail.element.style.opacity = 0.3 + Math.random() * 0.4;
+                gameContainer.appendChild(detail.element);
+                game.terrainDetails.push(detail);
+            }
+        }
+
+        function updateBullets() {
+            for (let i = game.bullets.length - 1; i >= 0; i--) {
+                const bullet = game.bullets[i];
+                bullet.x += Math.cos(bullet.angle) * bullet.speed;
+                bullet.y += Math.sin(bullet.angle) * bullet.speed;
+                bullet.element.style.left = bullet.x + 'px';
+                bullet.element.style.top = bullet.y + 'px';
+                bullet.lifetime++;
+                if (bullet.x < 0 || bullet.x > game.containerWidth ||
+                    bullet.y < 0 || bullet.y > game.containerHeight ||
+                    bullet.lifetime > 200) {
+                    bullet.element.remove();
+                    game.bullets.splice(i, 1);
+                    continue;
+                }
+                if (bullet.isPlayerBullet) {
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        const enemy = enemies[j];
+                        if (checkCollision(bullet, enemy)) {
+                            createImpact(bullet.x, bullet.y);
+                            bullet.element.remove();
+                            game.bullets.splice(i, 1);
+                            if (enemy.takeDamage(bullet.damage)) {
+                                game.score += 100;
+                                document.getElementById('score').textContent = `Score: ${game.score}`;
+                                enemies.splice(j, 1);
+                            }
+                            break;
+                        }
+                    }
+                } else {
+                    if (checkCollision(bullet, player)) {
+                        createImpact(bullet.x, bullet.y);
+                        bullet.element.remove();
+                        game.bullets.splice(i, 1);
+                        player.health -= bullet.damage;
+                        if (player.health < 0) player.health = 0;
+                        player.healthFillElement.style.width = player.health + '%';
+                        document.getElementById('player-health').textContent = `Health: ${player.health}%`;
+                        if (player.health <= 0) {
+                            endGame(false);
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateBulletTrails() {
+            for (let i = game.bulletTrails.length - 1; i >= 0; i--) {
+                const trail = game.bulletTrails[i];
+                trail.lifetime++;
+                trail.element.style.opacity = 1 - (trail.lifetime / trail.maxLifetime);
+                if (trail.lifetime >= trail.maxLifetime) {
+                    trail.element.remove();
+                    game.bulletTrails.splice(i, 1);
+                }
+            }
+        }
+
+        function updateImpacts() {
+            for (let i = game.impacts.length - 1; i >= 0; i--) {
+                const impact = game.impacts[i];
+                impact.lifetime++;
+                impact.element.style.opacity = 0.7 * (1 - (impact.lifetime / impact.maxLifetime));
+                if (impact.lifetime >= impact.maxLifetime) {
+                    impact.element.remove();
+                    game.impacts.splice(i, 1);
+                }
+            }
+        }
+
+        function checkCollision(bullet, tank) {
+            const dx = bullet.x - tank.x;
+            const dy = bullet.y - tank.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < tank.width / 2;
+        }
+
+        function endGame(isWin) {
+            game.isOver = true;
+            const gameOverElement = document.getElementById('game-over');
+            const gameResultElement = document.getElementById('game-result');
+            const finalScoreElement = document.getElementById('final-score');
+            if (isWin) {
+                gameResultElement.textContent = 'Victory!';
+                game.score += player.health * 10;
+            } else {
+                gameResultElement.textContent = 'Game Over';
+                createExplosion(player.x, player.y, 3);
+            }
+            finalScoreElement.textContent = `Your score: ${game.score}`;
+            gameOverElement.classList.add('active');
+        }
+
+        function restartGame() {
+            gameContainer.innerHTML = '';
+            game.score = 0;
+            game.isOver = false;
+            game.enemiesLeft = 5;
+            game.bullets = [];
+            game.explosions = [];
+            game.impacts = [];
+            game.bulletTrails = [];
+            const hudElement = document.createElement('div');
+            hudElement.id = 'hud';
+            hudElement.innerHTML = `
+                <div id="score">Score: 0</div>
+                <div id="player-health">Health: 100%</div>
+                <div id="enemies-left">Enemies: 5</div>
+            `;
+            gameContainer.appendChild(hudElement);
+            const gameOverElement = document.createElement('div');
+            gameOverElement.id = 'game-over';
+            gameOverElement.innerHTML = `
+                <h2 id="game-result">Game Over</h2>
+                <p id="final-score">Your score: 0</p>
+                <button id="restart-btn" class="btn">Play Again</button>
+            `;
+            gameContainer.appendChild(gameOverElement);
+            if (game.isMobile) {
+                const mobileControls = document.createElement('div');
+                mobileControls.id = 'mobile-controls';
+                mobileControls.innerHTML = `
+                    <div class="mobile-controls-container">
+                        <button class="mobile-control-btn" id="mobile-up">↑</button>
+                        <button class="mobile-control-btn" id="mobile-left">←</button>
+                        <button class="mobile-control-btn" id="mobile-right">→</button>
+                        <button class="mobile-control-btn" id="mobile-down">↓</button>
+                    </div>
+                    <button class="mobile-fire-btn" id="mobile-fire">FIRE</button>
+                `;
+                gameContainer.appendChild(mobileControls);
+                setupMobileControls();
+            }
+            document.getElementById('restart-btn').addEventListener('click', restartGame);
+            player.x = game.containerWidth / 2;
+            player.y = game.containerHeight / 2;
+            player.rotation = 0;
+            player.turretRotation = 0;
+            player.health = 100;
+            player.lastShot = 0;
+            initGame();
+        }
+
+        function setupMobileControls() {
+            document.getElementById('mobile-up').addEventListener('touchstart', () => game.keys.up = true);
+            document.getElementById('mobile-up').addEventListener('touchend', () => game.keys.up = false);
+            document.getElementById('mobile-down').addEventListener('touchstart', () => game.keys.down = true);
+            document.getElementById('mobile-down').addEventListener('touchend', () => game.keys.down = false);
+            document.getElementById('mobile-left').addEventListener('touchstart', () => game.keys.left = true);
+            document.getElementById('mobile-left').addEventListener('touchend', () => game.keys.left = false);
+            document.getElementById('mobile-right').addEventListener('touchstart', () => game.keys.right = true);
+            document.getElementById('mobile-right').addEventListener('touchend', () => game.keys.right = false);
+            document.getElementById('mobile-fire').addEventListener('touchstart', () => game.keys.space = true);
+            document.getElementById('mobile-fire').addEventListener('touchend', () => game.keys.space = false);
+        }
+
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            if (lastTime === 0) lastTime = timestamp;
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+            if (!game.isOver) {
+                if (game.keys.up) {
+                    const radians = player.rotation * Math.PI / 180;
+                    player.x += Math.cos(radians) * player.speed;
+                    player.y += Math.sin(radians) * player.speed;
+                    player.x = Math.max(player.width/2, Math.min(game.containerWidth - player.width/2, player.x));
+                    player.y = Math.max(player.height/2, Math.min(game.containerHeight - player.height/2, player.y));
+                }
+                if (game.keys.down) {
+                    const radians = player.rotation * Math.PI / 180;
+                    player.x -= Math.cos(radians) * player.speed * 0.5;
+                    player.y -= Math.sin(radians) * player.speed * 0.5;
+                    player.x = Math.max(player.width/2, Math.min(game.containerWidth - player.width/2, player.x));
+                    player.y = Math.max(player.height/2, Math.min(game.containerHeight - player.height/2, player.y));
+                }
+                if (game.keys.left) {
+                    player.rotation -= player.rotationSpeed;
+                }
+                if (game.keys.right) {
+                    player.rotation += player.rotationSpeed;
+                }
+                const dx = game.mouse.x - player.x;
+                const dy = game.mouse.y - player.y;
+                player.turretRotation = Math.atan2(dy, dx) * 180 / Math.PI;
+                if (game.keys.space && timestamp - player.lastShot > player.shootCooldown) {
+                    const angle = player.turretRotation * Math.PI / 180;
+                    const bulletSpeed = 10;
+                    const turretLength = player.width * 0.66;
+                    const startX = player.x + Math.cos(angle) * turretLength;
+                    const startY = player.y + Math.sin(angle) * turretLength;
+                    createBullet(startX, startY, angle, bulletSpeed, true);
+                    createBulletTrail(startX, startY, angle, 20);
+                    player.lastShot = timestamp;
+                }
+                updatePlayerPosition();
+                for (const enemy of enemies) {
+                    enemy.update(timestamp);
+                }
+                updateBullets();
+                updateBulletTrails();
+                updateImpacts();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        function initGame() {
+            updateContainerDimensions();
+            game.isMobile = /Mobi|Android/i.test(navigator.userAgent);
+            if (game.isMobile) {
+                document.getElementById('mobile-controls').style.display = 'flex';
+                setupMobileControls();
+            } else {
+                document.getElementById('mobile-controls').style.display = 'none';
+            }
+            createTerrainDetails();
+            initPlayer();
+            createEnemies();
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (game.isOver) return;
+            switch (e.key.toLowerCase()) {
+                case 'w':
+                case 'arrowup':
+                    game.keys.up = true;
+                    break;
+                case 's':
+                case 'arrowdown':
+                    game.keys.down = true;
+                    break;
+                case 'a':
+                case 'arrowleft':
+                    game.keys.left = true;
+                    break;
+                case 'd':
+                case 'arrowright':
+                    game.keys.right = true;
+                    break;
+                case ' ':
+                    game.keys.space = true;
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch (e.key.toLowerCase()) {
+                case 'w':
+                case 'arrowup':
+                    game.keys.up = false;
+                    break;
+                case 's':
+                case 'arrowdown':
+                    game.keys.down = false;
+                    break;
+                case 'a':
+                case 'arrowleft':
+                    game.keys.left = false;
+                    break;
+                case 'd':
+                case 'arrowright':
+                    game.keys.right = false;
+                    break;
+                case ' ':
+                    game.keys.space = false;
+                    break;
+            }
+        });
+
+        gameContainer.addEventListener('mousemove', (e) => {
+            if (game.isOver) return;
+            const rect = gameContainer.getBoundingClientRect();
+            game.mouse.x = e.clientX - rect.left;
+            game.mouse.y = e.clientY - rect.top;
+        });
+
+        gameContainer.addEventListener('touchmove', (e) => {
+            if (game.isOver) return;
+            e.preventDefault();
+            const rect = gameContainer.getBoundingClientRect();
+            game.mouse.x = e.touches[0].clientX - rect.left;
+            game.mouse.y = e.touches[0].clientY - rect.top;
+        }, { passive: false });
+
+        window.addEventListener('resize', () => {
+            updateContainerDimensions();
+        });
+
+        initGame();
+    </script>
+</body>
+</html>

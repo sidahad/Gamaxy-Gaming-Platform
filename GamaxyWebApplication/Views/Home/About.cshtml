@@ -1,0 +1,439 @@
+﻿
+<style>
+	.about-sections {
+		background-color: #0f0f0f;
+		color: #fff;
+		padding: 80px 10%;
+		font-family: 'Poppins', sans-serif;
+	}
+
+	.about-block {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 80px;
+		gap: 40px;
+		flex-wrap: wrap;
+	}
+
+		.about-block.reverse {
+			flex-direction: row-reverse;
+		}
+
+	.about-content {
+		flex: 1;
+		min-width: 300px;
+	}
+
+		.about-content h2 {
+			font-size: 2.5rem;
+			margin-bottom: 20px;
+			position: relative;
+		}
+
+			.about-content h2::after {
+				content: "";
+				position: absolute;
+				width: 60px;
+				height: 4px;
+				background: linear-gradient(90deg, #D400FF, #008dff);
+				bottom: -10px;
+				left: 0;
+				border-radius: 2px;
+			}
+
+		.about-content p {
+			font-size: 1.1rem;
+			line-height: 1.7;
+			color: #ccc;
+		}
+
+	.about-image img {
+		width: 100%;
+		border-radius: 15px;
+		box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+		transition: transform 0.4s ease;
+	}
+
+		.about-image img:hover {
+			transform: scale(1.05);
+		}
+
+	@@media (max-width: 768px) {
+		.about-block {
+			flex-direction: column !important;
+			text-align: center;
+		}
+
+		.about-content h2::after {
+			left: 50%;
+			transform: translateX(-50%);
+		}
+	}
+
+	.future-gamaxy {
+		position: relative;
+		background: url('~/assets/images/gb3.jpg') center/cover no-repeat;
+		padding: 100px 20px;
+		color: white;
+		text-align: center;
+		font-family: 'Poppins', sans-serif;
+		overflow: hidden;
+	}
+
+		.future-gamaxy .overlay {
+			position: absolute;
+			inset: 0;
+			background: black;
+			backdrop-filter: blur(6px);
+		}
+
+		.future-gamaxy .header {
+			position: relative;
+			z-index: 2;
+			margin-bottom: 50px;
+		}
+
+		.future-gamaxy .video-btn {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			padding: 10px 18px;
+			background: linear-gradient(90deg, #D400FF,#008dff);
+			border-radius: 50px;
+			text-decoration: none;
+			color: white;
+			font-weight: 600;
+			box-shadow: 0 0 15px #D400FF;
+			transition: 0.3s;
+		}
+
+			.future-gamaxy .video-btn:hover {
+				transform: scale(1.05);
+				box-shadow: 0 0 25px #D400FF;
+			}
+
+		.future-gamaxy h2 {
+			font-size: 2.5rem;
+			font-weight: 700;
+		}
+
+		.future-gamaxy .highlight {
+			color: #008dff;
+		}
+
+	.stats {
+		position: relative;
+		z-index: 2;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 30px;
+	}
+
+	.stat-card {
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 15px;
+		padding: 30px;
+		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		box-shadow: 0 0 15px #D400FF
+	}
+
+		.stat-card:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 0 25px #008dff;
+		}
+
+		.stat-card i {
+			font-size: 3rem;
+			margin-bottom: 15px;
+			color: #D400FF;
+		}
+
+		.stat-card h3 {
+			font-size: 2rem;
+			font-weight: 700;
+			color: #fff;
+		}
+
+		.stat-card p {
+			font-size: 1rem;
+			color: #ccc;
+		}
+
+	.project-slider:after {
+		content: "";
+		background: black;
+		height: 100%;
+		width: calc(50% - 80px);
+		position: absolute;
+		top: 0;
+	}
+</style>
+<!-- About Gamaxy -->
+<div class="section-full bg-black content-inner-2 project-slider" style="background-color:BLACK; background-repeat:no-repeat;
+			background-position:right bottom;">
+	<div class="container-fluid">
+		<div class="row align-items-center">
+			<!-- Image Slider -->
+			<div class="col-lg-6 col-md-6 p-lr0">
+				<div class="project-carousel-2 owl-carousel owl-btn-center-lr owl-btn-1 black wow fadeInLeft"
+					 data-wow-delay="0.2s" data-wow-duration="2s">
+					<div class="item">
+						<div class="dlab-media dlab-img-overlay1 dlab-img-effect zoom">
+							<img src="~/assets/images/bubbleshooter.jpg" style="height:400px" alt="Gamaxy Gaming Community">
+						</div>
+					</div>
+					<div class="item">
+						<div class="dlab-media dlab-img-overlay1 dlab-img-effect zoom">
+							<img src="~/assets/images/CandyCrushGame.jpg" style="height:400px" alt="Gamaxy Tournaments">
+						</div>
+					</div>
+					<div class="item">
+						<div class="dlab-media dlab-img-overlay1 dlab-img-effect zoom">
+							<img src="~/assets/images/FruitNinja.png" style="height:400px" alt="Gamaxy Game Development">
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- About Content -->
+			<div class="col-lg-6 col-md-6 col-sm-12 col-12 wow fadeInRight" data-wow-duration="2s"
+				 data-wow-delay="0.6s">
+				<div class="content-bx1">
+					<div class="about-year">
+						<span style="color:white;">25</span>
+						<p style="color:white;">Since Launch<br />Connecting Gamers<br />Worldwide</p>
+					</div>
+					<div class="section-head style2">
+						<h2 class="title" style="color:white;">Welcome to <span class="text-primary">Gamaxy</span>,<br />Your Gaming Universe</h2>
+						<p>Gamaxy is more than just a platform – it’s a universe for gamers. From discovering trending titles to competing in tournaments and even uploading your own creations, Gamaxy is designed to bring players, developers, and gaming enthusiasts together in one epic hub.</p>
+					</div>
+					<a href="games.html" class="site-button m-r10 m-b10 btnhover20">Explore Games</a>
+					<a href="about.html" class="site-button black m-b10 btnhover20">About Gamaxy</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- ====== Our Story, Vision, Mission Section ====== -->
+<section class="about-sections">
+	<!-- Our Story -->
+	<div class="about-block">
+		<div class="about-content">
+			<h2 style="color:white;">Our Story</h2>
+			<p>
+				Born from a passion for gaming and innovation, our journey began with a simple dream —
+				to create a platform where creativity meets entertainment. From humble beginnings to
+				a growing community, every step has been powered by imagination, hard work, and the
+				love of games.
+			</p>
+		</div>
+		<div class="about-image">
+			<img src="~/assets//images/bg3.jpg" alt="Our Story">
+		</div>
+	</div>
+
+	<!-- Our Vision -->
+	<div class="about-block reverse">
+		<div class="about-content">
+			<h2 style="color:white;">Our Vision</h2>
+			<p>
+				To be the ultimate hub for gamers and creators — where unique ideas come to life,
+				and every player finds their next adventure. We envision a world where gaming is
+				not just a pastime, but a bridge between creativity and connection.
+			</p>
+		</div>
+		<div class="about-image">
+			<img src="~/assets/images/bg2.jpg" alt="Our Vision">
+		</div>
+	</div>
+
+	<!-- Our Mission -->
+	<div class="about-block" style="display:flex;">
+		<div class="about-content">
+			<h2 style="color:white;">Our Mission</h2>
+			<p>
+				Our mission is to empower creators, entertain players, and build a community
+				where everyone has the freedom to explore, play, and share their passion for games.
+				We’re here to inspire the next generation of gaming experiences.
+			</p>
+		</div>
+		<div class="about-image">
+			<img src="~/assets/images/bg4.jpg" alt="Our Mission">
+		</div>
+	</div>
+</section>
+
+<!-- Why Choose Gamaxy -->
+<div class="section-full" id="choose-us">
+	<div class="row m-lr0">
+		<div class="col-xl-6 col-lg-12 p-lr0 d-flex dis-tbl latest-project-info style1 bg-secondry wow fadeInLeft"
+			 data-wow-duration="2s" data-wow-delay="0.3s">
+			<div class="align-self-center text-white">
+				<div class="section-head text-white">
+					<h2 class="title">Why choose Gamaxy?</h2>
+					<p>We’re on a mission to revolutionize how players connect, compete, and create in the gaming world.</p>
+				</div>
+				<ul class="list-check white list-2 rounded border">
+					<li>
+						<h4 class="m-b10">Massive Game Library</h4>
+						<p>From AAA blockbusters to indie gems – </p>
+					</li>
+					<li>
+						<h4 class="m-b10">Upload & Share Your Games</h4>
+						<p>Turn your passion into a project and showcase it to the world.</p>
+					</li>
+					<li>
+						<h4 class="m-b10">Global Gaming Tournaments</h4>
+						<p>Compete with the best players around the globe and win big.</p>
+					</li>
+					<li>
+						<h4 class="m-b10">Community & Collaboration</h4>
+						<p>Join a vibrant community where players and developers unite.</p>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		<!-- Right Side Boxes -->
+		<div class="col-xl-6 col-lg-12 p-lr0 wow fadeInRight bg-black" data-wow-duration="2s" data-wow-delay="0.3s">
+			<div class="row spno">
+				<div class="col-lg-6 col-md-6 col-sm-6 bg-primary align-items-center d-flex">
+					<div class="dlab-services-box text-white">
+						<h2 class="service-year">#1</h2>
+						<h3 class="title m-b0">Fastest Growing Gaming Hub</h3>
+					</div>
+				</div>
+				<div class="col-lg-6 col-md-6 col-sm-6">
+					<img class="img-cover" src="~/assets/images/events.jpg" alt="Gamaxy Event">
+				</div>
+				<div class="col-lg-6 col-md-6 col-sm-6">
+					<div class="video-bx radius-no h100">
+						<img src="~/assets/images/gamaxy_trailer.jpg" alt="Gamaxy Trailer" class="img-cover" />
+						<div class="video-play-icon">
+							<a href="~/assets/26619-359604050_small.mp4"
+							   class="popup-youtube video bg-primary"><i class="fa fa-play"></i></a>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6 col-md-6 col-sm-6 bg-secondry align-items-center d-flex">
+					<div class="dlab-services-box text-white">
+						<h3 class="title text-white m-b15">Latest News & Updates</h3>
+						<p>Stay in the loop with gaming news, patch notes, and exclusive announcements.</p>
+						<a href="news.html" class="site-button btnhover19 outline white outline-2">READ MORE</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- The Future of Gamaxy -->
+<section class="future-gamaxy">
+	<div class="overlay"></div>
+	<div class="container">
+		<div class="header">
+			<a href="~/assets/26619-359604050_small.mp4" class="video-btn mb-2">
+				<i class="fa fa-play"></i> The Future of Gamaxy
+			</a>
+			<h2 style="color: white;">We’re just getting started.</h2>
+		</div>
+
+		<div class="stats">
+			<div class="stat-card">
+				<i class="flaticon-worker"></i>
+				<h3 class="counter" data-target="1000000">0</h3>
+				<p>Gamers Worldwide</p>
+			</div>
+			<div class="stat-card">
+				<i class="flaticon-settings"></i>
+				<h3 class="counter" data-target="5000">0</h3>
+				<p>Games Uploaded</p>
+			</div>
+			<div class="stat-card">
+				<i class="flaticon-conveyor-1"></i>
+				<h3 class="counter" data-target="300">0</h3>
+				<p>Esports Events</p>
+			</div>
+			<div class="stat-card">
+				<i class="flaticon-conveyor-1"></i>
+				<h3>∞</h3>
+				<p>Possibilities</p>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- Partners / Sponsors -->
+<div class="section-full content-inner-2 bg-black wow fadeIn" data-wow-duration="2s" data-wow-delay="0.6s">
+	<div class="container">
+		<div class="section-head text-black text-center">
+			<h2 class="title text-capitalize" style="color:white;">Partnering with the Best,<br /><span class="text-primary">Fueling the Gaming Revolution</span></h2>
+		</div>
+		<div class="client-logo-carousel owl-loaded owl-theme owl-carousel owl-dots-none owl-btn-center-lr owl-btn-3">
+			<div class="item">
+				<div class="ow-client-logo">
+					<div class="client-logo border">
+						<a href="#"><img src="~/assets/images/partner1.jpg" alt="Partner"></a>
+					</div>
+				</div>
+			</div>
+			<div class="item">
+				<div class="ow-client-logo">
+					<div class="client-logo border">
+						<a href="#"><img src="~/assets/images/partner3.png" alt="Partner"></a>
+					</div>
+				</div>
+			</div>
+			<div class="item">
+				<div class="ow-client-logo">
+					<div class="client-logo border">
+						<a href="#"><img src="~/assets/images/partner4.png" alt="Partner"></a>
+					</div>
+				</div>
+			</div>
+			<div class="item">
+				<div class="ow-client-logo">
+					<div class="client-logo border">
+						<a href="#"><img src="~/assets/images/partner5.png" alt="Partner"></a>
+					</div>
+				</div>
+			</div>
+			<div class="item">
+				<div class="ow-client-logo">
+					<div class="client-logo border">
+						<a href="#"><img src="~/assets/images/partner2.png" alt="Partner"></a>
+					</div>
+				</div>
+			</div>
+			<div class="item">
+				<div class="ow-client-logo">
+					<div class="client-logo border">
+						<a href="#"><img src="~/assets/images/partner6'.png" alt="Partner"></a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+		document.querySelectorAll('.counter').forEach(counter => {
+		let target = +counter.getAttribute('data-target');
+		let count = 0;
+		let speed = target / 100;
+
+		function updateCounter() {
+			if (count < target) {
+				count += speed;
+				counter.textContent = Math.floor(count);
+				requestAnimationFrame(updateCounter);
+			} else {
+				counter.textContent = target.toLocaleString();
+			}
+		}
+		updateCounter();
+	});
+
+</script>
+

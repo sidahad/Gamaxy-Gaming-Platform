@@ -1,0 +1,304 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Flappy Bird Fullscreen";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Flappy Bird Fullscreen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/FlappyBird.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color:  #0a0a1e;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">FLAPPY BIRD</h1>
+                <div class="game-subtitle">FULLSCREEN</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container">
+                    <canvas id="board"></canvas>
+                    <div class="game-ui">
+                        <div class="score">Score: <span id="score">0</span></div>
+                    </div>
+                    <div class="game-over" id="gameOver">
+                        <h2>🏆 GAME OVER</h2>
+                        <p>Final Score: <span id="finalScore">0</span></p>
+                        <button class="btn restart-btn" onclick="restartGame()">🎮 PLAY AGAIN</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile controls for touch devices -->
+            <div class="mobile-controls">
+                <div class="mobile-btn" id="mobileFlapBtn">🕹️ Flap</div>
+            </div>
+
+            <!-- Desktop controls -->
+            <div class="controls">
+                <p>Press Space, Up Arrow, or X to flap • Press R to restart</p>
+            </div>
+
+            <!-- Rating Section -->
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        let board;
+        const boardWidth = 360;
+        const boardHeight = 640;
+        let context;
+
+        // Bird
+        let birdWidth = 34;
+        let birdHeight = 24;
+        let birdX = boardWidth / 8;
+        let birdY = boardHeight / 2;
+        let birdImg;
+        let bird = { x: birdX, y: birdY, width: birdWidth, height: birdHeight };
+
+        // Pipes
+        let pipeArray = [];
+        const pipeWidth = 64;
+        const pipeHeight = 512;
+        const pipeY = 0;
+        let topPipeImg;
+        let bottomPipeImg;
+
+        // Physics
+        let velocityX = -2;
+        let velocityY = 0;
+        const gravity = 0.4;
+        let gameOver = false;
+        let score = 0;
+
+        // Sounds
+        let wingSound = new Audio('/asseted/sounds/sfx_wing.wav');
+        let pointSound = new Audio('/asseted/sounds/sfx_point.wav');
+        let hitSound = new Audio('/asseted/sounds/sfx_hit.wav');
+        let dieSound = new Audio('/asseted/sounds/sfx_die.wav');
+        let swooshSound = new Audio('/asseted/sounds/sfx_swooshing.wav');
+        let backgroundSound = new Audio('/asseted/sounds/bgm_mario.mp3');
+        backgroundSound.loop = true;
+
+        window.onload = function () {
+            board = document.getElementById("board");
+            context = board.getContext("2d");
+
+            resizeCanvas();
+            window.addEventListener("resize", resizeCanvas);
+            window.addEventListener("orientationchange", resizeCanvas);
+
+            birdImg = new Image();
+            birdImg.src = "/asseted/images/flappybird.png";
+            birdImg.onload = () => {
+                context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+            };
+
+            topPipeImg = new Image();
+            topPipeImg.src = "/asseted/images/toppipe.png";
+
+            bottomPipeImg = new Image();
+            bottomPipeImg.src = "/asseted/images/bottompipe.png";
+
+            requestAnimationFrame(update);
+            setInterval(placePipes, 1500);
+            document.addEventListener("keydown", moveBird);
+            document.getElementById("mobileFlapBtn").addEventListener("click", moveBirdTouch);
+            board.addEventListener("touchstart", moveBirdTouch);
+        };
+
+        function resizeCanvas() {
+            const container = document.querySelector('.game-container');
+            board.width = container.clientWidth;
+            board.height = container.clientHeight;
+            bird.x = board.width / 8;
+            bird.y = board.height / 2;
+            pipeArray = [];
+        }
+
+        function update() {
+            requestAnimationFrame(update);
+            if (gameOver) return;
+
+            context.clearRect(0, 0, board.width, board.height);
+
+            velocityY += gravity;
+            bird.y = Math.max(bird.y + velocityY, 0);
+            context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+
+            if (bird.y > board.height) {
+                if (!gameOver) {
+                    hitSound.play();
+                    setTimeout(() => dieSound.play(), 100);
+                    document.getElementById('gameOver').classList.add('active');
+                    document.getElementById('finalScore').textContent = Math.floor(score);
+                }
+                gameOver = true;
+                backgroundSound.pause();
+                backgroundSound.currentTime = 0;
+            }
+
+            for (let i = 0; i < pipeArray.length; i++) {
+                let pipe = pipeArray[i];
+                pipe.x += velocityX;
+                context.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height);
+
+                if (!pipe.passed && bird.x > pipe.x + pipe.width) {
+                    score += 0.5;
+                    pipe.passed = true;
+                    pointSound.play();
+                    document.getElementById('score').textContent = Math.floor(score);
+                }
+
+                if (detectCollision(bird, pipe)) {
+                    if (!gameOver) {
+                        hitSound.play();
+                        setTimeout(() => dieSound.play(), 100);
+                        document.getElementById('gameOver').classList.add('active');
+                        document.getElementById('finalScore').textContent = Math.floor(score);
+                    }
+                    gameOver = true;
+                    backgroundSound.pause();
+                    backgroundSound.currentTime = 0;
+                }
+            }
+
+            while (pipeArray.length > 0 && pipeArray[0].x < -pipeWidth) {
+                pipeArray.shift();
+            }
+
+            context.fillStyle = "white";
+            context.font = "45px 'Orbitron', sans-serif";
+            context.fillText(score, 5, 45);
+        }
+
+        function placePipes() {
+            if (gameOver) return;
+
+            let randomPipeY = pipeY - pipeHeight / 4 - Math.random() * (pipeHeight / 2);
+            let openingSpace = board.height / 4;
+
+            let topPipe = {
+                img: topPipeImg,
+                x: board.width,
+                y: randomPipeY,
+                width: pipeWidth,
+                height: pipeHeight,
+                passed: false
+            };
+            pipeArray.push(topPipe);
+
+            let bottomPipe = {
+                img: bottomPipeImg,
+                x: board.width,
+                y: randomPipeY + pipeHeight + openingSpace,
+                width: pipeWidth,
+                height: pipeHeight,
+                passed: false
+            };
+            pipeArray.push(bottomPipe);
+        }
+
+        function moveBird(e) {
+            if (["Space", "ArrowUp", "KeyX"].includes(e.code)) {
+                e.preventDefault();
+                if (backgroundSound.paused) {
+                    backgroundSound.play();
+                }
+                velocityY = -6;
+                wingSound.play();
+
+                if (gameOver) {
+                    restartGame();
+                }
+            }
+        }
+
+        function moveBirdTouch(e) {
+            e.preventDefault();
+            if (backgroundSound.paused) {
+                backgroundSound.play();
+            }
+            velocityY = -6;
+            wingSound.play();
+
+            if (gameOver) {
+                restartGame();
+            }
+        }
+
+        function restartGame() {
+            swooshSound.play();
+            bird.y = boardHeight / 2;
+            pipeArray = [];
+            score = 0;
+            gameOver = false;
+            document.getElementById('score').textContent = Math.floor(score);
+            document.getElementById('gameOver').classList.remove('active');
+        }
+
+        function detectCollision(a, b) {
+            return a.x < b.x + b.width &&
+                   a.x + a.width > b.x &&
+                   a.y < b.y + b.height &&
+                   a.y + a.height > b.y;
+        }
+    </script>
+</body>
+</html>

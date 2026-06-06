@@ -1,0 +1,344 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+/* ===== EDIT USER FORM STYLES ===== */
+.edit-user-container * {
+    box-sizing: border-box;
+}
+
+/* Isolate edit user styles from affecting global elements */
+.edit-user-container .container {
+    all: unset;
+    display: block;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Reset any potential conflicts with header navigation */
+.edit-user-container nav,
+.edit-user-container .navbar,
+.edit-user-container .navbar-nav,
+.edit-user-container .nav-link {
+    all: unset;
+}
+
+.edit-user-container {
+    font-family: 'Rajdhani', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: calc(100vh - 80px);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    padding-top: 150px;
+}
+
+    .edit-user-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(circle at 25% 75%, rgba(78, 205, 196, 0.2) 0%, transparent 50%), radial-gradient(circle at 75% 25%, rgba(69, 183, 209, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(150, 206, 180, 0.1) 0%, transparent 50%);
+        animation: edit-user-bg-pulse 10s ease-in-out infinite alternate;
+    }
+
+@keyframes edit-user-bg-pulse {
+    0% {
+        opacity: 0.4;
+    }
+
+    100% {
+        opacity: 0.8;
+    }
+}
+
+.edit-user-title {
+    font-family: 'Orbitron', monospace;
+    font-weight: 800;
+    font-size: 2.4rem;
+    background: linear-gradient(45deg, #008dff, #D400FF, #008dff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: edit-user-title-glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes edit-user-title-glow {
+    from {
+        filter: drop-shadow(0 0 8px rgba(78, 205, 196, 0.4));
+    }
+
+    to {
+        filter: drop-shadow(0 0 20px rgba(69, 183, 209, 0.6));
+    }
+}
+
+.edit-user-form-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 28px;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+    .edit-user-form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+        transition: left 0.9s;
+    }
+
+    .edit-user-form-card:hover::before {
+        left: 100%;
+    }
+
+    .edit-user-form-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25), 0 0 40px rgba(78, 205, 196, 0.15);
+    }
+
+.edit-user-form-group {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+    .edit-user-form-group label {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        color: #008dff;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.4s ease;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .edit-user-form-group input,
+    .edit-user-form-group select {
+        width: 100%;
+        padding: 1.3rem 1rem 0.9rem 1rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.4s ease;
+        outline: none;
+    }
+
+        .edit-user-form-group input:focus,
+        .edit-user-form-group select:focus,
+        .edit-user-form-group input:not(:placeholder-shown),
+        .edit-user-form-group select:not([value=""]) {
+            border-color: #008dff;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 25px rgba(78, 205, 196, 0.15);
+        }
+
+            .edit-user-form-group input:focus + label,
+            .edit-user-form-group select:focus + label,
+            .edit-user-form-group input:not(:placeholder-shown) + label,
+            .edit-user-form-group select:not([value=""]) + label {
+                top: -0.6rem;
+                left: 0.8rem;
+                font-size: 0.75rem;
+                color: #D400FF;
+                background: rgba(26, 26, 46, 0.9);
+                padding: 0.3rem 0.6rem;
+                border-radius: 6px;
+            }
+
+        .edit-user-form-group input::placeholder {
+            color: transparent;
+        }
+
+        .edit-user-form-group select option {
+            background: #1a1a2e;
+            color: #ffffff;
+            padding: 0.5rem;
+        }
+
+.edit-user-file-upload {
+    position: relative;
+    border: 2px dashed rgba(78, 120, 205, 0.4);
+    border-radius: 14px;
+    padding: 2.5rem;
+    text-align: center;
+    transition: all 0.4s ease;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+    .edit-user-file-upload:hover {
+        border-color: #008dff;
+        background: rgba(78, 205, 196, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .edit-user-file-upload input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+.edit-user-file-upload-text {
+    color: #008dff;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.edit-user-submit-btn {
+    background: linear-gradient(45deg, #008dff, #D400FF);
+    border: none;
+    color: white;
+    padding: 1.3rem 3rem;
+    border-radius: 50px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+    .edit-user-submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+        transition: left 0.6s;
+    }
+
+    .edit-user-submit-btn:hover::before {
+        left: 100%;
+    }
+
+    .edit-user-submit-btn:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(78, 114, 205, 0.3);
+    }
+
+    .edit-user-submit-btn:active {
+        transform: translateY(-2px) scale(1.01);
+    }
+
+.edit-user-floating-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.edit-user-particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #008dff;
+    border-radius: 50%;
+    animation: edit-user-float 8s infinite linear;
+    opacity: 0.5;
+}
+
+    .edit-user-particle:nth-child(2) {
+        left: 15%;
+        animation-delay: -1.5s;
+        background: #D400FF;
+    }
+
+    .edit-user-particle:nth-child(3) {
+        left: 35%;
+        animation-delay: -3s;
+        background: #008dff;
+    }
+
+    .edit-user-particle:nth-child(4) {
+        left: 55%;
+        animation-delay: -4.5s;
+        background: #D400FF;
+    }
+
+    .edit-user-particle:nth-child(5) {
+        left: 75%;
+        animation-delay: -6s;
+        background: #008dff;
+    }
+
+    .edit-user-particle:nth-child(6) {
+        left: 85%;
+        animation-delay: -7.5s;
+        background: #D400FF;
+    }
+
+@keyframes edit-user-float {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 0.5;
+    }
+
+    85% {
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .edit-user-title {
+        font-size: 2rem;
+    }
+
+    .edit-user-form-card {
+        padding: 2rem;
+    }
+
+    .edit-user-container {
+        padding-top: 100px;
+    }
+}
+/* ===== NAVBAR FIXES ===== */
+/* Ensure navbar is visible and on top of effects */
+.site-header {
+    z-index: 1000 !important; /* Override other z-index values */
+}
+
+.header-nav ul.navbar-nav {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Fix for dropdown menus */
+.sub-menu, .mega-menu {
+    z-index: 1001;
+}

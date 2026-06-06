@@ -1,0 +1,25 @@
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace GamaxyWebApplication.Models
+{
+    public class Gamer
+    {
+        [Key]
+        public int GamerId { get; set; }
+        public string? Name { get; set; }
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+        public string? Gender { get; set; }
+        public int? Age { get; set; }
+        public string? Phone { get; set; }
+        public string? Address { get; set; }
+        public string? Qualification { get; set; }
+        public string? Institute { get; set; }
+        public string? Details { get; set; }
+        public string? UserImage { get; set; }
+        public string? GamerCode { get; set; }
+
+    }
+      
+    }

@@ -1,0 +1,1793 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "GameName";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Water Physics Puzzle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e293b;
+            color: white;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ui-panel {
+            position: absolute;
+            background-color: rgba(30, 41, 59, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
+
+        .top-panel {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .side-panel {
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            width: 150px;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+            background-color: rgba(51, 65, 85, 0.5);
+        }
+
+            .tool-item:hover {
+                background-color: rgba(51, 65, 85, 0.8);
+                transform: translateX(5px);
+            }
+
+            .tool-item.selected {
+                background-color: #3b82f6;
+            }
+
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn:hover {
+                background-color: #2563eb;
+            }
+
+            .btn:disabled {
+                background-color: #64748b;
+                cursor: not-allowed;
+            }
+
+        .btn-success {
+            background-color: #10b981;
+        }
+
+            .btn-success:hover {
+                background-color: #059669;
+            }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+            .modal.active {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+        .modal-content {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #3b82f6;
+        }
+
+        .modal-text {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .modal-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+            .modal-btn:hover {
+                background-color: #2563eb;
+            }
+
+        .help-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(51, 65, 85, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+            .help-btn:hover {
+                background-color: #3b82f6;
+            }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .camera-btn {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(51, 65, 85, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+            .camera-btn:hover {
+                background-color: #3b82f6;
+            }
+
+        .progress-container {
+            width: 150px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-left: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #3b82f6;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .level-selector {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(30, 41, 59, 0.8);
+            border-radius: 8px;
+            padding: 10px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
+
+        .level-btn {
+            background-color: rgba(51, 65, 85, 0.7);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .level-btn:hover {
+                background-color: #3b82f6;
+            }
+
+            .level-btn.active {
+                background-color: #3b82f6;
+            }
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(17, 24, 39, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            max-width: 200px;
+        }
+
+        .star-container {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .star {
+            font-size: 24px;
+            color: #64748b;
+            margin: 0 5px;
+        }
+
+            .star.filled {
+                color: #fbbf24;
+            }
+
+        .level-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+        <h2>@Model.GameName</h2>
+        <p>Average Rating: @Model.AverageRating.ToString("F1")</p>
+        @if (Model.UserId.HasValue)
+        {
+            <p>Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+            <form id="ratingForm" method="post" asp-action="RateGame">
+                <input type="hidden" name="gameName" value="@Model.GameName" />
+                <div class="form-group">
+                    <label for="rating">Rate this game (1-5):</label>
+                    <select name="rating" class="form-control w-25">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit Rating</button>
+            </form>
+        }
+        else
+        {
+            <p>Please <a asp-action="Login">login</a> to rate this game.</p>
+        }
+
+        <!-- Game Container -->
+        <div id="game-container">
+            <canvas id="canvas"></canvas>
+
+            <!-- Top UI Panel -->
+            <div class="ui-panel top-panel">
+                <button id="reset-btn" class="btn">Reset</button>
+                <button id="start-btn" class="btn btn-success">Start Flow</button>
+                <div class="ml-4">Level: <span id="level-number">1</span></div>
+                <div class="progress-container">
+                    <div id="water-progress" class="progress-bar"></div>
+                </div>
+            </div>
+
+            <!-- Level Selector -->
+            <div class="level-selector">
+                <div class="mb-2">Select Level:</div>
+                <div id="level-buttons"></div>
+            </div>
+
+            <!-- Side UI Panel -->
+            <div class="ui-panel side-panel">
+                <h3 class="text-lg font-bold mb-3">Tools</h3>
+                <div id="tools-container">
+                    <div class="tool-item selected" data-tool="wall">Wall</div>
+                    <div class="tool-item" data-tool="ramp">Ramp</div>
+                    <div class="tool-item" data-tool="pipe">Pipe</div>
+                    <div class="tool-item" data-tool="funnel">Funnel</div>
+                    <div class="tool-item" data-tool="fan">Fan</div>
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="text-lg font-bold mb-3">Tools Left: <span id="tools-left">10</span></h3>
+                </div>
+
+                <div class="mt-4">
+                    <button id="delete-btn" class="btn w-full">Delete Mode</button>
+                </div>
+            </div>
+
+            <!-- Camera Controls -->
+            <div class="camera-controls">
+                <div id="camera-rotate" class="camera-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 3v6h-6l3-3a7 7 0 1 0-3 13.3"></path>
+                    </svg>
+                </div>
+                <div id="camera-zoom-in" class="camera-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        <line x1="11" y1="8" x2="11" y2="14"></line>
+                        <line x1="8" y1="11" x2="14" y2="11"></line>
+                    </svg>
+                </div>
+                <div id="camera-zoom-out" class="camera-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        <line x1="8" y1="11" x2="14" y2="11"></line>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Help Button -->
+            <div id="help-btn" class="help-btn">?</div>
+
+            <!-- Tooltip -->
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+
+        <!-- Welcome Modal -->
+        <div id="welcome-modal" class="modal active">
+            <div class="modal-content">
+                <div class="modal-title">Water Physics Puzzle</div>
+                <div class="modal-text">
+                    Welcome to Water Physics Puzzle! Your goal is to guide water from the source to the target.
+                    <br><br>
+                    <b>How to play:</b>
+                    <ul class="text-left list-disc pl-5 mb-4">
+                        <li>Select a tool from the left panel</li>
+                        <li>Click in the game area to place it</li>
+                        <li>Press R to rotate objects before placing</li>
+                        <li>Right-click and drag to rotate the camera</li>
+                        <li>Use the mouse wheel to zoom in/out</li>
+                    </ul>
+                    Click Start Flow when you're ready to test your solution!
+                </div>
+                <button id="welcome-btn" class="modal-btn">Start Playing</button>
+            </div>
+        </div>
+
+        <!-- Level Complete Modal -->
+        <div id="level-complete-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-title">Level Complete!</div>
+                <div class="modal-text">
+                    Congratulations! You've successfully guided the water to the target.
+                </div>
+                <div class="star-container">
+                    <div class="star">★</div>
+                    <div class="star">★</div>
+                    <div class="star">★</div>
+                </div>
+                <div id="level-stats" class="mb-4"></div>
+                <button id="next-level-btn" class="modal-btn">Next Level</button>
+            </div>
+        </div>
+
+        <!-- Help Modal -->
+        <div id="help-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-title">How to Play</div>
+                <div class="modal-text">
+                    <b>Objective:</b> Guide water from the source to the target.
+                    <br><br>
+                    <b>Tools:</b>
+                    <ul class="text-left list-disc pl-5 mb-4">
+                        <li><b>Wall:</b> Blocks water flow</li>
+                        <li><b>Ramp:</b> Redirects water upward or downward</li>
+                        <li><b>Pipe:</b> Transports water in a specific direction</li>
+                        <li><b>Funnel:</b> Narrows water flow</li>
+                        <li><b>Fan:</b> Pushes water with air current</li>
+                    </ul>
+
+                    <b>Controls:</b>
+                    <ul class="text-left list-disc pl-5">
+                        <li>Click to place selected tool</li>
+                        <li>Right-click and drag to rotate camera</li>
+                        <li>Mouse wheel to zoom in/out</li>
+                        <li>Press R to rotate selected tool</li>
+                        <li>Delete mode: Click on objects to remove them</li>
+                    </ul>
+
+                    <b>Stars:</b>
+                    <ul class="text-left list-disc pl-5">
+                        <li>1 star: Complete the level</li>
+                        <li>2 stars: Complete with at least 30% tools remaining</li>
+                        <li>3 stars: Complete with at least 60% tools remaining</li>
+                    </ul>
+                </div>
+                <button id="help-close-btn" class="modal-btn">Got it!</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+         class SimpleWaterPuzzle {
+            constructor() {
+                // Core components
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.clock = new THREE.Clock();
+
+                // Game state
+                this.isPlaying = false;
+                this.currentLevel = 1;
+                this.selectedTool = 'wall';
+                this.placedObjects = [];
+                this.waterParticles = [];
+                this.toolsLeft = 10;
+                this.waterProgress = 0;
+                this.levelComplete = false;
+                this.isDeleteMode = false;
+                this.levelStars = {};
+
+                // Camera controls
+                this.cameraRotating = false;
+                this.cameraRotateStartX = 0;
+                this.cameraRotateStartY = 0;
+                this.cameraDistance = 15;
+                this.cameraRotationSpeed = 0.005;
+                this.cameraTarget = new THREE.Vector3(0, 0, 0);
+
+                // Mouse interaction
+                this.mouse = new THREE.Vector2();
+                this.raycaster = new THREE.Raycaster();
+                this.placingObject = null;
+                this.placingObjectRotation = 0;
+
+                // Level data
+                this.levels = [
+                    {
+                        name: "Simple Flow",
+                        toolsAllowed: 5,
+                        sourcePosition: { x: 0, y: 5, z: -5 },
+                        targetPosition: { x: 0, y: 0, z: 5 }
+                    },
+                    {
+                        name: "Split Path",
+                        toolsAllowed: 8,
+                        sourcePosition: { x: -5, y: 5, z: -5 },
+                        targetPosition: { x: 5, y: 0, z: 5 },
+                        obstacles: [
+                            { type: 'block', position: { x: 0, y: 1, z: 0 }, scale: { x: 2, y: 2, z: 2 } }
+                        ]
+                    },
+                    {
+                        name: "Waterfall",
+                        toolsAllowed: 10,
+                        sourcePosition: { x: 0, y: 10, z: -5 },
+                        targetPosition: { x: 0, y: 0, z: 5 }
+                    },
+                    {
+                        name: "Bridge Gap",
+                        toolsAllowed: 7,
+                        sourcePosition: { x: -5, y: 5, z: 0 },
+                        targetPosition: { x: 5, y: 5, z: 0 },
+                        obstacles: [
+                            { type: 'gap', position: { x: 0, y: 0, z: 0 }, scale: { x: 4, y: 1, z: 4 } }
+                        ]
+                    },
+                    {
+                        name: "Uphill Challenge",
+                        toolsAllowed: 12,
+                        sourcePosition: { x: -5, y: 2, z: -5 },
+                        targetPosition: { x: 5, y: 8, z: 5 }
+                    },
+                    {
+                        name: "Maze Runner",
+                        toolsAllowed: 15,
+                        sourcePosition: { x: -8, y: 5, z: -8 },
+                        targetPosition: { x: 8, y: 5, z: 8 },
+                        obstacles: [
+                            { type: 'wall', position: { x: -4, y: 1, z: 0 }, rotation: 0, scale: { x: 8, y: 2, z: 0.5 } },
+                            { type: 'wall', position: { x: 4, y: 1, z: 0 }, rotation: 0, scale: { x: 8, y: 2, z: 0.5 } },
+                            { type: 'wall', position: { x: 0, y: 1, z: -4 }, rotation: Math.PI/2, scale: { x: 8, y: 2, z: 0.5 } },
+                            { type: 'wall', position: { x: 0, y: 1, z: 4 }, rotation: Math.PI/2, scale: { x: 8, y: 2, z: 0.5 } }
+                        ]
+                    }
+                ];
+
+                // Initialize the game
+                this.init();
+            }
+
+            init() {
+                this.setupThreeJS();
+                this.setupEventListeners();
+                this.createLevelButtons();
+                this.loadLevel(this.currentLevel);
+                this.animate();
+            }
+
+            setupThreeJS() {
+                // Create scene
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x87ceeb); // Sky blue
+
+                // Create camera
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.camera.position.set(0, 10, 15);
+                this.camera.lookAt(0, 0, 0);
+
+                // Create renderer
+                this.renderer = new THREE.WebGLRenderer({
+                    canvas: document.getElementById('canvas'),
+                    antialias: true
+                });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.shadowMap.enabled = true;
+
+                // Add lights
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                this.scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 20, 10);
+                directionalLight.castShadow = true;
+                this.scene.add(directionalLight);
+
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+            }
+
+            createLevelButtons() {
+                const levelButtonsContainer = document.getElementById('level-buttons');
+
+                for (let i = 0; i < this.levels.length; i++) {
+                    const levelBtn = document.createElement('button');
+                    levelBtn.className = 'level-btn';
+                    levelBtn.textContent = i + 1;
+                    levelBtn.dataset.level = i + 1;
+
+                    if (i + 1 === this.currentLevel) {
+                        levelBtn.classList.add('active');
+                    }
+
+                    levelBtn.addEventListener('click', () => {
+                        this.currentLevel = parseInt(levelBtn.dataset.level);
+                        document.querySelectorAll('.level-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                        });
+                        levelBtn.classList.add('active');
+                        this.loadLevel(this.currentLevel);
+                    });
+
+                    levelButtonsContainer.appendChild(levelBtn);
+                }
+            }
+
+            loadLevel(levelIndex) {
+                // Clear previous level
+                this.clearLevel();
+
+                // Get level data
+                const level = this.levels[levelIndex - 1];
+                if (!level) return;
+
+                // Update UI
+                document.getElementById('level-number').textContent = levelIndex;
+                document.getElementById('tools-left').textContent = level.toolsAllowed;
+                this.toolsLeft = level.toolsAllowed;
+
+                // Create ground
+                this.createGround();
+
+                // Create obstacles if any
+                if (level.obstacles) {
+                    level.obstacles.forEach(obstacle => {
+                        this.createObstacle(obstacle);
+                    });
+                }
+
+                // Create water source
+                this.createWaterSource(level.sourcePosition);
+
+                // Create target
+                this.createTarget(level.targetPosition);
+
+                // Reset game state
+                this.isPlaying = false;
+                this.waterProgress = 0;
+                this.levelComplete = false;
+                document.getElementById('start-btn').textContent = 'Start Flow';
+                document.getElementById('water-progress').style.width = '0%';
+
+                // Reset delete mode
+                this.isDeleteMode = false;
+                document.getElementById('delete-btn').textContent = 'Delete Mode';
+                document.getElementById('delete-btn').classList.remove('btn-danger');
+            }
+
+            clearLevel() {
+                // Remove all objects from scene
+                while(this.scene.children.length > 0){
+                    this.scene.remove(this.scene.children[0]);
+                }
+
+                // Add lights back
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                this.scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 20, 10);
+                directionalLight.castShadow = true;
+                this.scene.add(directionalLight);
+
+                // Clear arrays
+                this.placedObjects = [];
+                this.waterParticles = [];
+            }
+
+            createGround() {
+                // Visual ground
+                const groundGeometry = new THREE.BoxGeometry(30, 1, 30);
+                const groundMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x228B22 // Forest green
+                });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.position.y = -0.5;
+                ground.receiveShadow = true;
+                ground.userData.type = 'ground';
+                this.scene.add(ground);
+            }
+
+            createObstacle(obstacle) {
+                let mesh;
+
+                switch (obstacle.type) {
+                    case 'block':
+                        const blockGeometry = new THREE.BoxGeometry(
+                            obstacle.scale.x,
+                            obstacle.scale.y,
+                            obstacle.scale.z
+                        );
+                        const blockMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x8B4513 // Saddle brown
+                        });
+                        mesh = new THREE.Mesh(blockGeometry, blockMaterial);
+                        mesh.position.set(
+                            obstacle.position.x,
+                            obstacle.position.y,
+                            obstacle.position.z
+                        );
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        mesh.userData.type = 'obstacle';
+                        break;
+
+                    case 'wall':
+                        const wallGeometry = new THREE.BoxGeometry(
+                            obstacle.scale.x,
+                            obstacle.scale.y,
+                            obstacle.scale.z
+                        );
+                        const wallMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x4682B4 // Steel blue
+                        });
+                        mesh = new THREE.Mesh(wallGeometry, wallMaterial);
+                        mesh.position.set(
+                            obstacle.position.x,
+                            obstacle.position.y,
+                            obstacle.position.z
+                        );
+                        if (obstacle.rotation) {
+                            mesh.rotation.y = obstacle.rotation;
+                        }
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        mesh.userData.type = 'obstacle';
+                        break;
+
+                    case 'gap':
+                        // For a gap, we'll create a hole in the ground
+                        const gapGeometry = new THREE.BoxGeometry(
+                            obstacle.scale.x,
+                            obstacle.scale.y,
+                            obstacle.scale.z
+                        );
+                        const gapMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x1E293B, // Dark blue
+                            transparent: true,
+                            opacity: 0.5
+                        });
+                        mesh = new THREE.Mesh(gapGeometry, gapMaterial);
+                        mesh.position.set(
+                            obstacle.position.x,
+                            -1,
+                            obstacle.position.z
+                        );
+                        mesh.userData.type = 'gap';
+                        break;
+                }
+
+                if (mesh) {
+                    this.scene.add(mesh);
+                    this.placedObjects.push({
+                        mesh: mesh,
+                        type: obstacle.type
+                    });
+                }
+            }
+
+            createWaterSource(position) {
+                // Create water source container
+                const containerGeometry = new THREE.CylinderGeometry(1.5, 1.5, 2, 16);
+                const containerMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x4682B4, // Steel blue
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const container = new THREE.Mesh(containerGeometry, containerMaterial);
+                container.position.set(position.x, position.y, position.z);
+                container.castShadow = true;
+                container.userData.type = 'source';
+                this.scene.add(container);
+
+                // Create water inside container
+                const waterGeometry = new THREE.CylinderGeometry(1.3, 1.3, 1.5, 16);
+                const waterMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x1E90FF, // Dodger blue
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const water = new THREE.Mesh(waterGeometry, waterMaterial);
+                water.position.set(position.x, position.y - 0.25, position.z);
+                this.scene.add(water);
+
+                // Store source position for water generation
+                this.waterSourcePosition = {
+                    x: position.x,
+                    y: position.y - 2,
+                    z: position.z
+                };
+            }
+
+            createTarget(position) {
+                // Create target container
+                const containerGeometry = new THREE.CylinderGeometry(1.5, 1.5, 2, 16);
+                const containerMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x32CD32, // Lime green
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const container = new THREE.Mesh(containerGeometry, containerMaterial);
+                container.position.set(position.x, position.y + 1, position.z);
+                container.castShadow = true;
+                container.userData.type = 'target';
+                container.userData.waterFilled = 0;
+                container.userData.waterCapacity = 20; // Number of particles to fill
+                this.scene.add(container);
+
+                // Create water level indicator (starts empty)
+                const waterGeometry = new THREE.CylinderGeometry(1.3, 1.3, 0.1, 16);
+                const waterMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x1E90FF, // Dodger blue
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const water = new THREE.Mesh(waterGeometry, waterMaterial);
+                water.position.set(position.x, position.y + 0.1, position.z);
+                water.userData.isWaterLevel = true;
+                water.userData.container = container;
+                this.scene.add(water);
+
+                // Store target data
+                this.targetContainer = container;
+                this.targetWaterLevel = water;
+            }
+
+            createWaterParticle() {
+                if (!this.isPlaying) return;
+
+                // Create water particle geometry
+                const radius = 0.2;
+                const geometry = new THREE.SphereGeometry(radius, 8, 8);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0x1E90FF, // Dodger blue
+                    transparent: true,
+                    opacity: 0.8
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+
+                // Add some random offset to source position
+                const offsetX = (Math.random() - 0.5) * 0.2;
+                const offsetZ = (Math.random() - 0.5) * 0.2;
+
+                mesh.position.set(
+                    this.waterSourcePosition.x + offsetX,
+                    this.waterSourcePosition.y,
+                    this.waterSourcePosition.z + offsetZ
+                );
+
+                // Set initial velocity
+                mesh.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.05,
+                    0,
+                    (Math.random() - 0.5) * 0.05
+                );
+
+                this.scene.add(mesh);
+
+                // Store water particle data
+                this.waterParticles.push({
+                    mesh: mesh,
+                    inTarget: false,
+                    age: 0
+                });
+            }
+
+            createTool(type, position) {
+                if (this.toolsLeft <= 0) {
+                    this.showTooltip("No tools left!", position.x, position.y);
+                    return;
+                }
+
+                let mesh;
+
+                switch (type) {
+                    case 'wall':
+                        // Visual wall
+                        const wallGeometry = new THREE.BoxGeometry(2, 2, 0.5);
+                        const wallMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x8B4513 // Saddle brown
+                        });
+                        mesh = new THREE.Mesh(wallGeometry, wallMaterial);
+                        mesh.position.copy(position);
+                        mesh.rotation.y = this.placingObjectRotation;
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        mesh.userData.type = 'wall';
+                        break;
+
+                    case 'ramp':
+                        // Visual ramp
+                        const rampGeometry = new THREE.BoxGeometry(3, 0.5, 2);
+                        const rampMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x4682B4 // Steel blue
+                        });
+                        mesh = new THREE.Mesh(rampGeometry, rampMaterial);
+                        mesh.position.copy(position);
+
+                        // Apply rotation first around Y axis (for direction)
+                        mesh.rotation.y = this.placingObjectRotation;
+                        // Then apply X rotation for the ramp angle
+                        mesh.rotation.x = Math.PI / 12; // 15 degrees
+
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        mesh.userData.type = 'ramp';
+                        break;
+
+                    case 'pipe':
+                        // Visual pipe
+                        const pipeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 3, 16);
+                        const pipeMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x4682B4 // Steel blue
+                        });
+                        mesh = new THREE.Mesh(pipeGeometry, pipeMaterial);
+                        mesh.position.copy(position);
+
+                        // Rotate pipe to be horizontal
+                        mesh.rotation.z = Math.PI / 2;
+                        // Then apply Y rotation for direction
+                        mesh.rotation.y = this.placingObjectRotation;
+
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        mesh.userData.type = 'pipe';
+                        break;
+
+                    case 'funnel':
+                        // Create funnel group
+                        const funnelGroup = new THREE.Group();
+                        funnelGroup.position.copy(position);
+                        funnelGroup.rotation.y = this.placingObjectRotation;
+
+                        // Create funnel top
+                        const topGeometry = new THREE.CylinderGeometry(1.5, 0.5, 2, 16);
+                        const funnelMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x4682B4, // Steel blue
+                            transparent: true,
+                            opacity: 0.8
+                        });
+                        const top = new THREE.Mesh(topGeometry, funnelMaterial);
+                        top.castShadow = true;
+                        funnelGroup.add(top);
+
+                        // Create funnel bottom
+                        const bottomGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.5, 16);
+                        const bottom = new THREE.Mesh(bottomGeometry, funnelMaterial);
+                        bottom.position.y = -1.25;
+                        bottom.castShadow = true;
+                        funnelGroup.add(bottom);
+
+                        mesh = funnelGroup;
+                        mesh.userData.type = 'funnel';
+                        break;
+
+                    case 'fan':
+                        // Create fan group
+                        const fanGroup = new THREE.Group();
+                        fanGroup.position.copy(position);
+                        fanGroup.rotation.y = this.placingObjectRotation;
+
+                        // Create fan base
+                        const baseGeometry = new THREE.CylinderGeometry(0.5, 0.7, 0.5, 16);
+                        const baseMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x4682B4, // Steel blue
+                        });
+                        const base = new THREE.Mesh(baseGeometry, baseMaterial);
+                        base.position.y = -0.5;
+                        base.castShadow = true;
+                        fanGroup.add(base);
+
+                        // Create fan head
+                        const headGeometry = new THREE.CylinderGeometry(1, 1, 0.3, 16);
+                        const headMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x4682B4, // Steel blue
+                        });
+                        const head = new THREE.Mesh(headGeometry, headMaterial);
+                        head.rotation.x = Math.PI / 2;
+                        head.castShadow = true;
+                        fanGroup.add(head);
+
+                        // Create fan blades
+                        const bladeGeometry = new THREE.BoxGeometry(0.2, 0.8, 0.1);
+                        const bladeMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x4682B4, // Steel blue
+                        });
+
+                        const blades = new THREE.Group();
+                        for (let i = 0; i < 4; i++) {
+                            const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+                            blade.position.y = 0.5;
+                            blade.rotation.z = (i / 4) * Math.PI * 2;
+                            blade.castShadow = true;
+                            blades.add(blade);
+                        }
+
+                        blades.position.z = 0.2;
+                        fanGroup.add(blades);
+
+                        mesh = fanGroup;
+                        mesh.userData.type = 'fan';
+                        mesh.userData.blades = blades;
+                        mesh.userData.fanPower = 0.2;
+                        break;
+                }
+
+                if (mesh) {
+                    this.scene.add(mesh);
+
+                    // Store tool data
+                    this.placedObjects.push({
+                        mesh: mesh,
+                        type: type
+                    });
+
+                    // Decrease tools left
+                    this.toolsLeft--;
+                    document.getElementById('tools-left').textContent = this.toolsLeft;
+                }
+            }
+
+            setupEventListeners() {
+                // Tool selection
+                const toolItems = document.querySelectorAll('.tool-item');
+                toolItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        toolItems.forEach(i => i.classList.remove('selected'));
+                        item.classList.add('selected');
+                        this.selectedTool = item.dataset.tool;
+                        this.isDeleteMode = false;
+                        document.getElementById('delete-btn').textContent = 'Delete Mode';
+                        document.getElementById('delete-btn').classList.remove('btn-danger');
+                    });
+                });
+
+                // Button event listeners
+                document.getElementById('reset-btn').addEventListener('click', () => this.resetLevel());
+                document.getElementById('start-btn').addEventListener('click', () => this.toggleWaterFlow());
+                document.getElementById('next-level-btn').addEventListener('click', () => this.nextLevel());
+                document.getElementById('help-btn').addEventListener('click', () => this.showHelpModal());
+                document.getElementById('welcome-btn').addEventListener('click', () => {
+                    document.getElementById('welcome-modal').classList.remove('active');
+                });
+                document.getElementById('help-close-btn').addEventListener('click', () => {
+                    document.getElementById('help-modal').classList.remove('active');
+                });
+                document.getElementById('delete-btn').addEventListener('click', () => this.toggleDeleteMode());
+
+                // Camera control buttons
+                document.getElementById('camera-rotate').addEventListener('click', () => {
+                    this.cameraRotating = !this.cameraRotating;
+                });
+
+                document.getElementById('camera-zoom-in').addEventListener('click', () => {
+                    this.cameraDistance = Math.max(5, this.cameraDistance - 2);
+                    this.updateCameraPosition();
+                });
+
+                document.getElementById('camera-zoom-out').addEventListener('click', () => {
+                    this.cameraDistance = Math.min(30, this.cameraDistance + 2);
+                    this.updateCameraPosition();
+                });
+
+                // Mouse events
+                const canvas = document.getElementById('canvas');
+
+                canvas.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) { // Left click
+                        this.onMouseDown(e);
+                    } else if (e.button === 2) { // Right click
+                        this.cameraRotating = true;
+                        this.cameraRotateStartX = e.clientX;
+                        this.cameraRotateStartY = e.clientY;
+                    }
+                });
+
+                canvas.addEventListener('mousemove', (e) => {
+                    // Update mouse position
+                    this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                    this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+                    // Handle camera rotation
+                    if (this.cameraRotating) {
+                        const deltaX = e.clientX - this.cameraRotateStartX;
+                        const deltaY = e.clientY - this.cameraRotateStartY;
+
+                        // Rotate camera around target
+                        this.rotateCamera(deltaX * this.cameraRotationSpeed, deltaY * this.cameraRotationSpeed);
+
+                        this.cameraRotateStartX = e.clientX;
+                        this.cameraRotateStartY = e.clientY;
+                    }
+
+                    // Show ghost of placing object
+                    if (this.selectedTool && !this.isDeleteMode) {
+                        this.updateGhostObject();
+                    }
+                });
+
+                canvas.addEventListener('mouseup', (e) => {
+                    if (e.button === 2) { // Right click
+                        this.cameraRotating = false;
+                    }
+                });
+
+                canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    this.cameraDistance += e.deltaY * 0.01;
+                    this.cameraDistance = Math.max(5, Math.min(30, this.cameraDistance));
+                    this.updateCameraPosition();
+                });
+
+                // Prevent context menu on right click
+                canvas.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                });
+
+                // Keyboard events
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'r' || e.key === 'R') {
+                        this.rotatePlacingObject();
+                    }
+                });
+            }
+
+            onMouseDown(event) {
+                // Calculate mouse position in normalized device coordinates
+                this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                // Cast ray from camera
+                this.raycaster.setFromCamera(this.mouse, this.camera);
+
+                // Check for intersections with objects
+                const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+
+                if (intersects.length > 0) {
+                    const intersect = intersects[0];
+
+                    // Handle delete mode
+                    if (this.isDeleteMode) {
+                        this.deleteObject(intersect.object);
+                        return;
+                    }
+
+                    // Don't place on source or target
+                    if (intersect.object.userData.type === 'source' ||
+                        intersect.object.userData.type === 'target') {
+                        return;
+                    }
+
+                    // Place new tool
+                    const position = new THREE.Vector3().copy(intersect.point);
+
+                    // Snap to grid
+                    position.x = Math.round(position.x);
+                    position.z = Math.round(position.z);
+                    position.y = Math.round(position.y * 2) / 2; // Snap to 0.5 units
+
+                    // Make sure we're not placing inside another object
+                    if (!this.isPositionOccupied(position)) {
+                        this.createTool(this.selectedTool, position);
+                    }
+                }
+            }
+
+            updateGhostObject() {
+                // Remove existing ghost object
+                if (this.placingObject) {
+                    this.scene.remove(this.placingObject);
+                    this.placingObject = null;
+                }
+
+                // Cast ray from camera
+                this.raycaster.setFromCamera(this.mouse, this.camera);
+                const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+
+                if (intersects.length > 0) {
+                    const intersect = intersects[0];
+
+                    // Don't show ghost on source or target
+                    if (intersect.object.userData.type === 'source' ||
+                        intersect.object.userData.type === 'target') {
+                        return;
+                    }
+
+                    const position = new THREE.Vector3().copy(intersect.point);
+
+                    // Snap to grid
+                    position.x = Math.round(position.x);
+                    position.z = Math.round(position.z);
+                    position.y = Math.round(position.y * 2) / 2; // Snap to 0.5 units
+
+                    // Create ghost object based on selected tool
+                    let geometry, material;
+
+                    switch (this.selectedTool) {
+                        case 'wall':
+                            geometry = new THREE.BoxGeometry(2, 2, 0.5);
+                            material = new THREE.MeshStandardMaterial({
+                                color: 0x3b82f6,
+                                transparent: true,
+                                opacity: 0.5
+                            });
+
+                            this.placingObject = new THREE.Mesh(geometry, material);
+                            this.placingObject.position.copy(position);
+                            this.placingObject.rotation.y = this.placingObjectRotation;
+                            break;
+
+                        case 'ramp':
+                            geometry = new THREE.BoxGeometry(3, 0.5, 2);
+                            material = new THREE.MeshStandardMaterial({
+                                color: 0x3b82f6,
+                                transparent: true,
+                                opacity: 0.5
+                            });
+
+                            this.placingObject = new THREE.Mesh(geometry, material);
+                            this.placingObject.position.copy(position);
+                            this.placingObject.rotation.y = this.placingObjectRotation;
+                            this.placingObject.rotation.x = Math.PI / 12; // 15 degrees
+                            break;
+
+                        case 'pipe':
+                            geometry = new THREE.CylinderGeometry(0.5, 0.5, 3, 16);
+                            material = new THREE.MeshStandardMaterial({
+                                color: 0x3b82f6,
+                                transparent: true,
+                                opacity: 0.5
+                            });
+
+                            this.placingObject = new THREE.Mesh(geometry, material);
+                            this.placingObject.position.copy(position);
+                            this.placingObject.rotation.z = Math.PI / 2;
+                            this.placingObject.rotation.y = this.placingObjectRotation;
+                            break;
+
+                        case 'funnel':
+                            geometry = new THREE.CylinderGeometry(1.5, 0.5, 2, 16);
+                            material = new THREE.MeshStandardMaterial({
+                                color: 0x3b82f6,
+                                transparent: true,
+                                opacity: 0.5
+                            });
+
+                            this.placingObject = new THREE.Mesh(geometry, material);
+                            this.placingObject.position.copy(position);
+                            this.placingObject.rotation.y = this.placingObjectRotation;
+                            break;
+
+                        case 'fan':
+                            geometry = new THREE.CylinderGeometry(1, 1, 1, 16);
+                            material = new THREE.MeshStandardMaterial({
+                                color: 0x3b82f6,
+                                transparent: true,
+                                opacity: 0.5
+                            });
+
+                            this.placingObject = new THREE.Mesh(geometry, material);
+                            this.placingObject.position.copy(position);
+                            this.placingObject.rotation.y = this.placingObjectRotation;
+                            break;
+                    }
+
+                    if (this.placingObject) {
+                        this.scene.add(this.placingObject);
+                    }
+                }
+            }
+
+            rotatePlacingObject() {
+                this.placingObjectRotation += Math.PI / 4; // Rotate 45 degrees
+                if (this.placingObjectRotation >= Math.PI * 2) {
+                    this.placingObjectRotation = 0;
+                }
+
+                if (this.placingObject) {
+                    this.placingObject.rotation.y = this.placingObjectRotation;
+                }
+
+                this.showTooltip("Rotated tool", window.innerWidth / 2, window.innerHeight / 2);
+            }
+
+            isPositionOccupied(position) {
+                // Check if there's already an object at this position
+                for (const obj of this.placedObjects) {
+                    if (obj.mesh && obj.mesh.position.distanceTo(position) < 1) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            deleteObject(object) {
+                // Find the object in our placed objects array
+                let objectToDelete = null;
+                let objectIndex = -1;
+
+                for (let i = 0; i < this.placedObjects.length; i++) {
+                    const placedObj = this.placedObjects[i];
+
+                    // Check if the object or any of its children is the one we want to delete
+                    if (placedObj.mesh === object ||
+                        (placedObj.mesh && placedObj.mesh.children &&
+                         placedObj.mesh.children.includes(object))) {
+
+                        objectToDelete = placedObj;
+                        objectIndex = i;
+                        break;
+                    }
+                }
+
+                if (objectToDelete && objectToDelete.type !== 'target' &&
+                    objectToDelete.type !== 'source' && objectToDelete.type !== 'obstacle' &&
+                    objectToDelete.type !== 'gap' && objectToDelete.type !== 'block' &&
+                    objectToDelete.type !== 'wall') {
+
+                    // Remove from scene
+                    if (objectToDelete.mesh) this.scene.remove(objectToDelete.mesh);
+
+                    // Remove from array
+                    this.placedObjects.splice(objectIndex, 1);
+
+                    // Increase tools left
+                    this.toolsLeft++;
+                    document.getElementById('tools-left').textContent = this.toolsLeft;
+
+                    this.showTooltip("Object deleted", window.innerWidth / 2, window.innerHeight / 2);
+                }
+            }
+
+            toggleDeleteMode() {
+                this.isDeleteMode = !this.isDeleteMode;
+
+                const deleteBtn = document.getElementById('delete-btn');
+                if (this.isDeleteMode) {
+                    deleteBtn.textContent = 'Cancel Delete';
+                    deleteBtn.classList.add('btn-danger');
+
+                    // Remove ghost object
+                    if (this.placingObject) {
+                        this.scene.remove(this.placingObject);
+                        this.placingObject = null;
+                    }
+
+                    this.showTooltip("Delete mode active - click on objects to remove them",
+                                    deleteBtn.getBoundingClientRect().right,
+                                    deleteBtn.getBoundingClientRect().top);
+                } else {
+                    deleteBtn.textContent = 'Delete Mode';
+                    deleteBtn.classList.remove('btn-danger');
+                }
+            }
+
+            toggleWaterFlow() {
+                this.isPlaying = !this.isPlaying;
+
+                const startBtn = document.getElementById('start-btn');
+
+                if (this.isPlaying) {
+                    startBtn.textContent = 'Stop Flow';
+
+                    // Remove ghost object when starting simulation
+                    if (this.placingObject) {
+                        this.scene.remove(this.placingObject);
+                        this.placingObject = null;
+                    }
+                } else {
+                    startBtn.textContent = 'Start Flow';
+
+                    // Remove all water particles
+                    this.waterParticles.forEach(particle => {
+                        this.scene.remove(particle.mesh);
+                    });
+                    this.waterParticles = [];
+
+                    // Reset water progress
+                    document.getElementById('water-progress').style.width = '0%';
+                }
+            }
+
+            resetLevel() {
+                // Stop water flow
+                this.isPlaying = false;
+                document.getElementById('start-btn').textContent = 'Start Flow';
+
+                // Remove all water particles
+                this.waterParticles.forEach(particle => {
+                    this.scene.remove(particle.mesh);
+                });
+                this.waterParticles = [];
+
+                // Remove all placed tools
+                const objectsToRemove = [];
+                for (let i = 0; i < this.placedObjects.length; i++) {
+                    const obj = this.placedObjects[i];
+                    if (obj.type !== 'target' && obj.type !== 'source' &&
+                        obj.type !== 'obstacle' && obj.type !== 'gap' &&
+                        obj.type !== 'block' && obj.type !== 'wall') {
+                        objectsToRemove.push(i);
+
+                        if (obj.mesh) this.scene.remove(obj.mesh);
+                    }
+                }
+
+                // Remove from array (in reverse order to avoid index issues)
+                for (let i = objectsToRemove.length - 1; i >= 0; i--) {
+                    this.placedObjects.splice(objectsToRemove[i], 1);
+                }
+
+                // Reset tools left
+                const level = this.levels[this.currentLevel - 1];
+                this.toolsLeft = level.toolsAllowed;
+                document.getElementById('tools-left').textContent = this.toolsLeft;
+
+                // Reset water progress
+                this.waterProgress = 0;
+                document.getElementById('water-progress').style.width = '0%';
+
+                // Reset level complete status
+                this.levelComplete = false;
+
+                // Reset target container
+                if (this.targetContainer) {
+                    this.targetContainer.userData.waterFilled = 0;
+                }
+
+                // Reset water level visualization
+                if (this.targetWaterLevel) {
+                    this.targetWaterLevel.position.y = this.targetContainer.position.y - 0.9; // Bottom of container
+                    this.targetWaterLevel.scale.y = 0.1; // Minimal height
+                }
+            }
+
+            nextLevel() {
+                if (this.currentLevel < this.levels.length) {
+                    this.currentLevel++;
+
+                    // Update level buttons
+                    document.querySelectorAll('.level-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                        if (parseInt(btn.dataset.level) === this.currentLevel) {
+                            btn.classList.add('active');
+                        }
+                    });
+
+                    this.loadLevel(this.currentLevel);
+                    document.getElementById('level-complete-modal').classList.remove('active');
+                } else {
+                    // Game complete
+                    alert("Congratulations! You've completed all levels!");
+                    document.getElementById('level-complete-modal').classList.remove('active');
+                }
+            }
+
+            calculateStars() {
+                const level = this.levels[this.currentLevel - 1];
+                const toolsUsed = level.toolsAllowed - this.toolsLeft;
+                const toolsPercentage = (this.toolsLeft / level.toolsAllowed) * 100;
+
+                let stars = 1; // At least 1 star for completing
+
+                if (toolsPercentage >= 30) stars = 2;
+                if (toolsPercentage >= 60) stars = 3;
+
+                return stars;
+            }
+
+            showLevelCompleteModal() {
+                const stars = this.calculateStars();
+                const levelStats = document.getElementById('level-stats');
+                const starElements = document.querySelectorAll('.star');
+
+                // Update stars
+                starElements.forEach((star, index) => {
+                    if (index < stars) {
+                        star.classList.add('filled');
+                    } else {
+                        star.classList.remove('filled');
+                    }
+                });
+
+                // Update stats text
+                const level = this.levels[this.currentLevel - 1];
+                levelStats.textContent = `You used ${level.toolsAllowed - this.toolsLeft} out of ${level.toolsAllowed} tools.`;
+
+                // Save stars for this level
+                this.levelStars[this.currentLevel] = stars;
+
+                // Show modal
+                document.getElementById('level-complete-modal').classList.add('active');
+            }
+
+            showHelpModal() {
+                document.getElementById('help-modal').classList.add('active');
+            }
+
+            showTooltip(text, x, y) {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.textContent = text;
+                tooltip.style.left = `${x}px`;
+                tooltip.style.top = `${y}px`;
+                tooltip.style.opacity = '1';
+
+                // Hide tooltip after a delay
+                setTimeout(() => {
+                    tooltip.style.opacity = '0';
+                }, 2000);
+            }
+
+            rotateCamera(deltaX, deltaY) {
+                // Calculate camera position in spherical coordinates
+                const radius = this.cameraDistance;
+
+                // Get current camera position relative to target
+                const offset = new THREE.Vector3().subVectors(this.camera.position, this.cameraTarget);
+
+                // Convert to spherical coordinates
+                const spherical = new THREE.Spherical().setFromVector3(offset);
+
+                // Update angles
+                spherical.theta += deltaX; // Horizontal rotation
+                spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + deltaY)); // Vertical rotation (limit to avoid gimbal lock)
+
+                // Keep radius constant
+                spherical.radius = radius;
+
+                // Convert back to Cartesian coordinates
+                offset.setFromSpherical(spherical);
+
+                // Update camera position
+                this.camera.position.copy(this.cameraTarget).add(offset);
+
+                // Look at target
+                this.camera.lookAt(this.cameraTarget);
+            }
+
+            updateCameraPosition() {
+                // Get current camera direction
+                const direction = new THREE.Vector3();
+                this.camera.getWorldDirection(direction);
+
+                // Scale direction by distance
+                direction.multiplyScalar(-this.cameraDistance);
+
+                // Set camera position
+                this.camera.position.copy(this.cameraTarget).add(direction);
+            }
+
+            updateWaterPhysics() {
+                // Create new water particles at a controlled rate
+                if (this.isPlaying && this.waterParticles.length < 100) { // Limit max particles
+                    if (Math.random() < 0.1) { // Control spawn rate
+                        this.createWaterParticle();
+                    }
+                }
+
+                // Update water particles
+                for (let i = this.waterParticles.length - 1; i >= 0; i--) {
+                    const particle = this.waterParticles[i];
+
+                    // Apply gravity
+                    particle.mesh.userData.velocity.y -= 0.01;
+
+                    // Update position
+                    particle.mesh.position.x += particle.mesh.userData.velocity.x;
+                    particle.mesh.position.y += particle.mesh.userData.velocity.y;
+                    particle.mesh.position.z += particle.mesh.userData.velocity.z;
+
+                    // Check for collisions with ground
+                    if (particle.mesh.position.y < 0) {
+                        particle.mesh.position.y = 0;
+                        particle.mesh.userData.velocity.y *= -0.5; // Bounce with damping
+                        particle.mesh.userData.velocity.x *= 0.9; // Friction
+                        particle.mesh.userData.velocity.z *= 0.9; // Friction
+                    }
+
+                    // Check for collisions with placed objects
+                    this.placedObjects.forEach(obj => {
+                        if (obj.mesh) {
+                            const distance = particle.mesh.position.distanceTo(obj.mesh.position);
+
+                            if (distance < 1.5) {
+                                // Simple collision response based on object type
+                                if (obj.type === 'wall') {
+                                    // Reflect velocity based on wall orientation
+                                    const normal = new THREE.Vector3(
+                                        Math.sin(obj.mesh.rotation.y),
+                                        0,
+                                        Math.cos(obj.mesh.rotation.y)
+                                    );
+
+                                    const dot = particle.mesh.userData.velocity.dot(normal);
+                                    particle.mesh.userData.velocity.x -= 2 * dot * normal.x;
+                                    particle.mesh.userData.velocity.z -= 2 * dot * normal.z;
+
+                                    // Move particle away from wall
+                                    particle.mesh.position.x += normal.x * 0.1;
+                                    particle.mesh.position.z += normal.z * 0.1;
+                                }
+                                else if (obj.type === 'ramp') {
+                                    // Add upward velocity based on ramp orientation
+                                    const rampDirection = new THREE.Vector3(
+                                        Math.sin(obj.mesh.rotation.y),
+                                        0.2, // Upward component
+                                        Math.cos(obj.mesh.rotation.y)
+                                    );
+
+                                    particle.mesh.userData.velocity.x += rampDirection.x * 0.05;
+                                    particle.mesh.userData.velocity.y += rampDirection.y * 0.05;
+                                    particle.mesh.userData.velocity.z += rampDirection.z * 0.05;
+                                }
+                                else if (obj.type === 'pipe') {
+                                    // Guide particle along pipe direction
+                                    const pipeDirection = new THREE.Vector3(
+                                        Math.sin(obj.mesh.rotation.y),
+                                        0,
+                                        Math.cos(obj.mesh.rotation.y)
+                                    );
+
+                                    particle.mesh.userData.velocity.x = pipeDirection.x * 0.1;
+                                    particle.mesh.userData.velocity.z = pipeDirection.z * 0.1;
+                                }
+                                else if (obj.type === 'funnel') {
+                                    // Concentrate water flow
+                                    const center = new THREE.Vector3(
+                                        obj.mesh.position.x,
+                                        obj.mesh.position.y - 1,
+                                        obj.mesh.position.z
+                                    );
+
+                                    // Pull particle toward funnel center
+                                    const direction = new THREE.Vector3().subVectors(center, particle.mesh.position).normalize();
+                                    particle.mesh.userData.velocity.x += direction.x * 0.02;
+                                    particle.mesh.userData.velocity.z += direction.z * 0.02;
+                                }
+                                else if (obj.type === 'fan') {
+                                    // Push water with air current
+                                    const fanDirection = new THREE.Vector3(
+                                        Math.sin(obj.mesh.rotation.y),
+                                        0,
+                                        Math.cos(obj.mesh.rotation.y)
+                                    );
+
+                                    // Apply force in fan direction
+                                    particle.mesh.userData.velocity.x += fanDirection.x * obj.mesh.userData.fanPower;
+                                    particle.mesh.userData.velocity.z += fanDirection.z * obj.mesh.userData.fanPower;
+                                }
+                                else if (obj.type === 'gap') {
+                                    // Water falls through gap
+                                    particle.mesh.userData.velocity.y -= 0.05;
+                                }
+                            }
+                        }
+                    });
+
+                    // Check for particles in target container
+                    if (this.targetContainer && !particle.inTarget) {
+                        const distance = particle.mesh.position.distanceTo(this.targetContainer.position);
+
+                        if (distance < 1.5) {
+                            // Particle is in target
+                            particle.inTarget = true;
+                            this.targetContainer.userData.waterFilled++;
+
+                            // Update water level visualization
+                            if (this.targetWaterLevel) {
+                                const fillRatio = this.targetContainer.userData.waterFilled / this.targetContainer.userData.waterCapacity;
+                                this.targetWaterLevel.position.y = this.targetContainer.position.y - 0.9 + fillRatio * 1.8;
+                                this.targetWaterLevel.scale.y = fillRatio * 18;
+                            }
+
+                            // Update progress bar
+                            this.waterProgress = (this.targetContainer.userData.waterFilled / this.targetContainer.userData.waterCapacity) * 100;
+                            document.getElementById('water-progress').style.width = `${this.waterProgress}%`;
+
+                            // Check for level completion
+                            if (this.targetContainer.userData.waterFilled >= this.targetContainer.userData.waterCapacity && !this.levelComplete) {
+                                this.levelComplete = true;
+                                this.showLevelCompleteModal();
+                            }
+                        }
+                    }
+
+                    // Increase age
+                    particle.age += this.clock.getDelta();
+
+                    // Remove old particles or those that have fallen off the map
+                    if (particle.age > 10 || particle.mesh.position.y < -10) {
+                        this.scene.remove(particle.mesh);
+                        this.waterParticles.splice(i, 1);
+                    }
+                }
+
+                // Update fan rotations
+                this.placedObjects.forEach(obj => {
+                    if (obj.type === 'fan' && obj.mesh && obj.mesh.userData.blades) {
+                        obj.mesh.userData.blades.rotation.z += 0.1;
+                    }
+                });
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                // Update water physics
+                this.updateWaterPhysics();
+
+                // Auto-rotate camera if enabled
+                if (this.cameraRotating) {
+                    this.rotateCamera(0.01, 0);
+                }
+
+                // Render scene
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+
+        // Initialize the game when the page loads
+        window.addEventListener('load', () => {
+            const game = new SimpleWaterPuzzle();
+        });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96792488736fd055',t:'MTc1MzkyMzQ1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

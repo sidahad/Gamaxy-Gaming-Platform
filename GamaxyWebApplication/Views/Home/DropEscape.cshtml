@@ -1,0 +1,296 @@
+﻿@model GamaxyWebApplication.Models.GameRatingViewModel
+@{
+    ViewData["Title"] = "Void Jumper";
+    Layout = "_layout3";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Void Jumper</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Arial+Rounded+MT+Bold&display=swap" rel="stylesheet">
+    <link href="~/css/DropEscape.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="background-color: black;">
+    <div class="container py-4">
+        <div class="game-page">
+            <div class="header-section">
+                <h1 class="game-title">VOID JUMPER</h1>
+                <div class="game-subtitle">ESCAPE THE VOID</div>
+            </div>
+
+            <div class="game-container-wrapper">
+                <div class="game-container">
+                    <div id="gameWrapper">
+                        <div id="game">
+                            <button id="soundToggle">SOUND: ON</button>
+                            <div id="score">SCORE: 0</div>
+                            <div id="character"></div>
+                            <div id="gameOver">
+                                <h2>GAME OVER</h2>
+                                <p>Your score: <span id="finalScore"></span></p>
+                                <button id="restartBtn" class="btn">PLAY AGAIN</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <p>Use ← and → arrow keys to move • SPACE to jump higher</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Section -->
+            <div class="rating-section">
+                <h2 class="rating-title">@Model.GameName</h2>
+                <p class="rating-average">Average Rating: @Model.AverageRating.ToString("F1")</p>
+                @if (Model.UserId.HasValue)
+                {
+                    <p class="rating-user">Your Rating: @(Model.ExistingRating > 0 ? Model.ExistingRating.ToString() : "Not rated yet")</p>
+                    <form id="ratingForm" method="post" asp-action="RateGame">
+                        <input type="hidden" name="gameName" value="@Model.GameName" />
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                        </div>
+                        <button type="submit" class="btn btn-rate">Submit Rating</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="rating-login">Please <a asp-action="Login">login</a> to rate this game.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#ratingForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("RateGame", "Home")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while submitting the rating.');
+                    }
+                });
+            });
+        });
+
+        // Corrected audio paths
+        const jumpSound = new Audio('/asseted/sounds/Jump.wav');
+        const gameOverSound = new Audio('/asseted/sounds/GameOver.mp3');
+        const bgMusic = new Audio('/asseted/sounds/background.mp3');
+        let soundEnabled = true;
+        bgMusic.loop = true;
+        bgMusic.volume = 0.3;
+        jumpSound.volume = 0.5;
+        gameOverSound.volume = 0.5;
+
+        const soundToggle = document.getElementById('soundToggle');
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundToggle.textContent = `SOUND: ${soundEnabled ? 'ON' : 'OFF'}`;
+            if (soundEnabled) {
+                bgMusic.play().catch(e => console.log("Audio play blocked:", e));
+            } else {
+                bgMusic.pause();
+            }
+        });
+
+        const character = document.getElementById("character");
+        const game = document.getElementById("game");
+        const scoreDisplay = document.getElementById("score");
+        const gameOverScreen = document.getElementById("gameOver");
+        const finalScore = document.getElementById("finalScore");
+        let gameRunning = false; // Start as false until initialized
+        let characterVelocityY = 0;
+        let isOnPlatform = false;
+        const gravity = 0.4;
+        let counter = 0;
+        let currentBlocks = [];
+        let characterMovingLeft = false;
+        let characterMovingRight = false;
+        const moveSpeed = 6;
+        let characterTop = 650;
+        let characterLeft = 280;
+        let blockInterval = null;
+
+        function init() {
+            gameRunning = true;
+            characterVelocityY = 0;
+            isOnPlatform = false;
+            counter = 0;
+            currentBlocks = [];
+            characterTop = 650;
+            characterLeft = 280;
+            character.style.top = characterTop + "px";
+            character.style.left = characterLeft + "px";
+            scoreDisplay.innerText = "SCORE: 0";
+            gameOverScreen.classList.remove('active');
+            // Clear existing blocks and holes
+            document.querySelectorAll('.block, .hole').forEach(el => el.remove());
+            // Start background music
+            if (soundEnabled) {
+                bgMusic.play().catch(e => console.log("Audio play blocked:", e));
+            }
+            // Start block interval
+            blockInterval = setInterval(spawnBlocks, 10);
+            gameLoop();
+        }
+
+        function startAudio() {
+            if (soundEnabled) {
+                bgMusic.play().catch(e => console.log("Audio play blocked:", e));
+            }
+            window.removeEventListener('click', startAudio);
+            window.removeEventListener('keydown', startAudio);
+        }
+        window.addEventListener('click', startAudio);
+        window.addEventListener('keydown', startAudio);
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            characterVelocityY += gravity;
+            characterTop += characterVelocityY;
+            if (characterMovingLeft) {
+                characterLeft = Math.max(0, characterLeft - moveSpeed);
+            }
+            if (characterMovingRight) {
+                characterLeft = Math.min(560, characterLeft + moveSpeed);
+            }
+            isOnPlatform = false;
+            for (let i = 0; i < currentBlocks.length; i++) {
+                let current = currentBlocks[i];
+                let block = document.getElementById("block" + current);
+                let hole = document.getElementById("hole" + current);
+                if (block && hole) {
+                    let blockTop = parseFloat(block.style.top);
+                    let holeLeft = parseFloat(hole.style.left);
+                    if (blockTop - 40 <= characterTop && blockTop > characterTop) {
+                        if (!(holeLeft <= characterLeft && holeLeft + 100 >= characterLeft + 40)) {
+                            isOnPlatform = true;
+                            characterVelocityY = 0;
+                            characterTop = blockTop - 40;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (characterTop <= 0 || characterTop > 760) {
+                endGame();
+            }
+            character.style.top = characterTop + "px";
+            character.style.left = characterLeft + "px";
+            requestAnimationFrame(gameLoop);
+        }
+
+        function spawnBlocks() {
+            if (!gameRunning) return;
+            let lastBlock = document.getElementById("block" + (counter - 1));
+            let lastBlockTop = lastBlock ? parseFloat(lastBlock.style.top) : 0;
+            if (lastBlockTop < 700 || counter === 0) {
+                let block = document.createElement("div");
+                let hole = document.createElement("div");
+                block.className = "block";
+                hole.className = "hole";
+                block.id = "block" + counter;
+                hole.id = "hole" + counter;
+                let blockTop = lastBlockTop + 100;
+                block.style.top = blockTop + "px";
+                hole.style.top = blockTop + "px";
+                let holeLeft = Math.floor(Math.random() * 500);
+                hole.style.left = holeLeft + "px";
+                game.appendChild(block);
+                game.appendChild(hole);
+                currentBlocks.push(counter);
+                counter++;
+                scoreDisplay.innerText = "SCORE: " + (counter - 1);
+            }
+            for (let i = 0; i < currentBlocks.length; i++) {
+                let current = currentBlocks[i];
+                let block = document.getElementById("block" + current);
+                let hole = document.getElementById("hole" + current);
+                if (block && hole) {
+                    let currentTop = parseFloat(block.style.top);
+                    block.style.top = (currentTop - 1.5) + "px";
+                    hole.style.top = (currentTop - 1.5) + "px";
+                    if (currentTop < -25) {
+                        currentBlocks.shift();
+                        block.remove();
+                        hole.remove();
+                        i--;
+                    }
+                }
+            }
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (!gameRunning) return;
+            if (event.key === "ArrowLeft") {
+                characterMovingLeft = true;
+                if (isOnPlatform) jump(-8);
+            }
+            if (event.key === "ArrowRight") {
+                characterMovingRight = true;
+                if (isOnPlatform) jump(-8);
+            }
+            if (event.key === " " && isOnPlatform) {
+                jump(-15);
+            }
+        });
+
+        document.addEventListener("keyup", (event) => {
+            if (event.key === "ArrowLeft") characterMovingLeft = false;
+            if (event.key === "ArrowRight") characterMovingRight = false;
+        });
+
+        function jump(force) {
+            characterVelocityY = force;
+            character.classList.add('jumping');
+            setTimeout(() => character.classList.remove('jumping'), 300);
+            if (soundEnabled) {
+                jumpSound.play().catch(e => console.log("Jump sound error:", e));
+            }
+        }
+
+        function endGame() {
+            gameRunning = false;
+            clearInterval(blockInterval);
+            gameOverScreen.classList.add('active');
+            finalScore.innerText = "YOUR SCORE: " + (counter - 1);
+            if (soundEnabled) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+                gameOverSound.play().catch(e => console.log("Game over sound error:", e));
+            }
+        }
+
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            init();
+        });
+
+        // Start the game on load
+        init();
+    </script>
+</body>
+</html>
